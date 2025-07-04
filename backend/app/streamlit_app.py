@@ -282,8 +282,10 @@ def main():
             
             # Combine input and output analysis
             all_detections = {}
-            all_detections.update(input_analysis)
-            all_detections.update(output_analysis)
+            if input_analysis and isinstance(input_analysis, dict):
+                all_detections.update(input_analysis)
+            if output_analysis and isinstance(output_analysis, dict):
+                all_detections.update(output_analysis)
             
             for detector, detection_result in all_detections.items():
                 if isinstance(detection_result, dict):

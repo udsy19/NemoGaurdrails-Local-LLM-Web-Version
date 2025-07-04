@@ -10,7 +10,7 @@ class ChatService:
     def __init__(self, model_manager, detection_service):
         self.model_manager = model_manager
         self.detection_service = detection_service
-        self.guardrails_manager = GuardrailsManager(model_manager)
+        self.guardrails_manager = GuardrailsManager(model_manager, detection_service=detection_service)
         self.chat_history = {}
         self.session_configs = {}
         

@@ -12,8 +12,9 @@ from app.utils.logger import app_logger
 from app.utils.exceptions import GuardrailsException
 
 class GuardrailsManager:
-    def __init__(self, model_manager, config_dir: str = "configs/guardrails"):
+    def __init__(self, model_manager, config_dir: str = "configs/guardrails", detection_service=None):
         self.model_manager = model_manager
+        self.detection_service = detection_service
         self.config_loader = ConfigLoader(config_dir)
         self.rails = None
         self.active_detectors = []
@@ -233,6 +234,34 @@ define flow check facts
             context['user_message'] = message
             context['active_detectors'] = self.active_detectors
             
+            # Run input detection through all detectors first
+            input_analysis = None
+            if self.detection_service:
+                app_logger.info("Running input detection through safety detectors...")
+                input_detection_result = await self.detection_service.run_detection(
+                    message,
+                    detector_names=self.active_detectors
+                )
+                
+                input_analysis = {
+                    "user_message": message,
+                    "active_detectors": self.active_detectors,
+                    "detection_results": input_detection_result.get("results", {}),
+                    "blocked": input_detection_result.get("blocked", False),
+                    "blocking_reasons": input_detection_result.get("blocking_reasons", [])
+                }
+                
+                # If input is blocked, return immediately
+                if input_detection_result.get("blocked", False):
+                    app_logger.warning(f"Input blocked by detectors: {input_detection_result.get('blocking_reasons', [])}")
+                    return {
+                        "response": "I cannot proceed with that request. Is there anything else I can help you with?",
+                        "blocked": True,
+                        "blocking_reasons": input_detection_result.get("blocking_reasons", []),
+                        "context": context,
+                        "input_analysis": input_analysis
+                    }
+            
             # Generate response through guardrails
             response = await self.rails.generate_async(
                 messages=[{"role": "user", "content": message}]
@@ -248,7 +277,8 @@ define flow check facts
                 "response": bot_response,
                 "blocked": False,
                 "blocking_reasons": [],
-                "context": context
+                "context": context,
+                "input_analysis": input_analysis
             }
             
             app_logger.info("Message processed successfully through guardrails")

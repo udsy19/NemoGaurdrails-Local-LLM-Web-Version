@@ -73,10 +73,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware
+# CORS middleware - simplified for Streamlit only
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:8501", "http://127.0.0.1:8501", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -112,8 +112,12 @@ app.include_router(config_router, prefix="/api/config", tags=["config"])
 
 @app.get("/")
 async def root():
-    # Redirect to Streamlit interface
-    return RedirectResponse(url="/streamlit")
+    return {
+        "message": "AI Safety System Backend", 
+        "status": "running",
+        "streamlit_interface": "http://localhost:8501",
+        "nemo_guardrails": NEMO_AVAILABLE
+    }
 
 @app.get("/api")
 async def api_root():

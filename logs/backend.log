@@ -409,3 +409,748 @@ INFO:     127.0.0.1:50774 - "GET /api/detectors/ HTTP/1.1" 200 OK
 INFO:     127.0.0.1:50776 - "POST /api/chat/message HTTP/1.1" 200 OK
 INFO:     127.0.0.1:50780 - "GET /api/chat/health HTTP/1.1" 200 OK
 INFO:     127.0.0.1:50782 - "GET /api/detectors/ HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/guardrails/guardrails_manager.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+[32m2025-07-04 01:41:56[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m65[0m - [1mShutting down AI Safety System...[0m
+[32m2025-07-04 01:41:56[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m207[0m - [1mCleaning up Model Manager...[0m
+[32m2025-07-04 01:41:56[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m216[0m - [1mModel Manager cleanup completed[0m
+INFO:     Application shutdown complete.
+INFO:     Finished server process [86750]
+INFO:     Started server process [87777]
+INFO:     Waiting for application startup.
+[32m2025-07-04 01:42:00[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m39[0m - [1mStarting AI Safety System...[0m
+[32m2025-07-04 01:42:00[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Model Manager...[0m
+[32m2025-07-04 01:42:00[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m51[0m - [1mOllama client initialized successfully[0m
+[32m2025-07-04 01:42:00[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: toxicity[0m
+[32m2025-07-04 01:42:00[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+Device set to use cpu
+/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend/venv/lib/python3.13/site-packages/transformers/pipelines/text_classification.py:106: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+[32m2025-07-04 01:42:02[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[32m2025-07-04 01:42:02[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector toxicity loaded successfully[0m
+[32m2025-07-04 01:42:02[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: pii[0m
+[32m2025-07-04 01:42:02[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m94[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[32m2025-07-04 01:42:03[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m99[0m - [1mPII detection model loaded successfully[0m
+[32m2025-07-04 01:42:03[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector pii loaded successfully[0m
+[32m2025-07-04 01:42:03[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: prompt_injection[0m
+[32m2025-07-04 01:42:03[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m190[0m - [1mLoading prompt injection detector[0m
+[32m2025-07-04 01:42:03[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m198[0m - [1mPrompt injection detector loaded successfully[0m
+[32m2025-07-04 01:42:03[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector prompt_injection loaded successfully[0m
+[32m2025-07-04 01:42:03[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: topic[0m
+[32m2025-07-04 01:42:03[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m268[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m279[0m - [1mTopic detection model loaded successfully[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector topic loaded successfully[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: fact_check[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m329[0m - [1mLoading fact-check detector[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m331[0m - [1mFact-check detector loaded successfully[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector fact_check loaded successfully[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: spam[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m388[0m - [1mLoading spam detector[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m390[0m - [1mSpam detector loaded successfully[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector spam loaded successfully[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m61[0m - [1mModel Manager initialized successfully[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m29[0m - [1mInitializing NeMo Guardrails...[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m47[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[32m2025-07-04 01:42:07[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/toxicity_config.yml, using default[0m
+[32m2025-07-04 01:42:07[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/pii_config.yml, using default[0m
+[32m2025-07-04 01:42:07[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/prompt_injection_config.yml, using default[0m
+[32m2025-07-04 01:42:07[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/topic_config.yml, using default[0m
+[32m2025-07-04 01:42:07[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/fact_check_config.yml, using default[0m
+[32m2025-07-04 01:42:07[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/spam_config.yml, using default[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m159[0m - [1mInput flows written successfully[0m
+[32m2025-07-04 01:42:07[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m216[0m - [1mOutput flows written successfully[0m
+[32m2025-07-04 01:42:09[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m80[0m - [1mGuardrails configuration loaded successfully[0m
+[32m2025-07-04 01:42:09[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m38[0m - [1mNeMo Guardrails initialized successfully[0m
+[32m2025-07-04 01:42:09[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36minitialize[0m:[36m21[0m - [1mChat service initialized successfully[0m
+[32m2025-07-04 01:42:09[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m56[0m - [1mAI Safety System initialized successfully (NeMo: True)[0m
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/guardrails/guardrails_manager.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+[32m2025-07-04 01:42:22[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m65[0m - [1mShutting down AI Safety System...[0m
+[32m2025-07-04 01:42:22[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m207[0m - [1mCleaning up Model Manager...[0m
+[32m2025-07-04 01:42:22[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m216[0m - [1mModel Manager cleanup completed[0m
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87777]
+INFO:     Started server process [87814]
+INFO:     Waiting for application startup.
+[32m2025-07-04 01:42:26[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m39[0m - [1mStarting AI Safety System...[0m
+[32m2025-07-04 01:42:26[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Model Manager...[0m
+[32m2025-07-04 01:42:26[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m51[0m - [1mOllama client initialized successfully[0m
+[32m2025-07-04 01:42:26[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: toxicity[0m
+[32m2025-07-04 01:42:26[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+Device set to use cpu
+/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend/venv/lib/python3.13/site-packages/transformers/pipelines/text_classification.py:106: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector toxicity loaded successfully[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: pii[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m94[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m99[0m - [1mPII detection model loaded successfully[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector pii loaded successfully[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: prompt_injection[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m190[0m - [1mLoading prompt injection detector[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m198[0m - [1mPrompt injection detector loaded successfully[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector prompt_injection loaded successfully[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: topic[0m
+[32m2025-07-04 01:42:27[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m268[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m279[0m - [1mTopic detection model loaded successfully[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector topic loaded successfully[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: fact_check[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m329[0m - [1mLoading fact-check detector[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m331[0m - [1mFact-check detector loaded successfully[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector fact_check loaded successfully[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: spam[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m388[0m - [1mLoading spam detector[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m390[0m - [1mSpam detector loaded successfully[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector spam loaded successfully[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m61[0m - [1mModel Manager initialized successfully[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m29[0m - [1mInitializing NeMo Guardrails...[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m47[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[32m2025-07-04 01:42:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/toxicity_config.yml, using default[0m
+[32m2025-07-04 01:42:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/pii_config.yml, using default[0m
+[32m2025-07-04 01:42:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/prompt_injection_config.yml, using default[0m
+[32m2025-07-04 01:42:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/topic_config.yml, using default[0m
+[32m2025-07-04 01:42:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/fact_check_config.yml, using default[0m
+[32m2025-07-04 01:42:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/spam_config.yml, using default[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m159[0m - [1mInput flows written successfully[0m
+[32m2025-07-04 01:42:31[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m216[0m - [1mOutput flows written successfully[0m
+[32m2025-07-04 01:42:33[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m80[0m - [1mGuardrails configuration loaded successfully[0m
+[32m2025-07-04 01:42:33[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m38[0m - [1mNeMo Guardrails initialized successfully[0m
+[32m2025-07-04 01:42:33[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36minitialize[0m:[36m21[0m - [1mChat service initialized successfully[0m
+[32m2025-07-04 01:42:33[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m56[0m - [1mAI Safety System initialized successfully (NeMo: True)[0m
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/services/chat_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+[32m2025-07-04 01:42:44[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m65[0m - [1mShutting down AI Safety System...[0m
+[32m2025-07-04 01:42:44[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m207[0m - [1mCleaning up Model Manager...[0m
+[32m2025-07-04 01:42:44[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m216[0m - [1mModel Manager cleanup completed[0m
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87814]
+INFO:     Started server process [87835]
+INFO:     Waiting for application startup.
+[32m2025-07-04 01:42:48[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m39[0m - [1mStarting AI Safety System...[0m
+[32m2025-07-04 01:42:48[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Model Manager...[0m
+[32m2025-07-04 01:42:48[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m51[0m - [1mOllama client initialized successfully[0m
+[32m2025-07-04 01:42:48[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: toxicity[0m
+[32m2025-07-04 01:42:48[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+Device set to use cpu
+/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend/venv/lib/python3.13/site-packages/transformers/pipelines/text_classification.py:106: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector toxicity loaded successfully[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: pii[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m94[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m99[0m - [1mPII detection model loaded successfully[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector pii loaded successfully[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: prompt_injection[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m190[0m - [1mLoading prompt injection detector[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m198[0m - [1mPrompt injection detector loaded successfully[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector prompt_injection loaded successfully[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: topic[0m
+[32m2025-07-04 01:42:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m268[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m279[0m - [1mTopic detection model loaded successfully[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector topic loaded successfully[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: fact_check[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m329[0m - [1mLoading fact-check detector[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m331[0m - [1mFact-check detector loaded successfully[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector fact_check loaded successfully[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: spam[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m388[0m - [1mLoading spam detector[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m390[0m - [1mSpam detector loaded successfully[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector spam loaded successfully[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m61[0m - [1mModel Manager initialized successfully[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m29[0m - [1mInitializing NeMo Guardrails...[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m47[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[32m2025-07-04 01:42:54[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/toxicity_config.yml, using default[0m
+[32m2025-07-04 01:42:54[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/pii_config.yml, using default[0m
+[32m2025-07-04 01:42:54[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/prompt_injection_config.yml, using default[0m
+[32m2025-07-04 01:42:54[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/topic_config.yml, using default[0m
+[32m2025-07-04 01:42:54[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/fact_check_config.yml, using default[0m
+[32m2025-07-04 01:42:54[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/spam_config.yml, using default[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m159[0m - [1mInput flows written successfully[0m
+[32m2025-07-04 01:42:54[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m216[0m - [1mOutput flows written successfully[0m
+[32m2025-07-04 01:42:57[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m80[0m - [1mGuardrails configuration loaded successfully[0m
+[32m2025-07-04 01:42:57[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m38[0m - [1mNeMo Guardrails initialized successfully[0m
+[32m2025-07-04 01:42:57[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36minitialize[0m:[36m21[0m - [1mChat service initialized successfully[0m
+[32m2025-07-04 01:42:57[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m56[0m - [1mAI Safety System initialized successfully (NeMo: True)[0m
+INFO:     Application startup complete.
+[32m2025-07-04 01:42:57[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: fuck you...[0m
+[32m2025-07-04 01:42:57[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 1d678996-e3b2-4a62-bd64-b7c1fb56378f: fuck you...[0m
+[32m2025-07-04 01:42:57[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: fuck you...[0m
+[32m2025-07-04 01:42:57[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 01:42:57[0m | [33m[1mWARNING [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m256[0m - [33m[1mInput blocked by detectors: ['Toxic content detected (confidence: 0.96)'][0m
+INFO:     127.0.0.1:51020 - "POST /api/chat/message HTTP/1.1" 200 OK
+[32m2025-07-04 01:43:07[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: Hello, how are you today?...[0m
+[32m2025-07-04 01:43:07[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 47ae8fb7-3582-4e05-8cd8-ec90a613a508: Hello, how are you today?...[0m
+[32m2025-07-04 01:43:07[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: Hello, how are you today?...[0m
+[32m2025-07-04 01:43:07[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 01:43:07[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m284[0m - [1mMessage processed successfully through guardrails[0m
+[32m2025-07-04 01:43:08[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m233[0m - [1mMessage processed successfully for session 47ae8fb7-3582-4e05-8cd8-ec90a613a508[0m
+INFO:     127.0.0.1:51032 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51061 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51063 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51065 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51067 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51069 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51071 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 01:43:52[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: hi
+...[0m
+[32m2025-07-04 01:43:52[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 03884236-78a8-42cc-a96a-f62680c47ae9: hi
+...[0m
+[32m2025-07-04 01:43:52[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: hi
+...[0m
+[32m2025-07-04 01:43:52[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 01:43:52[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m284[0m - [1mMessage processed successfully through guardrails[0m
+[32m2025-07-04 01:43:53[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m233[0m - [1mMessage processed successfully for session 03884236-78a8-42cc-a96a-f62680c47ae9[0m
+INFO:     127.0.0.1:51073 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51082 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51084 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51086 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51088 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51090 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51092 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 01:44:00[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: hi fuck
+...[0m
+[32m2025-07-04 01:44:00[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 59d65217-8bce-436d-b95f-b8e915ba3796: hi fuck
+...[0m
+[32m2025-07-04 01:44:00[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: hi fuck
+...[0m
+[32m2025-07-04 01:44:00[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 01:44:00[0m | [33m[1mWARNING [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m256[0m - [33m[1mInput blocked by detectors: ['Toxic content detected (confidence: 0.96)'][0m
+INFO:     127.0.0.1:51094 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51096 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51098 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51102 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51104 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51106 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51108 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 01:44:11[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: 509290092...[0m
+[32m2025-07-04 01:44:11[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 9f964116-6cb8-4e33-adb4-ba93553de1c4: 509290092...[0m
+[32m2025-07-04 01:44:11[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: 509290092...[0m
+[32m2025-07-04 01:44:11[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 01:44:11[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m284[0m - [1mMessage processed successfully through guardrails[0m
+[32m2025-07-04 01:44:11[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m233[0m - [1mMessage processed successfully for session 9f964116-6cb8-4e33-adb4-ba93553de1c4[0m
+INFO:     127.0.0.1:51110 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51114 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51116 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51119 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51121 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51123 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51125 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 01:44:23[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: 1111111111...[0m
+[32m2025-07-04 01:44:23[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 27ea7263-6aed-4d5c-9bcb-ff64e9bf85d5: 1111111111...[0m
+[32m2025-07-04 01:44:23[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: 1111111111...[0m
+[32m2025-07-04 01:44:23[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 01:44:23[0m | [33m[1mWARNING [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m256[0m - [33m[1mInput blocked by detectors: ['PII detected: phone'][0m
+INFO:     127.0.0.1:51127 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51129 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51131 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     Will watch for changes in these directories: ['/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend']
+ERROR:    [Errno 48] Address already in use
+INFO:     127.0.0.1:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51204 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51207 - "GET /api/config/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51204 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51207 - "GET /api/config/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51206 - "GET /api/detectors/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51207 - "GET /api/detectors/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51207 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51204 - "GET /api/config/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51209 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51207 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51204 - "GET /api/config/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51209 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51206 - "GET /api/detectors/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51209 - "GET /api/detectors/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /manifest.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51237 - "GET / HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:51237 - "GET /streamlit HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51237 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     Will watch for changes in these directories: ['/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend']
+ERROR:    [Errno 48] Address already in use
+INFO:     127.0.0.1:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51426 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51428 - "GET /api/config/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51426 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51428 - "GET /api/config/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51427 - "GET /api/detectors/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51428 - "GET /api/detectors/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51428 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51426 - "GET /api/config/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51430 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51428 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51434 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51430 - "GET /api/config/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51427 - "GET /api/detectors/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51434 - "GET /api/detectors/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:0 - "GET /manifest.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51458 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51469 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51548 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51550 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51553 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51555 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51558 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51560 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51587 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51595 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     Will watch for changes in these directories: ['/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend']
+ERROR:    [Errno 48] Address already in use
+INFO:     127.0.0.1:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51633 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51633 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51635 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51633 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51635 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51633 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51633 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51633 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51637 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51635 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51633 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51635 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51637 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51633 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /manifest.json HTTP/1.1" 404 Not Found
+WARNING:  WatchFiles detected changes in 'app/streamlit_app.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+[32m2025-07-04 01:52:08[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m65[0m - [1mShutting down AI Safety System...[0m
+[32m2025-07-04 01:52:08[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m207[0m - [1mCleaning up Model Manager...[0m
+[32m2025-07-04 01:52:08[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m216[0m - [1mModel Manager cleanup completed[0m
+INFO:     Application shutdown complete.
+INFO:     Finished server process [87835]
+INFO:     Started server process [90593]
+INFO:     Waiting for application startup.
+[32m2025-07-04 01:52:12[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m39[0m - [1mStarting AI Safety System...[0m
+[32m2025-07-04 01:52:12[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Model Manager...[0m
+[32m2025-07-04 01:52:12[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m51[0m - [1mOllama client initialized successfully[0m
+[32m2025-07-04 01:52:12[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: toxicity[0m
+[32m2025-07-04 01:52:12[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+Device set to use cpu
+/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend/venv/lib/python3.13/site-packages/transformers/pipelines/text_classification.py:106: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector toxicity loaded successfully[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: pii[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m94[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m99[0m - [1mPII detection model loaded successfully[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector pii loaded successfully[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: prompt_injection[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m190[0m - [1mLoading prompt injection detector[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m198[0m - [1mPrompt injection detector loaded successfully[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector prompt_injection loaded successfully[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: topic[0m
+[32m2025-07-04 01:52:14[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m268[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m279[0m - [1mTopic detection model loaded successfully[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector topic loaded successfully[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: fact_check[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m329[0m - [1mLoading fact-check detector[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m331[0m - [1mFact-check detector loaded successfully[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector fact_check loaded successfully[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: spam[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m388[0m - [1mLoading spam detector[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m390[0m - [1mSpam detector loaded successfully[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector spam loaded successfully[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m61[0m - [1mModel Manager initialized successfully[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m29[0m - [1mInitializing NeMo Guardrails...[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m47[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[32m2025-07-04 01:52:17[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/toxicity_config.yml, using default[0m
+[32m2025-07-04 01:52:17[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/pii_config.yml, using default[0m
+[32m2025-07-04 01:52:17[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/prompt_injection_config.yml, using default[0m
+[32m2025-07-04 01:52:17[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/topic_config.yml, using default[0m
+[32m2025-07-04 01:52:17[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/fact_check_config.yml, using default[0m
+[32m2025-07-04 01:52:17[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/spam_config.yml, using default[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m159[0m - [1mInput flows written successfully[0m
+[32m2025-07-04 01:52:17[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m216[0m - [1mOutput flows written successfully[0m
+[32m2025-07-04 01:52:19[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m80[0m - [1mGuardrails configuration loaded successfully[0m
+[32m2025-07-04 01:52:19[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m38[0m - [1mNeMo Guardrails initialized successfully[0m
+[32m2025-07-04 01:52:19[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36minitialize[0m:[36m21[0m - [1mChat service initialized successfully[0m
+[32m2025-07-04 01:52:19[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m56[0m - [1mAI Safety System initialized successfully (NeMo: True)[0m
+INFO:     Application startup complete.
+INFO:     127.0.0.1:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51728 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51728 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51730 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51728 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51730 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51728 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51728 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51728 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51730 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51732 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51730 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51728 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51732 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51728 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /manifest.json HTTP/1.1" 404 Not Found
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+[32m2025-07-04 01:52:41[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m65[0m - [1mShutting down AI Safety System...[0m
+[32m2025-07-04 01:52:41[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m207[0m - [1mCleaning up Model Manager...[0m
+[32m2025-07-04 01:52:41[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m216[0m - [1mModel Manager cleanup completed[0m
+INFO:     Application shutdown complete.
+INFO:     Finished server process [90593]
+INFO:     Started server process [90634]
+INFO:     Waiting for application startup.
+[32m2025-07-04 01:52:44[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m39[0m - [1mStarting AI Safety System...[0m
+[32m2025-07-04 01:52:44[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Model Manager...[0m
+[32m2025-07-04 01:52:44[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m51[0m - [1mOllama client initialized successfully[0m
+[32m2025-07-04 01:52:44[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: toxicity[0m
+[32m2025-07-04 01:52:44[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+Device set to use cpu
+/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend/venv/lib/python3.13/site-packages/transformers/pipelines/text_classification.py:106: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector toxicity loaded successfully[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: pii[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m94[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m99[0m - [1mPII detection model loaded successfully[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector pii loaded successfully[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: prompt_injection[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m190[0m - [1mLoading prompt injection detector[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m198[0m - [1mPrompt injection detector loaded successfully[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector prompt_injection loaded successfully[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: topic[0m
+[32m2025-07-04 01:52:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m268[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m279[0m - [1mTopic detection model loaded successfully[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector topic loaded successfully[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: fact_check[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m329[0m - [1mLoading fact-check detector[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m331[0m - [1mFact-check detector loaded successfully[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector fact_check loaded successfully[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: spam[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m388[0m - [1mLoading spam detector[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m390[0m - [1mSpam detector loaded successfully[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector spam loaded successfully[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m61[0m - [1mModel Manager initialized successfully[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m29[0m - [1mInitializing NeMo Guardrails...[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m47[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[32m2025-07-04 01:52:50[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/toxicity_config.yml, using default[0m
+[32m2025-07-04 01:52:50[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/pii_config.yml, using default[0m
+[32m2025-07-04 01:52:50[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/prompt_injection_config.yml, using default[0m
+[32m2025-07-04 01:52:50[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/topic_config.yml, using default[0m
+[32m2025-07-04 01:52:50[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/fact_check_config.yml, using default[0m
+[32m2025-07-04 01:52:50[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/spam_config.yml, using default[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m159[0m - [1mInput flows written successfully[0m
+[32m2025-07-04 01:52:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m216[0m - [1mOutput flows written successfully[0m
+[32m2025-07-04 01:52:52[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m80[0m - [1mGuardrails configuration loaded successfully[0m
+[32m2025-07-04 01:52:52[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m38[0m - [1mNeMo Guardrails initialized successfully[0m
+[32m2025-07-04 01:52:52[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36minitialize[0m:[36m21[0m - [1mChat service initialized successfully[0m
+[32m2025-07-04 01:52:52[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m56[0m - [1mAI Safety System initialized successfully (NeMo: True)[0m
+INFO:     Application startup complete.
+INFO:     Will watch for changes in these directories: ['/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend']
+ERROR:    [Errno 48] Address already in use
+INFO:     127.0.0.1:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51804 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51804 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51806 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51804 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51806 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51804 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51804 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51804 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51806 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51808 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51806 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51804 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51808 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51804 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /manifest.json HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:0 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51848 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51850 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51853 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51855 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51857 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51859 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 01:55:46[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: hi...[0m
+[32m2025-07-04 01:55:46[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 940150da-c7d8-4a78-bc06-8d77ac29251c: hi...[0m
+[32m2025-07-04 01:55:46[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: hi...[0m
+[32m2025-07-04 01:55:46[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 01:55:46[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m284[0m - [1mMessage processed successfully through guardrails[0m
+[32m2025-07-04 01:55:47[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m233[0m - [1mMessage processed successfully for session 940150da-c7d8-4a78-bc06-8d77ac29251c[0m
+INFO:     127.0.0.1:51861 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51868 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51870 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51881 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51883 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51885 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51887 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 01:56:01[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: suicide...[0m
+[32m2025-07-04 01:56:01[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session c2ff3496-8faf-4fd0-aa61-7c98eeb2baea: suicide...[0m
+[32m2025-07-04 01:56:01[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: suicide...[0m
+[32m2025-07-04 01:56:01[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 01:56:01[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m284[0m - [1mMessage processed successfully through guardrails[0m
+[32m2025-07-04 01:56:06[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m233[0m - [1mMessage processed successfully for session c2ff3496-8faf-4fd0-aa61-7c98eeb2baea[0m
+INFO:     127.0.0.1:51889 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+[32m2025-07-04 01:56:06[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m65[0m - [1mShutting down AI Safety System...[0m
+[32m2025-07-04 01:56:06[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m207[0m - [1mCleaning up Model Manager...[0m
+[32m2025-07-04 01:56:06[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mcleanup[0m:[36m216[0m - [1mModel Manager cleanup completed[0m
+INFO:     Application shutdown complete.
+INFO:     Finished server process [90634]
+INFO:     Stopping reloader process [86127]
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/multiprocessing/resource_tracker.py:276: UserWarning: resource_tracker: There appear to be 10 leaked semaphore objects to clean up at shutdown: {'/loky-90593-wq8nxm6k', '/loky-86609-oc8biwar', '/loky-86742-jcz_afe5', '/loky-87777-44zzefx6', '/loky-86390-utqui66z', '/loky-86750-2q6sfjyz', '/loky-90634-j3bjy63r', '/loky-87835-7o5s9fr0', '/loky-86130-el319nx1', '/loky-87814-5g6k05rg'}
+  warnings.warn(
+INFO:     Will watch for changes in these directories: ['/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [91556] using WatchFiles
+INFO:     Started server process [91559]
+INFO:     Waiting for application startup.
+[32m2025-07-04 01:58:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m39[0m - [1mStarting AI Safety System...[0m
+[32m2025-07-04 01:58:43[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Model Manager...[0m
+[32m2025-07-04 01:58:43[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m51[0m - [1mOllama client initialized successfully[0m
+[32m2025-07-04 01:58:43[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: toxicity[0m
+[32m2025-07-04 01:58:43[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+Device set to use cpu
+/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend/venv/lib/python3.13/site-packages/transformers/pipelines/text_classification.py:106: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+[32m2025-07-04 01:58:44[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[32m2025-07-04 01:58:44[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector toxicity loaded successfully[0m
+[32m2025-07-04 01:58:44[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: pii[0m
+[32m2025-07-04 01:58:44[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m94[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[32m2025-07-04 01:58:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m99[0m - [1mPII detection model loaded successfully[0m
+[32m2025-07-04 01:58:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector pii loaded successfully[0m
+[32m2025-07-04 01:58:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: prompt_injection[0m
+[32m2025-07-04 01:58:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m190[0m - [1mLoading prompt injection detector[0m
+[32m2025-07-04 01:58:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m198[0m - [1mPrompt injection detector loaded successfully[0m
+[32m2025-07-04 01:58:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector prompt_injection loaded successfully[0m
+[32m2025-07-04 01:58:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: topic[0m
+[32m2025-07-04 01:58:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m268[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m279[0m - [1mTopic detection model loaded successfully[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector topic loaded successfully[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: fact_check[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m329[0m - [1mLoading fact-check detector[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m331[0m - [1mFact-check detector loaded successfully[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector fact_check loaded successfully[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: spam[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m388[0m - [1mLoading spam detector[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m390[0m - [1mSpam detector loaded successfully[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector spam loaded successfully[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m61[0m - [1mModel Manager initialized successfully[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m29[0m - [1mInitializing NeMo Guardrails...[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m47[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[32m2025-07-04 01:58:48[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/toxicity_config.yml, using default[0m
+[32m2025-07-04 01:58:48[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/pii_config.yml, using default[0m
+[32m2025-07-04 01:58:48[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/prompt_injection_config.yml, using default[0m
+[32m2025-07-04 01:58:48[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/topic_config.yml, using default[0m
+[32m2025-07-04 01:58:48[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/fact_check_config.yml, using default[0m
+[32m2025-07-04 01:58:48[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/spam_config.yml, using default[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m159[0m - [1mInput flows written successfully[0m
+[32m2025-07-04 01:58:48[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m216[0m - [1mOutput flows written successfully[0m
+INFO:     Will watch for changes in these directories: ['/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [92529] using WatchFiles
+INFO:     Started server process [92532]
+INFO:     Waiting for application startup.
+[32m2025-07-04 02:06:26[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m39[0m - [1mStarting AI Safety System...[0m
+[32m2025-07-04 02:06:26[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Model Manager...[0m
+[32m2025-07-04 02:06:26[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m51[0m - [1mOllama client initialized successfully[0m
+[32m2025-07-04 02:06:26[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: toxicity[0m
+[32m2025-07-04 02:06:26[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+Device set to use cpu
+/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend/venv/lib/python3.13/site-packages/transformers/pipelines/text_classification.py:106: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector toxicity loaded successfully[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: pii[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m94[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m99[0m - [1mPII detection model loaded successfully[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector pii loaded successfully[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: prompt_injection[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m190[0m - [1mLoading prompt injection detector[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m198[0m - [1mPrompt injection detector loaded successfully[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector prompt_injection loaded successfully[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: topic[0m
+[32m2025-07-04 02:06:28[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m268[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m279[0m - [1mTopic detection model loaded successfully[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector topic loaded successfully[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: fact_check[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m329[0m - [1mLoading fact-check detector[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m331[0m - [1mFact-check detector loaded successfully[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector fact_check loaded successfully[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: spam[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m388[0m - [1mLoading spam detector[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m390[0m - [1mSpam detector loaded successfully[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector spam loaded successfully[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m61[0m - [1mModel Manager initialized successfully[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m29[0m - [1mInitializing NeMo Guardrails...[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m47[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[32m2025-07-04 02:06:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/toxicity_config.yml, using default[0m
+[32m2025-07-04 02:06:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/pii_config.yml, using default[0m
+[32m2025-07-04 02:06:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/prompt_injection_config.yml, using default[0m
+[32m2025-07-04 02:06:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/topic_config.yml, using default[0m
+[32m2025-07-04 02:06:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/fact_check_config.yml, using default[0m
+[32m2025-07-04 02:06:31[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/spam_config.yml, using default[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m159[0m - [1mInput flows written successfully[0m
+[32m2025-07-04 02:06:31[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m216[0m - [1mOutput flows written successfully[0m
+[32m2025-07-04 02:06:33[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m80[0m - [1mGuardrails configuration loaded successfully[0m
+[32m2025-07-04 02:06:33[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m38[0m - [1mNeMo Guardrails initialized successfully[0m
+[32m2025-07-04 02:06:33[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36minitialize[0m:[36m21[0m - [1mChat service initialized successfully[0m
+[32m2025-07-04 02:06:33[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m56[0m - [1mAI Safety System initialized successfully (NeMo: True)[0m
+INFO:     Application startup complete.
+INFO:     Will watch for changes in these directories: ['/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [92786] using WatchFiles
+INFO:     Started server process [92789]
+INFO:     Waiting for application startup.
+[32m2025-07-04 02:08:33[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m39[0m - [1mStarting AI Safety System...[0m
+[32m2025-07-04 02:08:33[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Model Manager...[0m
+[32m2025-07-04 02:08:33[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m51[0m - [1mOllama client initialized successfully[0m
+[32m2025-07-04 02:08:33[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: toxicity[0m
+[32m2025-07-04 02:08:33[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+Device set to use cpu
+/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM/backend/venv/lib/python3.13/site-packages/transformers/pipelines/text_classification.py:106: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector toxicity loaded successfully[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: pii[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m94[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m99[0m - [1mPII detection model loaded successfully[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector pii loaded successfully[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: prompt_injection[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m190[0m - [1mLoading prompt injection detector[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m198[0m - [1mPrompt injection detector loaded successfully[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector prompt_injection loaded successfully[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: topic[0m
+[32m2025-07-04 02:08:35[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m268[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m279[0m - [1mTopic detection model loaded successfully[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector topic loaded successfully[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: fact_check[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m329[0m - [1mLoading fact-check detector[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m331[0m - [1mFact-check detector loaded successfully[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector fact_check loaded successfully[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: spam[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m388[0m - [1mLoading spam detector[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m390[0m - [1mSpam detector loaded successfully[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector spam loaded successfully[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m61[0m - [1mModel Manager initialized successfully[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m29[0m - [1mInitializing NeMo Guardrails...[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m47[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[32m2025-07-04 02:08:40[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/toxicity_config.yml, using default[0m
+[32m2025-07-04 02:08:40[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/pii_config.yml, using default[0m
+[32m2025-07-04 02:08:40[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/prompt_injection_config.yml, using default[0m
+[32m2025-07-04 02:08:40[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/topic_config.yml, using default[0m
+[32m2025-07-04 02:08:40[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/fact_check_config.yml, using default[0m
+[32m2025-07-04 02:08:40[0m | [33m[1mWARNING [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m41[0m - [33m[1mDetector config not found at configs/guardrails/spam_config.yml, using default[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m159[0m - [1mInput flows written successfully[0m
+[32m2025-07-04 02:08:40[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m216[0m - [1mOutput flows written successfully[0m
+[32m2025-07-04 02:08:42[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m80[0m - [1mGuardrails configuration loaded successfully[0m
+[32m2025-07-04 02:08:42[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m38[0m - [1mNeMo Guardrails initialized successfully[0m
+[32m2025-07-04 02:08:42[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36minitialize[0m:[36m21[0m - [1mChat service initialized successfully[0m
+[32m2025-07-04 02:08:42[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m56[0m - [1mAI Safety System initialized successfully (NeMo: True)[0m
+INFO:     Application startup complete.
+INFO:     127.0.0.1:52653 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52655 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52658 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52660 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52662 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52664 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 02:08:53[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: hello chief
+...[0m
+[32m2025-07-04 02:08:53[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session c106f9c0-8858-4143-9d35-ea34f57fa1f4: hello chief
+...[0m
+[32m2025-07-04 02:08:53[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: hello chief
+...[0m
+[32m2025-07-04 02:08:53[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 02:08:54[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m284[0m - [1mMessage processed successfully through guardrails[0m
+[32m2025-07-04 02:08:55[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m233[0m - [1mMessage processed successfully for session c106f9c0-8858-4143-9d35-ea34f57fa1f4[0m
+INFO:     127.0.0.1:52666 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52673 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52675 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52679 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52681 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52683 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52685 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 02:09:03[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: hello fucktard
+...[0m
+[32m2025-07-04 02:09:03[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session da72c05f-abcd-429c-90c5-ece5d1f8c61c: hello fucktard
+...[0m
+[32m2025-07-04 02:09:03[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: hello fucktard
+...[0m
+[32m2025-07-04 02:09:03[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 02:09:03[0m | [33m[1mWARNING [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m256[0m - [33m[1mInput blocked by detectors: ['Toxic content detected (confidence: 0.95)'][0m
+INFO:     127.0.0.1:52687 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52689 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52691 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54174 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54176 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54182 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54184 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54186 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54188 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 11:17:34[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: what do you do
+...[0m
+[32m2025-07-04 11:17:34[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 3a042df1-0a43-45a2-8484-fad6eeda020d: what do you do
+...[0m
+[32m2025-07-04 11:17:34[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: what do you do
+...[0m
+[32m2025-07-04 11:17:34[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 11:17:34[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m284[0m - [1mMessage processed successfully through guardrails[0m
+[32m2025-07-04 11:17:44[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m233[0m - [1mMessage processed successfully for session 3a042df1-0a43-45a2-8484-fad6eeda020d[0m
+INFO:     127.0.0.1:54190 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54197 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54199 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54201 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54203 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54205 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54207 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 11:17:56[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: what the fuck do you do
+...[0m
+[32m2025-07-04 11:17:56[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 7cd34a29-d964-4835-839b-f78ea58c440b: what the fuck do you do
+...[0m
+[32m2025-07-04 11:17:56[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: what the fuck do you do
+...[0m
+[32m2025-07-04 11:17:56[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 11:17:56[0m | [33m[1mWARNING [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m256[0m - [33m[1mInput blocked by detectors: ['Toxic content detected (confidence: 0.95)'][0m
+INFO:     127.0.0.1:54209 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54211 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54213 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54216 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54218 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54220 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54222 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 11:18:13[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: remember my personal information...[0m
+[32m2025-07-04 11:18:13[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 0cbf6cd2-ab78-47f2-a0a8-51a63a2efdbb: remember my personal information...[0m
+[32m2025-07-04 11:18:13[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: remember my personal information...[0m
+[32m2025-07-04 11:18:13[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 11:18:13[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m284[0m - [1mMessage processed successfully through guardrails[0m
+[32m2025-07-04 11:18:19[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m233[0m - [1mMessage processed successfully for session 0cbf6cd2-ab78-47f2-a0a8-51a63a2efdbb[0m
+INFO:     127.0.0.1:54224 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54228 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54230 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54232 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54234 - "GET /api/detectors/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54236 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54238 - "GET /api/detectors/ HTTP/1.1" 200 OK
+[32m2025-07-04 11:18:35[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m53[0m - [1mReceived chat message: remember my number 9911991199...[0m
+[32m2025-07-04 11:18:35[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m48[0m - [1mProcessing message for session 498bdf5f-afc8-433f-b857-d64d81f0a7c4: remember my number 9911991199...[0m
+[32m2025-07-04 11:18:35[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: remember my number 9911991199...[0m
+[32m2025-07-04 11:18:35[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-04 11:18:36[0m | [33m[1mWARNING [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m256[0m - [33m[1mInput blocked by detectors: ['PII detected: phone'][0m
+INFO:     127.0.0.1:54240 - "POST /api/chat/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54242 - "GET /api/chat/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54244 - "GET /api/detectors/ HTTP/1.1" 200 OK
