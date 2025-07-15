@@ -39,12 +39,13 @@ def send_chat_message(message, detectors=None):
     """Send message to chat API"""
     try:
         payload = {"message": message}
-        if detectors:
-            # Convert detector list to config format
-            detector_config = {}
+        # Always send detector config, even if empty list
+        # Empty list means no detectors should be active
+        detector_config = {}
+        if detectors is not None:  # Check for None, not just truthiness
             for detector in detectors:
                 detector_config[detector] = {"enabled": True}
-            payload["detector_config"] = detector_config
+        payload["detector_config"] = detector_config
         
         response = requests.post(
             f"{BACKEND_URL}/api/chat/message",
@@ -189,8 +190,60 @@ def main():
     if st.session_state.chat_history:
         st.subheader("📝 Chat History")
         
-        for i, entry in enumerate(reversed(st.session_state.chat_history)):
-            with st.expander(f"Message {len(st.session_state.chat_history) - i} - {entry['timestamp'].strftime('%H:%M:%S')}", expanded=(i == 0)):
+        # Add custom CSS for better scrolling behavior
+        st.markdown("""
+        <style>
+        .main .block-container {
+            max-width: 100%;
+            padding-top: 1rem;
+        }
+        .stExpander > div:first-child {
+            background-color: #f0f2f6;
+        }
+        /* Auto scroll to bottom */
+        .element-container:last-child {
+            margin-bottom: 20px;
+        }
+        </style>
+        <script>
+        // Auto scroll to bottom when new messages are added
+        setTimeout(function() {
+            window.scrollTo(0, document.body.scrollHeight);
+        }, 100);
+        </script>
+        """, unsafe_allow_html=True)
+        
+        # Chat controls
+        col1, col2, col3 = st.columns([2, 1, 1])
+        with col1:
+            show_recent_only = st.checkbox("Show recent messages only", value=True)
+        with col2:
+            if len(st.session_state.chat_history) > 0:
+                st.caption(f"Total: {len(st.session_state.chat_history)} messages")
+        
+        # Always show messages in chronological order (oldest first, newest last)
+        messages_to_display = st.session_state.chat_history
+        
+        # If showing recent only, limit to last 5 messages
+        if show_recent_only and len(st.session_state.chat_history) > 5:
+            messages_to_display = st.session_state.chat_history[-5:]
+            st.info(f"Showing last 5 messages. Uncheck 'Show recent messages only' to see all {len(st.session_state.chat_history)} messages.")
+        
+        # Display messages in chronological order (oldest to newest)
+        for i, entry in enumerate(messages_to_display):
+            # Calculate the actual message number
+            if show_recent_only and len(st.session_state.chat_history) > 5:
+                message_num = len(st.session_state.chat_history) - 5 + i + 1
+            else:
+                message_num = i + 1
+            
+            # Create a unique key for each message
+            message_key = f"msg_{message_num}_{entry['timestamp'].strftime('%H%M%S')}"
+            
+            # Expand the most recent message, collapse others
+            is_most_recent = (i == len(messages_to_display) - 1)
+            
+            with st.expander(f"Message {message_num} - {entry['timestamp'].strftime('%H:%M:%S')}", expanded=is_most_recent, key=message_key):
                 
                 # User message
                 st.markdown("**👤 User:**")
@@ -268,6 +321,18 @@ def main():
                                         st.success(f"✅ **{detector.title()}**: Safe (Confidence: {confidence:.2f})")
                 
                 st.divider()
+        
+        # Auto-scroll anchor point
+        if st.session_state.chat_history:
+            st.markdown("""
+            <div id="chat-bottom"></div>
+            <script>
+            // Force scroll to bottom after page load
+            setTimeout(function() {
+                document.getElementById('chat-bottom').scrollIntoView({behavior: 'smooth'});
+            }, 200);
+            </script>
+            """, unsafe_allow_html=True)
     
     # Analytics Dashboard
     if st.session_state.chat_history:

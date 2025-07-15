@@ -1,0 +1,112 @@
+INFO:     Will watch for changes in these directories: ['/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [9718] using WatchFiles
+/Users/udsy/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[system] AI Safety System with enhanced ML capabilities[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m71[0m - [1m[models] ✅ Loading ML-based safety detectors...[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[api] All API endpoints ready[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[frontend] React and Streamlit frontends supported[0m
+INFO:     Started server process [9721]
+INFO:     Waiting for application startup.
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m121[0m - [1mStarting AI Safety System with enhanced resilience...[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[system] Starting AI Safety System with ML-based detection...[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.main[0m:[36m_setup_health_monitoring[0m:[36m240[0m - [1mHealth monitoring setup completed[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.main[0m:[36m_setup_graceful_degradation[0m:[36m293[0m - [1mGraceful degradation setup completed[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[models] Loading ML-based safety detectors...[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Model Manager...[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m51[0m - [1mOllama client initialized successfully[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: toxicity[0m
+[32m2025-07-15 14:33:55[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+Device set to use cpu
+/Users/udsy/Library/Python/3.9/lib/python/site-packages/transformers/pipelines/text_classification.py:106: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector toxicity loaded successfully[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: pii[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m94[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m99[0m - [1mPII detection model loaded successfully[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector pii loaded successfully[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: prompt_injection[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m190[0m - [1mLoading prompt injection detector[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m198[0m - [1mPrompt injection detector loaded successfully[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector prompt_injection loaded successfully[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: topic[0m
+[32m2025-07-15 14:33:57[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m268[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m279[0m - [1mTopic detection model loaded successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector topic loaded successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: fact_check[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m329[0m - [1mLoading fact-check detector[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m331[0m - [1mFact-check detector loaded successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector fact_check loaded successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m73[0m - [1mLoading detector: spam[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m388[0m - [1mLoading spam detector[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m390[0m - [1mSpam detector loaded successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m84[0m - [1mDetector spam loaded successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m61[0m - [1mModel Manager initialized successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m71[0m - [1m[models] ✅ All ML detectors loaded successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m29[0m - [1mInitializing NeMo Guardrails...[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m47[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for toxicity[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for pii[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for prompt_injection[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for topic[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for fact_check[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for spam[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m159[0m - [1mInput flows written successfully[0m
+[32m2025-07-15 14:34:02[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m216[0m - [1mOutput flows written successfully[0m
+[32m2025-07-15 14:34:05[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m80[0m - [1mGuardrails configuration loaded successfully[0m
+[32m2025-07-15 14:34:05[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m38[0m - [1mNeMo Guardrails initialized successfully[0m
+[32m2025-07-15 14:34:05[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36minitialize[0m:[36m22[0m - [1mChat service initialized successfully[0m
+[32m2025-07-15 14:34:05[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m71[0m - [1m[services] ✅ Chat and detection services initialized[0m
+[32m2025-07-15 14:34:06[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m160[0m - [1mInitial diagnostics completed: 3 checks[0m
+[32m2025-07-15 14:34:09[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m164[0m - [1mSystem health status: unhealthy[0m
+[32m2025-07-15 14:34:09[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m71[0m - [1m[system] ✅ AI Safety System initialized successfully (NeMo: True)[0m
+[32m2025-07-15 14:34:09[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[api] All API endpoints ready[0m
+[32m2025-07-15 14:34:09[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[frontend] React and Streamlit frontends supported[0m
+[32m2025-07-15 14:34:09[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m176[0m - [1mAI Safety System initialized successfully (NeMo: True)[0m
+INFO:     Application startup complete.
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m493[0m - [1m[REQUEST] POST /api/chat/message → AI Chat Service | Client: 127.0.0.1 | Agent: curl/8.7.1[0m
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[request] 🔵 CHAT → AI Chat Service | POST /api/chat/message | Client: 127.0.0.1[0m
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m55[0m - [1mReceived chat message: fuck you asshole piece of shit...[0m
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m57[0m - [1mProcessing message for session test_session_fixed: fuck you asshole piece of shit...[0m
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: fuck you asshole piece of shit...[0m
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mset_active_detectors[0m:[36m175[0m - [1mActive detectors updated: ['spam', 'prompt_injection', 'fact_check', 'topic', 'toxicity', 'pii'][0m
+[32m2025-07-15 14:34:32[0m | [33m[1mWARNING [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m256[0m - [33m[1mInput blocked by detectors: ['Toxic content detected (confidence: 0.96)'][0m
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m215[0m - [1mTracking blocked request: status=RequestStatus.BLOCKED, reasons=['Toxic content detected (confidence: 0.96)'], detection_results={'user_message': 'fuck you asshole piece of shit', 'active_detectors': ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'], 'detection_results': {'spam': {'detector': 'spam', 'result': {'is_spam': False, 'confidence': 0.0, 'spam_indicators': [], 'excessive_caps': False, 'excessive_punctuation': False, 'threshold': 0.6}, 'text_length': 30, 'config': {'threshold': 0.6}}, 'prompt_injection': {'detector': 'prompt_injection', 'result': {'is_injection': False, 'confidence': 0.0, 'matched_patterns': [], 'threshold': 0.5}, 'text_length': 30, 'config': {'threshold': 0.5}}, 'fact_check': {'detector': 'fact_check', 'result': {'needs_fact_check': False, 'confidence': 0.0, 'factual_claims': [], 'has_numbers': False, 'threshold': 0.5}, 'text_length': 30, 'config': {'threshold': 0.5}}, 'topic': {'detector': 'topic', 'result': {'has_restricted_topic': False, 'similarities': {'violence': 0.24305424094200134, 'hate_speech': 0.24127525091171265, 'illegal_activities': 0.18489345908164978, 'adult_content': 0.1982053816318512}, 'max_similarity': 0.24305424094200134, 'threshold': 0.7}, 'text_length': 30, 'config': {'threshold': 0.7}}, 'toxicity': {'detector': 'toxicity', 'result': {'is_toxic': True, 'confidence': 0.9617893099784851, 'scores': {'non-toxic': 0.038210678845644, 'toxic': 0.9617893099784851}, 'threshold': 0.7}, 'text_length': 30, 'config': {'threshold': 0.7}}, 'pii': {'detector': 'pii', 'result': {'has_pii': False, 'entities': [], 'patterns': [], 'sensitivity': 0.8}, 'text_length': 30, 'config': {'sensitivity': 0.8}}}, 'blocked': True, 'blocking_reasons': ['Toxic content detected (confidence: 0.96)']}[0m
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m506[0m - [1m[RESPONSE] 200 SUCCESS for POST /api/chat/message (0.114s)[0m
+[32m2025-07-15 14:34:32[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[response] ✅ SUCCESS 200 | AI Chat Service | 0.114s[0m
+INFO:     127.0.0.1:62036 - "POST /api/chat/message HTTP/1.1" 200 OK
+[32m2025-07-15 14:34:41[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m493[0m - [1m[REQUEST] GET /api/analytics/summary → Analytics Service | Client: 127.0.0.1 | Agent: curl/8.7.1[0m
+[32m2025-07-15 14:34:41[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[request] 🔵 ANALYTICS → Analytics Service | GET /api/analytics/summary | Client: 127.0.0.1[0m
+[32m2025-07-15 14:34:41[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m506[0m - [1m[RESPONSE] 200 SUCCESS for GET /api/analytics/summary (0.001s)[0m
+[32m2025-07-15 14:34:41[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[response] ✅ SUCCESS 200 | Analytics Service | 0.001s[0m
+INFO:     127.0.0.1:62052 - "GET /api/analytics/summary?hours=1 HTTP/1.1" 200 OK
+[32m2025-07-15 14:34:47[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m493[0m - [1m[REQUEST] GET /api/analytics/summary → Analytics Service | Client: 127.0.0.1 | Agent: curl/8.7.1[0m
+[32m2025-07-15 14:34:47[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[request] 🔵 ANALYTICS → Analytics Service | GET /api/analytics/summary | Client: 127.0.0.1[0m
+[32m2025-07-15 14:34:47[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m506[0m - [1m[RESPONSE] 200 SUCCESS for GET /api/analytics/summary (0.001s)[0m
+[32m2025-07-15 14:34:47[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[response] ✅ SUCCESS 200 | Analytics Service | 0.001s[0m
+INFO:     127.0.0.1:62063 - "GET /api/analytics/summary?hours=1 HTTP/1.1" 200 OK
+[32m2025-07-15 14:34:59[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m493[0m - [1m[REQUEST] POST /api/chat/message → AI Chat Service | Client: 127.0.0.1 | Agent: curl/8.7.1[0m
+[32m2025-07-15 14:34:59[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[request] 🔵 CHAT → AI Chat Service | POST /api/chat/message | Client: 127.0.0.1[0m
+[32m2025-07-15 14:34:59[0m | [1mINFO    [0m | [36mapp.api.chat[0m:[36msend_message[0m:[36m55[0m - [1mReceived chat message: Hello, how are you today?...[0m
+[32m2025-07-15 14:34:59[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m57[0m - [1mProcessing message for session test_session_allowed: Hello, how are you today?...[0m
+[32m2025-07-15 14:34:59[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m228[0m - [1mProcessing message through guardrails: Hello, how are you today?...[0m
+[32m2025-07-15 14:34:59[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m240[0m - [1mRunning input detection through safety detectors...[0m
+[32m2025-07-15 14:34:59[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mset_active_detectors[0m:[36m175[0m - [1mActive detectors updated: ['spam', 'prompt_injection', 'fact_check', 'topic', 'toxicity', 'pii'][0m
+[32m2025-07-15 14:34:59[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mprocess_message[0m:[36m284[0m - [1mMessage processed successfully through guardrails[0m
+[32m2025-07-15 14:35:00[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mset_active_detectors[0m:[36m175[0m - [1mActive detectors updated: ['toxicity', 'fact_check'][0m
+[32m2025-07-15 14:35:00[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36mprocess_message[0m:[36m332[0m - [1mMessage processed successfully for session test_session_allowed[0m
+[32m2025-07-15 14:35:00[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m506[0m - [1m[RESPONSE] 200 SUCCESS for POST /api/chat/message (1.865s)[0m
+[32m2025-07-15 14:35:00[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[response] ✅ SUCCESS 200 | AI Chat Service | 1.865s[0m
+INFO:     127.0.0.1:62081 - "POST /api/chat/message HTTP/1.1" 200 OK
+[32m2025-07-15 14:35:06[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m493[0m - [1m[REQUEST] GET /api/analytics/summary → Analytics Service | Client: 127.0.0.1 | Agent: curl/8.7.1[0m
+[32m2025-07-15 14:35:06[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[request] 🔵 ANALYTICS → Analytics Service | GET /api/analytics/summary | Client: 127.0.0.1[0m
+[32m2025-07-15 14:35:06[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlog_requests[0m:[36m506[0m - [1m[RESPONSE] 200 SUCCESS for GET /api/analytics/summary (0.001s)[0m
+[32m2025-07-15 14:35:06[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m73[0m - [1m[response] ✅ SUCCESS 200 | Analytics Service | 0.001s[0m
+INFO:     127.0.0.1:62090 - "GET /api/analytics/summary?hours=1 HTTP/1.1" 200 OK
+/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

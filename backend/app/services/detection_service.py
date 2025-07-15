@@ -23,9 +23,20 @@ class DetectionService:
                     "summary": "Empty input"
                 }
             
-            # Use active detectors if none specified
+            # Use active detectors if none specified, but respect empty list
             if detector_names is None:
                 detector_names = self.model_manager.get_active_detectors()
+            
+            # If explicitly empty list provided, no detectors should run
+            if isinstance(detector_names, list) and len(detector_names) == 0:
+                return {
+                    "results": {},
+                    "blocked": False,
+                    "blocking_reasons": [],
+                    "summary": "No detectors enabled - message allowed",
+                    "text_length": len(text),
+                    "detectors_used": []
+                }
             
             # Apply detector configuration if provided
             if detector_config:
@@ -33,14 +44,14 @@ class DetectionService:
                     if detector_name in detector_names:
                         self.model_manager.update_detector_config(detector_name, config)
             
-            # Run detections
-            results = await self.model_manager.detect_all(text, active_only=False)
+            # Set active detectors to only the requested ones
+            self.model_manager.set_active_detectors(detector_names)
             
-            # Filter results to only requested detectors
-            filtered_results = {
-                name: result for name, result in results.items()
-                if name in detector_names
-            }
+            # Run detections only on active detectors
+            results = await self.model_manager.detect_all(text, active_only=True)
+            
+            # Results are already filtered to requested detectors
+            filtered_results = results
             
             # Analyze results and determine blocking
             analysis = self.analyze_results(filtered_results)

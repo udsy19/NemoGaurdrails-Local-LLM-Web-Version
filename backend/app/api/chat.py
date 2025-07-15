@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 import uuid
@@ -14,6 +14,7 @@ class ChatMessage(BaseModel):
     session_id: Optional[str] = None
     detector_config: Optional[Dict[str, Any]] = None
     context: Optional[Dict[str, Any]] = None
+    provider_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str
@@ -46,17 +47,25 @@ def get_chat_service():
 @router.post("/message", response_model=ChatResponse)
 async def send_message(
     message_data: ChatMessage,
+    request: Request,
     chat_service = Depends(get_chat_service)
 ):
     """Send a message and get AI response through safety pipeline"""
     try:
         app_logger.info(f"Received chat message: {message_data.message[:100]}...")
         
+        # Get client IP and user agent for analytics
+        client_ip = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        
         result = await chat_service.process_message(
             message=message_data.message,
             detector_config=message_data.detector_config,
             session_id=message_data.session_id,
-            context=message_data.context
+            context=message_data.context,
+            ip_address=client_ip,
+            user_agent=user_agent,
+            provider_id=message_data.provider_id
         )
         
         return ChatResponse(**result)
@@ -225,17 +234,24 @@ async def get_chat_health(
 @router.post("/test")
 async def test_chat_pipeline(
     message_data: ChatMessage,
+    request: Request,
     background_tasks: BackgroundTasks,
     chat_service = Depends(get_chat_service)
 ):
     """Test the chat pipeline with a message (for debugging)"""
     try:
+        # Get client IP and user agent for analytics
+        client_ip = request.client.host if request.client else "test_unknown"
+        user_agent = request.headers.get("user-agent", "test_agent")
+        
         # Process message in test mode
         result = await chat_service.process_message(
             message=f"[TEST] {message_data.message}",
             detector_config=message_data.detector_config,
             session_id=f"test_{uuid.uuid4()}",
-            context={"test_mode": True}
+            context={"test_mode": True},
+            ip_address=client_ip,
+            user_agent=user_agent
         )
         
         # Add test metadata
@@ -258,6 +274,7 @@ async def test_chat_pipeline(
 @router.post("/batch")
 async def process_batch_messages(
     messages: List[str],
+    request: Request,
     detector_config: Optional[Dict[str, Any]] = None,
     chat_service = Depends(get_chat_service)
 ):
@@ -265,6 +282,10 @@ async def process_batch_messages(
     try:
         if len(messages) > 10:
             raise HTTPException(status_code=400, detail="Maximum 10 messages per batch")
+        
+        # Get client IP and user agent for analytics
+        client_ip = request.client.host if request.client else "batch_unknown"
+        user_agent = request.headers.get("user-agent", "batch_agent")
         
         results = []
         session_id = f"batch_{uuid.uuid4()}"
@@ -275,7 +296,9 @@ async def process_batch_messages(
                     message=message,
                     detector_config=detector_config,
                     session_id=session_id,
-                    context={"batch_mode": True, "batch_index": i}
+                    context={"batch_mode": True, "batch_index": i},
+                    ip_address=client_ip,
+                    user_agent=user_agent
                 )
                 results.append(result)
             except Exception as e:

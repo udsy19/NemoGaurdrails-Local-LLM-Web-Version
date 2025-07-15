@@ -1,54 +1,101 @@
+alerting:
+  alert_cooldown_minutes: 15
+  console_alerts: true
+  email_notifications: false
+  enabled: true
+  log_alerts: true
+  smtp:
+    from_email: ''
+    host: smtp.gmail.com
+    password: ''
+    port: 587
+    username: ''
+  webhook_notifications: false
+api:
+  cors_origins:
+  - http://localhost:8501
+  - http://127.0.0.1:8501
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
 app:
-  name: "AI Safety System"
-  version: "1.0.0"
   debug: false
-
-models:
-  ollama:
-    base_url: "http://localhost:11434"
-    default_model: "llama3.1:8b"
-    timeout: 120
-  huggingface:
-    cache_dir: "~/.cache/huggingface"
-    device: "auto"
-
-detectors:
-  toxicity:
-    enabled: true
-    threshold: 0.7
-    model: "martin-ha/toxic-comment-model"
-  pii:
-    enabled: true
-    sensitivity: 0.8
-    model: "en_core_web_sm"
-  prompt_injection:
-    enabled: true
-    threshold: 0.5
-  topic:
-    enabled: true
-    threshold: 0.7
-    model: "all-MiniLM-L6-v2"
-  fact_check:
-    enabled: true
-    threshold: 0.5
-  spam:
-    enabled: true
-    threshold: 0.6
-
-guardrails:
-  input_enabled: true
-  output_enabled: true
-  config_dir: "configs/guardrails"
-
+  graceful_degradation_enabled: true
+  health_monitoring_enabled: true
+  name: AI Safety System
+  resilience_enabled: true
+  version: 2.0.0
 chat:
   max_history: 100
   max_message_length: 10000
   session_timeout: 3600
-
-api:
-  cors_origins:
-    - "http://localhost:3000"
-    - "http://127.0.0.1:3000"
-  rate_limit:
+detectors:
+  fact_check:
     enabled: false
-    requests_per_minute: 60
+    threshold: 0.5
+  pii:
+    enabled: false
+    model: en_core_web_sm
+    sensitivity: 0.8
+  prompt_injection:
+    enabled: false
+    threshold: 0.5
+  spam:
+    enabled: false
+    threshold: 0.6
+  topic:
+    enabled: false
+    model: all-MiniLM-L6-v2
+    threshold: 0.7
+  toxicity:
+    enabled: true
+    model: martin-ha/toxic-comment-model
+    threshold: 0.7
+guardrails:
+  config_dir: configs/guardrails
+  input_enabled: true
+  output_enabled: false
+models:
+  huggingface:
+    cache_dir: ~/.cache/huggingface
+    device: auto
+  ollama:
+    base_url: http://localhost:11434
+    default_model: llama3.1:8b
+    timeout: 120
+monitoring:
+  circuit_breaker_metrics: true
+  diagnostics_retention_hours: 24
+  health_history_size: 100
+  performance_tracking: true
+performance_monitoring:
+  collection_interval_seconds: 30
+  enabled: true
+  function_tracking: true
+  max_metric_points: 1000
+  request_tracking: true
+resilience:
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 3
+    recovery_timeout: 30
+  graceful_degradation:
+    auto_degradation: true
+    enabled: true
+    recovery_attempts: 3
+  health_monitoring:
+    check_interval: 30
+    detailed_check_interval: 300
+    enabled: true
+  retry_policy:
+    base_delay: 1.0
+    enabled: true
+    max_attempts: 3
+    max_delay: 60.0
+self_healing:
+  auto_connection_reset: true
+  auto_memory_cleanup: true
+  auto_performance_optimization: true
+  check_interval_seconds: 60
+  enabled: true
+  optimization_level: balanced

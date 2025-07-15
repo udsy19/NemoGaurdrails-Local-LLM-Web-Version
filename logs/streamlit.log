@@ -130,3 +130,6 @@ TypeError: 'NoneType' object is not iterable
   $ xcode-select --install
   $ pip install watchdog
             
+./start_streamlit.sh: line 23: streamlit: command not found
+./start_streamlit.sh: line 23: streamlit: command not found
+./start_streamlit.sh: line 23: streamlit: command not found

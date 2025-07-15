@@ -5,6 +5,7 @@ from datetime import datetime
 from app.guardrails.guardrails_manager import GuardrailsManager
 from app.utils.logger import app_logger
 from app.utils.exceptions import GuardrailsException
+from app.services.analytics_service import analytics_service, RequestStatus
 
 class ChatService:
     def __init__(self, model_manager, detection_service):
@@ -28,9 +29,17 @@ class ChatService:
         message: str,
         detector_config: Optional[Dict[str, Any]] = None,
         session_id: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        provider_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Process a chat message through the safety pipeline"""
+        start_time = datetime.now()
+        request_status = RequestStatus.ERROR
+        blocking_reasons = []
+        detection_results = {}
+        
         try:
             # Generate session ID if not provided
             if session_id is None:
@@ -50,6 +59,22 @@ class ChatService:
             # Validate input
             validation_result = await self.detection_service.validate_input(message)
             if not validation_result["valid"]:
+                request_status = RequestStatus.BLOCKED
+                blocking_reasons = validation_result["errors"]
+                
+                # Track analytics for blocked input
+                if ip_address:
+                    analytics_service.track_request(
+                        ip_address=ip_address,
+                        user_agent=user_agent or "unknown",
+                        message=message,
+                        status=request_status,
+                        blocking_reasons=blocking_reasons,
+                        detection_results=validation_result,
+                        response_time_ms=(datetime.now() - start_time).total_seconds() * 1000,
+                        session_id=session_id
+                    )
+                
                 return {
                     "response": "I cannot process this message due to input validation errors.",
                     "blocked": True,
@@ -72,6 +97,11 @@ class ChatService:
             try:
                 # Use guardrails if initialized, otherwise fall back to simple detection
                 if hasattr(self.guardrails_manager, 'is_initialized') and self.guardrails_manager.is_initialized:
+                    # Add provider_id to context if specified
+                    if provider_id:
+                        context = context or {}
+                        context["provider_id"] = provider_id
+                    
                     guardrails_result = await self.guardrails_manager.process_message(
                         message, 
                         context=context
@@ -79,39 +109,70 @@ class ChatService:
                 else:
                     # Simplified detection using just the detection service
                     app_logger.info("Using simplified detection mode (guardrails not initialized)")
+                    
+                    # Get detector names from session config or use enabled detectors from detector_config
+                    session_config = self.session_configs.get(session_id, {})
+                    if session_config:
+                        # Use only enabled detectors from config
+                        enabled_detectors = [name for name, config in session_config.items() 
+                                           if config.get("enabled", False)]
+                    else:
+                        # If no config, don't run any detectors
+                        enabled_detectors = []
+                    
                     detection_results = await self.detection_service.run_detection(
                         message, 
-                        detector_names=list(self.model_manager.get_available_detectors().keys())
+                        detector_names=enabled_detectors,
+                        detector_config=session_config
                     )
                     
                     # Check if input was blocked
                     if detection_results.get("blocked", False):
+                        request_status = RequestStatus.BLOCKED
+                        blocking_reasons = detection_results.get("blocking_reasons", [])
+                        detection_results_data = detection_results.get("results", {})
+                        
                         guardrails_result = {
                             "response": "I cannot provide a response to this message as it was flagged by our safety systems.",
                             "blocked": True,
-                            "blocking_reasons": detection_results.get("blocking_reasons", []),
-                            "input_analysis": detection_results.get("results", {}),
+                            "blocking_reasons": blocking_reasons,
+                            "input_analysis": detection_results_data,
                             "output_analysis": None
                         }
                     else:
                         # Generate AI response using Ollama
                         ai_response = await self._generate_ai_response(message, session_id)
                         
-                        # Analyze AI response
+                        # Analyze AI response using same detector configuration
                         output_detection = await self.detection_service.run_detection(
                             ai_response,
-                            detector_names=list(self.model_manager.get_available_detectors().keys())
+                            detector_names=enabled_detectors,
+                            detector_config=session_config
                         )
                         
                         if output_detection.get("blocked", False):
+                            request_status = RequestStatus.BLOCKED
+                            blocking_reasons = output_detection.get("blocking_reasons", [])
+                            detection_results_data = {
+                                "input": detection_results.get("results", {}),
+                                "output": output_detection.get("results", {})
+                            }
+                            
                             guardrails_result = {
                                 "response": "I apologize, but I cannot provide a response as my output was flagged by safety systems.",
                                 "blocked": True,
-                                "blocking_reasons": output_detection.get("blocking_reasons", []),
+                                "blocking_reasons": blocking_reasons,
                                 "input_analysis": detection_results.get("results", {}),
                                 "output_analysis": output_detection.get("results", {})
                             }
                         else:
+                            request_status = RequestStatus.ALLOWED
+                            blocking_reasons = []
+                            detection_results_data = {
+                                "input": detection_results.get("results", {}),
+                                "output": output_detection.get("results", {})
+                            }
+                            
                             guardrails_result = {
                                 "response": ai_response,
                                 "blocked": False,
@@ -131,6 +192,10 @@ class ChatService:
             
             # Handle blocked messages
             if guardrails_result["blocked"]:
+                # Update request status to blocked
+                request_status = RequestStatus.BLOCKED
+                blocking_reasons = guardrails_result["blocking_reasons"]
+                
                 response_record = {
                     "id": str(uuid.uuid4()),
                     "role": "assistant",
@@ -140,6 +205,24 @@ class ChatService:
                     "blocked": True,
                     "blocking_reasons": guardrails_result["blocking_reasons"]
                 }
+                
+                # Track analytics for blocked response
+                if ip_address:
+                    # Ensure detection_results_data is defined from the guardrails_result
+                    if 'detection_results_data' not in locals():
+                        detection_results_data = guardrails_result.get("input_analysis", {})
+                    
+                    app_logger.info(f"Tracking blocked request: status={request_status}, reasons={blocking_reasons}, detection_results={detection_results_data}")
+                    analytics_service.track_request(
+                        ip_address=ip_address,
+                        user_agent=user_agent or "unknown",
+                        message=message,
+                        status=request_status,
+                        blocking_reasons=blocking_reasons,
+                        detection_results=detection_results_data,
+                        response_time_ms=(datetime.now() - start_time).total_seconds() * 1000,
+                        session_id=session_id
+                    )
                 
                 # Add to history
                 self.chat_history[session_id].extend([message_record, response_record])
@@ -214,6 +297,22 @@ class ChatService:
             # Add to history
             self.chat_history[session_id].extend([message_record, response_record])
             
+            # Track analytics for response (successful or output blocked)
+            final_status = RequestStatus.BLOCKED if output_blocked else RequestStatus.ALLOWED
+            final_blocking_reasons = output_blocking_reasons if output_blocked else []
+            
+            if ip_address:
+                analytics_service.track_request(
+                    ip_address=ip_address,
+                    user_agent=user_agent or "unknown",
+                    message=message,
+                    status=final_status,
+                    blocking_reasons=final_blocking_reasons,
+                    detection_results=output_result,
+                    response_time_ms=(datetime.now() - start_time).total_seconds() * 1000,
+                    session_id=session_id
+                )
+            
             # Prepare response
             response = {
                 "response": assistant_response,
@@ -235,6 +334,20 @@ class ChatService:
             
         except Exception as e:
             app_logger.error(f"Failed to process message: {e}")
+            
+            # Track analytics for error case
+            if ip_address:
+                analytics_service.track_request(
+                    ip_address=ip_address,
+                    user_agent=user_agent or "unknown",
+                    message=message,
+                    status=RequestStatus.ERROR,
+                    blocking_reasons=[f"Processing error: {str(e)}"],
+                    detection_results={"error": str(e)},
+                    response_time_ms=(datetime.now() - start_time).total_seconds() * 1000,
+                    session_id=session_id or "error"
+                )
+            
             return {
                 "response": "I apologize, but I encountered an error processing your message.",
                 "blocked": True,

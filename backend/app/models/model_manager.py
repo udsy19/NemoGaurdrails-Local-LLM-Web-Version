@@ -110,7 +110,10 @@ class ModelManager:
             config = self.detector_configs.get(detector_name, {})
             config.update(kwargs)
             
-            result = await detector.detect(text, **config)
+            # Filter out non-detector parameters that are used for system management
+            detector_params = {k: v for k, v in config.items() if k not in ['enabled', 'name', 'type', 'model']}
+            
+            result = await detector.detect(text, **detector_params)
             
             return {
                 "detector": detector_name,
