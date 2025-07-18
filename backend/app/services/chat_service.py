@@ -120,66 +120,85 @@ class ChatService:
                         # If no config, don't run any detectors
                         enabled_detectors = []
                     
-                    detection_results = await self.detection_service.run_detection(
-                        message, 
-                        detector_names=enabled_detectors,
-                        detector_config=session_config
-                    )
+                    # Log detector status for debugging
+                    app_logger.info(f"Session {session_id} detector config: {session_config}")
+                    app_logger.info(f"Enabled detectors: {enabled_detectors}")
                     
-                    # Check if input was blocked
-                    if detection_results.get("blocked", False):
-                        request_status = RequestStatus.BLOCKED
-                        blocking_reasons = detection_results.get("blocking_reasons", [])
-                        detection_results_data = detection_results.get("results", {})
+                    # If no detectors are enabled, skip detection entirely
+                    if not enabled_detectors:
+                        app_logger.info("No detectors enabled - allowing message without detection")
+                        # Generate AI response directly
+                        ai_response = await self._generate_ai_response(message, session_id)
+                        request_status = RequestStatus.ALLOWED
                         
                         guardrails_result = {
-                            "response": "I cannot provide a response to this message as it was flagged by our safety systems.",
-                            "blocked": True,
-                            "blocking_reasons": blocking_reasons,
-                            "input_analysis": detection_results_data,
-                            "output_analysis": None
+                            "response": ai_response,
+                            "blocked": False,
+                            "blocking_reasons": [],
+                            "input_analysis": {},
+                            "output_analysis": {}
                         }
                     else:
-                        # Generate AI response using Ollama
-                        ai_response = await self._generate_ai_response(message, session_id)
-                        
-                        # Analyze AI response using same detector configuration
-                        output_detection = await self.detection_service.run_detection(
-                            ai_response,
+                        detection_results = await self.detection_service.run_detection(
+                            message, 
                             detector_names=enabled_detectors,
                             detector_config=session_config
                         )
                         
-                        if output_detection.get("blocked", False):
+                        # Check if input was blocked
+                        if detection_results.get("blocked", False):
                             request_status = RequestStatus.BLOCKED
-                            blocking_reasons = output_detection.get("blocking_reasons", [])
-                            detection_results_data = {
-                                "input": detection_results.get("results", {}),
-                                "output": output_detection.get("results", {})
-                            }
+                            blocking_reasons = detection_results.get("blocking_reasons", [])
+                            detection_results_data = detection_results.get("results", {})
                             
                             guardrails_result = {
-                                "response": "I apologize, but I cannot provide a response as my output was flagged by safety systems.",
+                                "response": "I cannot provide a response to this message as it was flagged by our safety systems.",
                                 "blocked": True,
                                 "blocking_reasons": blocking_reasons,
-                                "input_analysis": detection_results.get("results", {}),
-                                "output_analysis": output_detection.get("results", {})
+                                "input_analysis": detection_results_data,
+                                "output_analysis": None
                             }
                         else:
-                            request_status = RequestStatus.ALLOWED
-                            blocking_reasons = []
-                            detection_results_data = {
-                                "input": detection_results.get("results", {}),
-                                "output": output_detection.get("results", {})
-                            }
+                            # Generate AI response using Ollama
+                            ai_response = await self._generate_ai_response(message, session_id)
                             
-                            guardrails_result = {
-                                "response": ai_response,
-                                "blocked": False,
-                                "blocking_reasons": [],
-                                "input_analysis": detection_results.get("results", {}),
-                                "output_analysis": output_detection.get("results", {})
-                            }
+                            # Analyze AI response using same detector configuration
+                            output_detection = await self.detection_service.run_detection(
+                                ai_response,
+                                detector_names=enabled_detectors,
+                                detector_config=session_config
+                            )
+                            
+                            if output_detection.get("blocked", False):
+                                request_status = RequestStatus.BLOCKED
+                                blocking_reasons = output_detection.get("blocking_reasons", [])
+                                detection_results_data = {
+                                    "input": detection_results.get("results", {}),
+                                    "output": output_detection.get("results", {})
+                                }
+                                
+                                guardrails_result = {
+                                    "response": "I apologize, but I cannot provide a response as my output was flagged by safety systems.",
+                                    "blocked": True,
+                                    "blocking_reasons": blocking_reasons,
+                                    "input_analysis": detection_results.get("results", {}),
+                                    "output_analysis": output_detection.get("results", {})
+                                }
+                            else:
+                                request_status = RequestStatus.ALLOWED
+                                blocking_reasons = []
+                                detection_results_data = {
+                                    "input": detection_results.get("results", {}),
+                                    "output": output_detection.get("results", {})
+                                }
+                                
+                                guardrails_result = {
+                                    "response": ai_response,
+                                    "blocked": False,
+                                    "blocking_reasons": [],
+                                    "input_analysis": detection_results.get("results", {}),
+                                    "output_analysis": output_detection.get("results", {})
+                                }
             except Exception as e:
                 app_logger.error(f"Error in detection process: {e}")
                 guardrails_result = {
@@ -267,11 +286,29 @@ class ChatService:
                 app_logger.error(f"Ollama response generation failed: {e}")
                 assistant_response = "I apologize, but I encountered an error while generating a response."
             
-            # Process assistant response through output guardrails
-            output_result = await self.detection_service.run_detection(
-                assistant_response,
-                detector_names=["toxicity", "fact_check"]
-            )
+            # Process assistant response through output guardrails using same configuration
+            # Use the same enabled detectors for output analysis as input
+            session_config = self.session_configs.get(session_id, {})
+            if session_config:
+                enabled_detectors = [name for name, config in session_config.items() 
+                                   if config.get("enabled", False)]
+            else:
+                enabled_detectors = []
+            
+            # Only run output detection if detectors are enabled
+            if enabled_detectors:
+                output_result = await self.detection_service.run_detection(
+                    assistant_response,
+                    detector_names=enabled_detectors,
+                    detector_config=session_config
+                )
+            else:
+                # No detectors enabled - skip output detection
+                output_result = {
+                    "blocked": False,
+                    "blocking_reasons": [],
+                    "results": {}
+                }
             
             # Handle output blocking
             if output_result["blocked"]:

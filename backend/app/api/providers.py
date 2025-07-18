@@ -362,27 +362,43 @@ async def test_all_connections(background_tasks: BackgroundTasks):
             return {
                 "message": "No enabled providers to test",
                 "results": [],
-                "success": True
+                "success": True,
+                "stats": provider_service.get_provider_stats()
             }
         
         # Test all connections
         results = []
+        success_count = 0
+        
         for provider in enabled_providers:
             success, error_message = await provider_service.test_provider_connection(provider.id)
+            if success:
+                success_count += 1
+                
             results.append({
                 "provider_id": provider.id,
                 "provider_name": provider.display_name,
                 "success": success,
-                "error_message": error_message
+                "error_message": error_message,
+                "port": provider.port,
+                "status": provider.status.value
             })
         
-        # Get updated provider data
+        # Get updated provider data and stats
         providers_data = provider_service.to_dict()
+        updated_stats = provider_service.get_provider_stats()
         
         return {
-            "message": f"Tested connections for {len(enabled_providers)} providers",
+            "message": f"Tested connections for {len(enabled_providers)} providers - {success_count}/{len(enabled_providers)} successful",
             "results": results,
             "providers": providers_data,
+            "stats": updated_stats,
+            "test_summary": {
+                "total_tested": len(enabled_providers),
+                "successful": success_count,
+                "failed": len(enabled_providers) - success_count,
+                "success_rate": round((success_count / len(enabled_providers)) * 100, 1) if enabled_providers else 0
+            },
             "success": True
         }
         

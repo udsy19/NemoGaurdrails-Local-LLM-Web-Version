@@ -219,15 +219,27 @@ async def get_geographic_analytics():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/export")
-async def export_analytics_data():
+async def export_analytics_data(hours: int = 24, comprehensive: bool = True):
     """Export analytics data for backup or analysis"""
     try:
-        data = analytics_service.to_dict()
+        if hours <= 0 or hours > 168:  # Max 1 week
+            raise HTTPException(status_code=400, detail="Hours must be between 1 and 168")
+        
+        if comprehensive:
+            # Export comprehensive data that can rebuild the entire dashboard
+            data = analytics_service.export_comprehensive_data(hours)
+            export_type = "comprehensive_dashboard_data"
+        else:
+            # Export basic data (legacy format)
+            data = analytics_service.to_dict()
+            export_type = "basic_analytics_data"
         
         return {
             "success": True,
             "export_data": data,
-            "exported_at": datetime.now().isoformat()
+            "export_type": export_type,
+            "exported_at": datetime.now().isoformat(),
+            "timeframe_hours": hours if comprehensive else "all_time"
         }
         
     except Exception as e:

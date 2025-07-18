@@ -569,6 +569,273 @@ class AnalyticsService:
                 },
                 "last_updated": datetime.now().isoformat()
             }
+    
+    def export_comprehensive_data(self, hours: int = 24) -> Dict[str, Any]:
+        """Export comprehensive analytics data that can rebuild the entire dashboard"""
+        with self.lock:
+            current_time = datetime.now()
+            cutoff_time = current_time - timedelta(hours=hours)
+            recent_events = [e for e in self.events if e.timestamp >= cutoff_time]
+            
+            # Get comprehensive analytics summary
+            summary = self.get_analytics_summary(hours)
+            realtime_stats = self.get_real_time_stats()
+            
+            # Export all individual events with complete data
+            events_data = []
+            for event in recent_events:
+                events_data.append({
+                    "id": event.id,
+                    "timestamp": event.timestamp.isoformat(),
+                    "ip_address": event.ip_address,
+                    "user_agent": event.user_agent,
+                    "message": event.message,
+                    "status": event.status.value,
+                    "blocking_reasons": event.blocking_reasons,
+                    "detection_results": event.detection_results,
+                    "response_time_ms": event.response_time_ms,
+                    "provider": event.provider,
+                    "model": event.model,
+                    "session_id": event.session_id
+                })
+            
+            # Export detailed user sessions
+            user_sessions_data = []
+            for ip, user_session in self.users.items():
+                user_sessions_data.append({
+                    "ip_address": ip,
+                    "first_seen": user_session.first_seen.isoformat(),
+                    "last_seen": user_session.last_seen.isoformat(),
+                    "total_requests": user_session.total_requests,
+                    "blocked_requests": user_session.blocked_requests,
+                    "allowed_requests": user_session.allowed_requests,
+                    "user_agent": user_session.user_agent,
+                    "sessions": list(user_session.sessions),
+                    "block_rate": (user_session.blocked_requests / user_session.total_requests * 100) if user_session.total_requests > 0 else 0,
+                    "session_duration": (user_session.last_seen - user_session.first_seen).total_seconds() / 3600  # hours
+                })
+            
+            # Export detailed detector statistics
+            detector_stats_data = []
+            for name, stats in self.detector_stats.items():
+                detector_stats_data.append({
+                    "name": name,
+                    "display_name": name.replace("_", " ").title(),
+                    "total_detections": stats.total_detections,
+                    "blocked_count": stats.blocked_count,
+                    "allowed_count": stats.allowed_count,
+                    "avg_confidence": stats.avg_confidence,
+                    "last_triggered": stats.last_triggered.isoformat() if stats.last_triggered else None,
+                    "block_rate": (stats.blocked_count / stats.total_detections * 100) if stats.total_detections > 0 else 0,
+                    "accuracy_estimate": stats.avg_confidence * 100,
+                    "effectiveness": "high" if stats.blocked_count > 0 and stats.avg_confidence > 0.7 else "medium" if stats.blocked_count > 0 else "low"
+                })
+            
+            # Provider statistics
+            provider_stats = defaultdict(lambda: {
+                "total_requests": 0,
+                "blocked_requests": 0,
+                "allowed_requests": 0,
+                "error_requests": 0,
+                "response_times": [],
+                "models_used": set()
+            })
+            
+            for event in recent_events:
+                if event.provider:
+                    stats = provider_stats[event.provider]
+                    stats["total_requests"] += 1
+                    
+                    if event.status == RequestStatus.BLOCKED:
+                        stats["blocked_requests"] += 1
+                    elif event.status == RequestStatus.ALLOWED:
+                        stats["allowed_requests"] += 1
+                    elif event.status == RequestStatus.ERROR:
+                        stats["error_requests"] += 1
+                    
+                    if event.response_time_ms > 0:
+                        stats["response_times"].append(event.response_time_ms)
+                    
+                    if event.model:
+                        stats["models_used"].add(event.model)
+            
+            # Convert provider stats to serializable format
+            provider_stats_data = []
+            for provider, stats in provider_stats.items():
+                avg_response_time = sum(stats["response_times"]) / len(stats["response_times"]) if stats["response_times"] else 0
+                
+                provider_stats_data.append({
+                    "provider": provider,
+                    "total_requests": stats["total_requests"],
+                    "blocked_requests": stats["blocked_requests"],
+                    "allowed_requests": stats["allowed_requests"],
+                    "error_requests": stats["error_requests"],
+                    "block_rate": (stats["blocked_requests"] / stats["total_requests"] * 100) if stats["total_requests"] > 0 else 0,
+                    "error_rate": (stats["error_requests"] / stats["total_requests"] * 100) if stats["total_requests"] > 0 else 0,
+                    "avg_response_time": avg_response_time,
+                    "min_response_time": min(stats["response_times"]) if stats["response_times"] else 0,
+                    "max_response_time": max(stats["response_times"]) if stats["response_times"] else 0,
+                    "models_used": list(stats["models_used"])
+                })
+            
+            # Threat intelligence - analyze blocking patterns
+            threat_patterns = defaultdict(lambda: {
+                "count": 0,
+                "first_seen": None,
+                "last_seen": None,
+                "affected_ips": set(),
+                "detection_methods": set()
+            })
+            
+            for event in recent_events:
+                if event.status == RequestStatus.BLOCKED:
+                    for reason in event.blocking_reasons:
+                        pattern = threat_patterns[reason]
+                        pattern["count"] += 1
+                        pattern["affected_ips"].add(event.ip_address)
+                        
+                        if not pattern["first_seen"] or event.timestamp < pattern["first_seen"]:
+                            pattern["first_seen"] = event.timestamp
+                        if not pattern["last_seen"] or event.timestamp > pattern["last_seen"]:
+                            pattern["last_seen"] = event.timestamp
+                        
+                        # Identify which detectors triggered
+                        for detector_name in event.detection_results.keys():
+                            if detector_name in event.detection_results:
+                                pattern["detection_methods"].add(detector_name)
+            
+            # Convert threat patterns to serializable format
+            threat_intelligence_data = []
+            for pattern, data in threat_patterns.items():
+                threat_intelligence_data.append({
+                    "pattern": pattern,
+                    "count": data["count"],
+                    "first_seen": data["first_seen"].isoformat() if data["first_seen"] else None,
+                    "last_seen": data["last_seen"].isoformat() if data["last_seen"] else None,
+                    "affected_ips": list(data["affected_ips"]),
+                    "unique_ips": len(data["affected_ips"]),
+                    "detection_methods": list(data["detection_methods"]),
+                    "severity": "high" if data["count"] > 10 else "medium" if data["count"] > 5 else "low"
+                })
+            
+            # Performance metrics over time
+            performance_timeline = []
+            for i in range(hours):
+                hour_start = current_time - timedelta(hours=i+1)
+                hour_end = current_time - timedelta(hours=i)
+                
+                hour_events = [e for e in recent_events if hour_start <= e.timestamp < hour_end]
+                hour_response_times = [e.response_time_ms for e in hour_events if e.response_time_ms > 0]
+                
+                performance_timeline.append({
+                    "hour": hour_start.strftime("%Y-%m-%d %H:00"),
+                    "timestamp": hour_start.isoformat(),
+                    "total_requests": len(hour_events),
+                    "blocked_requests": len([e for e in hour_events if e.status == RequestStatus.BLOCKED]),
+                    "allowed_requests": len([e for e in hour_events if e.status == RequestStatus.ALLOWED]),
+                    "error_requests": len([e for e in hour_events if e.status == RequestStatus.ERROR]),
+                    "unique_ips": len(set(e.ip_address for e in hour_events)),
+                    "avg_response_time": sum(hour_response_times) / len(hour_response_times) if hour_response_times else 0,
+                    "min_response_time": min(hour_response_times) if hour_response_times else 0,
+                    "max_response_time": max(hour_response_times) if hour_response_times else 0,
+                    "p95_response_time": sorted(hour_response_times)[int(len(hour_response_times) * 0.95)] if hour_response_times else 0
+                })
+            
+            performance_timeline.reverse()  # Chronological order
+            
+            # System health indicators
+            system_health = {
+                "overall_status": "healthy" if realtime_stats["error_requests"] / realtime_stats["total_requests"] < 0.05 else "degraded" if realtime_stats["error_requests"] / realtime_stats["total_requests"] < 0.1 else "unhealthy",
+                "error_rate": realtime_stats["error_requests"] / realtime_stats["total_requests"] * 100 if realtime_stats["total_requests"] > 0 else 0,
+                "block_rate": realtime_stats["block_rate"],
+                "avg_response_time": realtime_stats["avg_response_time"],
+                "requests_per_minute": realtime_stats["requests_per_minute"],
+                "unique_users_growth": len(self.users),
+                "detector_health": {
+                    name: {
+                        "status": "active" if stats.last_triggered and (current_time - stats.last_triggered).total_seconds() < 3600 else "idle",
+                        "confidence": stats.avg_confidence,
+                        "effectiveness": stats.blocked_count / stats.total_detections if stats.total_detections > 0 else 0
+                    }
+                    for name, stats in self.detector_stats.items()
+                },
+                "capacity_utilization": {
+                    "events_buffer": len(self.events) / self.max_events * 100,
+                    "response_times_buffer": len(self.response_times) / 1000 * 100,
+                    "users_tracked": len(self.users)
+                }
+            }
+            
+            # Export metadata
+            export_metadata = {
+                "export_timestamp": current_time.isoformat(),
+                "export_timeframe_hours": hours,
+                "total_events_exported": len(events_data),
+                "total_users_exported": len(user_sessions_data),
+                "total_detectors": len(detector_stats_data),
+                "total_providers": len(provider_stats_data),
+                "total_threat_patterns": len(threat_intelligence_data),
+                "system_version": "1.0.0",
+                "data_retention_hours": hours,
+                "export_type": "comprehensive_dashboard_data"
+            }
+            
+            return {
+                # Core Analytics Data (for dashboard reconstruction)
+                "analytics_summary": {
+                    "timeframe_hours": summary.timeframe_hours,
+                    "total_requests": summary.total_requests,
+                    "blocked_requests": summary.blocked_requests,
+                    "allowed_requests": summary.allowed_requests,
+                    "unique_users": summary.unique_users,
+                    "unique_ips": summary.unique_ips,
+                    "top_blocking_reasons": summary.top_blocking_reasons,
+                    "detector_stats": [
+                        {
+                            "name": stat.name,
+                            "total_detections": stat.total_detections,
+                            "blocked_count": stat.blocked_count,
+                            "allowed_count": stat.allowed_count,
+                            "avg_confidence": stat.avg_confidence,
+                            "last_triggered": stat.last_triggered.isoformat() if stat.last_triggered else None,
+                            "block_rate": (stat.blocked_count / stat.total_detections * 100) if stat.total_detections > 0 else 0
+                        }
+                        for stat in summary.detector_stats
+                    ],
+                    "request_timeline": summary.request_timeline,
+                    "user_activity": summary.user_activity,
+                    "geographic_data": summary.geographic_data,
+                    "error_rate": summary.error_rate,
+                    "avg_response_time": summary.avg_response_time
+                },
+                
+                # Real-time Stats
+                "realtime_stats": realtime_stats,
+                
+                # Detailed Event Data
+                "events": events_data,
+                
+                # User Sessions
+                "user_sessions": user_sessions_data,
+                
+                # Detector Analytics
+                "detector_analytics": detector_stats_data,
+                
+                # Provider Performance
+                "provider_performance": provider_stats_data,
+                
+                # Threat Intelligence
+                "threat_intelligence": threat_intelligence_data,
+                
+                # Performance Timeline
+                "performance_timeline": performance_timeline,
+                
+                # System Health
+                "system_health": system_health,
+                
+                # Export Metadata
+                "metadata": export_metadata
+            }
 
 # Global analytics service instance
 analytics_service = AnalyticsService()
