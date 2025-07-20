@@ -920,8 +920,7 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
-          </Box>
-        )}
+        </Box>
       )}
     </Box>
   );
