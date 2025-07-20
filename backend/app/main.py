@@ -32,7 +32,17 @@ from app.api.system import system_router
 from app.api.providers import router as providers_router
 from app.api.analytics import router as analytics_router
 from app.api.ollama import router as ollama_router
+from app.api.gpu import router as gpu_router
+from app.api.distributed import router as distributed_router
+from app.api.advanced_analytics import router as advanced_analytics_router
+from app.api.multi_tenant import router as multi_tenant_router
+from app.api.ab_testing import router as ab_testing_router
 from app.services.traffic_router import traffic_router
+from app.utils.distributed_processor import initialize_distributed_processing, DistributedConfig
+from app.services.distributed_detection_service import initialize_distributed_detection_service
+from app.utils.multi_tenant import get_multi_tenant_manager
+from app.utils.ab_testing import get_ab_testing_manager
+from app.core.dependencies import initialize_dependencies
 
 # Try to import NeMo Guardrails, fall back to simple implementation
 try:
@@ -111,6 +121,24 @@ class EnhancedOllamaClient:
 # Global enhanced Ollama client
 enhanced_ollama = EnhancedOllamaClient()
 
+async def _enterprise_monitoring_task(model_manager):
+    """Background task to monitor enterprise deployment status"""
+    while True:
+        try:
+            await asyncio.sleep(600)  # Run every 10 minutes
+            app_logger.info("Running enterprise deployment monitoring...")
+            status = await model_manager.get_enterprise_status()
+            if not status.get("all_models_loaded", False):
+                add_system_log("warn", "enterprise", f"Some models not loaded: {status.get('missing_detectors', [])}")
+            else:
+                add_system_log("info", "enterprise", "All models loaded and ready for enterprise use")
+        except asyncio.CancelledError:
+            app_logger.info("Enterprise monitoring task cancelled")
+            break
+        except Exception as e:
+            app_logger.error(f"Error in enterprise monitoring task: {e}")
+            add_system_log("error", "enterprise", f"Enterprise monitoring failed: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global model_manager, detection_service, chat_service, config_service
@@ -149,14 +177,45 @@ async def lifespan(app: FastAPI):
         await chat_service.initialize()
         add_system_log("success", "services", "Chat and detection services initialized")
         
+        # Initialize distributed processing
+        try:
+            distributed_config = DistributedConfig(
+                max_workers=4,  # Reasonable default
+                enable_load_balancing=True,
+                enable_auto_scaling=True,
+                min_workers=2
+            )
+            await initialize_distributed_processing(distributed_config)
+            add_system_log("success", "distributed", "Distributed processing system initialized")
+            
+            # Initialize distributed detection service
+            initialize_distributed_detection_service(detection_service, model_manager)
+            add_system_log("success", "distributed", "Distributed detection service initialized")
+            
+        except Exception as e:
+            add_system_log("warn", "distributed", f"Distributed processing initialization failed: {e}")
+            app_logger.warning(f"Distributed processing not available: {e}")
+        
         # Initialize traffic router with detection service and config service
         traffic_router.set_detection_service(detection_service)
         traffic_router.set_config_service(config_service)
         add_system_log("success", "traffic_router", "Traffic router initialized with detection and config services")
         
+        # Initialize multi-tenant manager
+        multi_tenant_manager = get_multi_tenant_manager()
+        multi_tenant_manager.start_usage_tracking()
+        add_system_log("success", "multi_tenant", "Multi-tenant manager initialized with usage tracking")
+        
+        # Initialize A/B testing manager
+        ab_testing_manager = get_ab_testing_manager()
+        add_system_log("success", "ab_testing", "A/B testing manager initialized")
+        
         # Start advanced monitoring systems
         await performance_monitor.start_monitoring()
         await self_healing_system.start_self_healing()
+        
+        # Start background task to monitor enterprise deployment status
+        asyncio.create_task(_enterprise_monitoring_task(model_manager))
         
         # Store in app state
         app.state.model_manager = model_manager
@@ -169,6 +228,12 @@ async def lifespan(app: FastAPI):
         app.state.alert_manager = alert_manager
         app.state.performance_monitor = performance_monitor
         app.state.self_healing_system = self_healing_system
+        app.state.multi_tenant_manager = multi_tenant_manager
+        app.state.ab_testing_manager = ab_testing_manager
+        
+        # Initialize dependency injection system
+        initialize_dependencies(app)
+        add_system_log("success", "dependencies", "Dependency injection system initialized")
         
         # Run initial system diagnostics
         initial_diagnostics = await system_diagnostics.run_diagnostics(DiagnosticLevel.BASIC)
@@ -573,6 +638,11 @@ app.include_router(system_router, prefix="/api/system", tags=["system"])
 app.include_router(providers_router, tags=["providers"])
 app.include_router(analytics_router, tags=["analytics"])
 app.include_router(ollama_router, tags=["ollama"])
+app.include_router(gpu_router, tags=["gpu"])
+app.include_router(distributed_router, tags=["distributed"])
+app.include_router(advanced_analytics_router, tags=["advanced-analytics"])
+app.include_router(multi_tenant_router, tags=["multi-tenant"])
+app.include_router(ab_testing_router, tags=["ab-testing"])
 
 @app.get("/")
 async def root():

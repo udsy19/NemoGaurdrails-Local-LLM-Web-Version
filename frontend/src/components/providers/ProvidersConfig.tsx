@@ -51,6 +51,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useProviders } from '../../hooks/useProviders';
 import PortConflictDialog from './PortConflictDialog';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 interface ProvidersConfigProps {
   onProviderChange?: (providers: any[]) => void;
@@ -187,10 +188,11 @@ const ProvidersConfig: React.FC<ProvidersConfigProps> = ({ onProviderChange }) =
 
   if (loading) {
     return (
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <LinearProgress sx={{ width: '300px' }} />
-        <Typography sx={{ ml: 2, color: '#ffffff' }}>Loading providers...</Typography>
-      </Box>
+      <LoadingSpinner 
+        message="Loading providers..." 
+        size="large" 
+        variant="linear" 
+      />
     );
   }
 
