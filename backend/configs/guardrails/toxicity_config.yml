@@ -9,8 +9,8 @@ model:
   device: "auto"
   
 settings:
-  threshold: 0.7
-  confidence_threshold: 0.8
+  threshold: 0.6
+  confidence_threshold: 0.7
   batch_size: 1
   max_length: 512
   

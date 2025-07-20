@@ -18,7 +18,7 @@ class ToxicityDetector:
         self.tokenizer = None
         self.model = None
         self.pipeline = None
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cpu"  # Force CPU to avoid MPS allocation issues
         self.is_loaded = False
         
     async def load_model(self):
@@ -32,7 +32,7 @@ class ToxicityDetector:
                 "text-classification",
                 model=self.model,
                 tokenizer=self.tokenizer,
-                device=0 if self.device == "cuda" else -1,
+                device=-1,  # Force CPU usage
                 return_all_scores=True
             )
             
@@ -59,8 +59,15 @@ class ToxicityDetector:
             else:
                 scores = {results[0]['label']: results[0]['score']}
             
-            # Determine toxicity
-            toxic_score = scores.get('TOXIC', scores.get('toxic', 0.0))
+            # Determine toxicity - check multiple possible label formats
+            toxic_score = scores.get('TOXIC', scores.get('toxic', scores.get('1', 0.0)))
+            
+            # If no direct toxic score, check for non-toxic and calculate inverse
+            if toxic_score == 0.0 and 'non-toxic' in scores:
+                toxic_score = 1.0 - scores['non-toxic']
+            elif toxic_score == 0.0 and '0' in scores:
+                toxic_score = 1.0 - scores['0']
+                
             is_toxic = toxic_score > threshold
             
             return {

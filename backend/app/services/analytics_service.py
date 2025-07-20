@@ -343,6 +343,152 @@ class AnalyticsService:
                 avg_response_time=avg_response_time
             )
     
+    def get_detailed_user_analytics(self, hours: int = 24) -> Dict[str, Any]:
+        """Get detailed user analytics with IP breakdown"""
+        with self.lock:
+            cutoff_time = datetime.now() - timedelta(hours=hours)
+            recent_events = [e for e in self.events if e.timestamp >= cutoff_time]
+            
+            # IP-based analytics
+            ip_analytics = defaultdict(lambda: {
+                'total_requests': 0,
+                'blocked_requests': 0,
+                'allowed_requests': 0,
+                'error_requests': 0,
+                'first_seen': None,
+                'last_seen': None,
+                'user_agents': set(),
+                'sessions': set(),
+                'blocking_reasons': defaultdict(int),
+                'most_common_blocks': [],
+                'risk_score': 0.0,
+                'location': 'Unknown'
+            })
+            
+            # Process events by IP
+            for event in recent_events:
+                ip = event.ip_address
+                ip_data = ip_analytics[ip]
+                
+                # Update counts
+                ip_data['total_requests'] += 1
+                if event.status == RequestStatus.BLOCKED:
+                    ip_data['blocked_requests'] += 1
+                    for reason in event.blocking_reasons:
+                        ip_data['blocking_reasons'][reason] += 1
+                elif event.status == RequestStatus.ALLOWED:
+                    ip_data['allowed_requests'] += 1
+                elif event.status == RequestStatus.ERROR:
+                    ip_data['error_requests'] += 1
+                
+                # Update timestamps
+                if ip_data['first_seen'] is None or event.timestamp < ip_data['first_seen']:
+                    ip_data['first_seen'] = event.timestamp
+                if ip_data['last_seen'] is None or event.timestamp > ip_data['last_seen']:
+                    ip_data['last_seen'] = event.timestamp
+                
+                # Track user agents and sessions
+                ip_data['user_agents'].add(event.user_agent)
+                if event.session_id:
+                    ip_data['sessions'].add(event.session_id)
+            
+            # Calculate risk scores and format data
+            detailed_users = []
+            for ip, data in ip_analytics.items():
+                # Calculate risk score based on behavior
+                block_rate = data['blocked_requests'] / max(1, data['total_requests'])
+                risk_score = block_rate * 100
+                
+                # Additional risk factors
+                if data['total_requests'] > 100:  # High volume
+                    risk_score += 10
+                if len(data['user_agents']) > 5:  # Multiple user agents
+                    risk_score += 5
+                if len(data['sessions']) > 10:  # Many sessions
+                    risk_score += 5
+                
+                risk_score = min(100, risk_score)  # Cap at 100
+                
+                # Get most common blocking reasons
+                most_common_blocks = [
+                    {"reason": reason, "count": count}
+                    for reason, count in sorted(data['blocking_reasons'].items(), 
+                                              key=lambda x: x[1], reverse=True)[:3]
+                ]
+                
+                # Try to get location info (basic geolocation)
+                location = self._get_ip_location(ip)
+                
+                detailed_users.append({
+                    'ip_address': ip,
+                    'total_requests': data['total_requests'],
+                    'blocked_requests': data['blocked_requests'],
+                    'allowed_requests': data['allowed_requests'],
+                    'error_requests': data['error_requests'],
+                    'block_rate': round(block_rate * 100, 1),
+                    'first_seen': data['first_seen'].isoformat() if data['first_seen'] else None,
+                    'last_seen': data['last_seen'].isoformat() if data['last_seen'] else None,
+                    'unique_user_agents': len(data['user_agents']),
+                    'unique_sessions': len(data['sessions']),
+                    'most_common_blocks': most_common_blocks,
+                    'risk_score': round(risk_score, 1),
+                    'location': location,
+                    'is_repeat_violator': data['blocked_requests'] >= 5,
+                    'is_high_volume': data['total_requests'] > 50
+                })
+            
+            # Sort by risk score, then by request count
+            detailed_users.sort(key=lambda x: (x['risk_score'], x['total_requests']), reverse=True)
+            
+            # Summary statistics
+            total_unique_ips = len(detailed_users)
+            repeat_violators = len([u for u in detailed_users if u['is_repeat_violator']])
+            high_volume_users = len([u for u in detailed_users if u['is_high_volume']])
+            high_risk_users = len([u for u in detailed_users if u['risk_score'] > 50])
+            
+            # Top countries/regions
+            location_stats = defaultdict(int)
+            for user in detailed_users:
+                location_stats[user['location']] += user['total_requests']
+            
+            top_locations = [
+                {"location": loc, "request_count": count}
+                for loc, count in sorted(location_stats.items(), 
+                                       key=lambda x: x[1], reverse=True)[:10]
+            ]
+            
+            return {
+                'summary': {
+                    'total_unique_ips': total_unique_ips,
+                    'repeat_violators': repeat_violators,
+                    'high_volume_users': high_volume_users,
+                    'high_risk_users': high_risk_users,
+                    'avg_requests_per_ip': round(sum(u['total_requests'] for u in detailed_users) / max(1, total_unique_ips), 1)
+                },
+                'users': detailed_users[:50],  # Top 50 users
+                'top_locations': top_locations,
+                'generated_at': datetime.now().isoformat(),
+                'hours_analyzed': hours
+            }
+    
+    def _get_ip_location(self, ip_address: str) -> str:
+        """Get basic location info for IP (placeholder for geolocation)"""
+        try:
+            # Check if it's a private IP
+            ip_obj = ipaddress.ip_address(ip_address)
+            if ip_obj.is_private:
+                return "Private Network"
+            elif ip_obj.is_loopback:
+                return "Localhost"
+            elif ip_obj.is_multicast:
+                return "Multicast"
+            else:
+                # For production, you would integrate with a geolocation service
+                # like MaxMind GeoLite2, ipinfo.io, or similar
+                return "External"
+        except ValueError:
+            return "Unknown"
+    
     def _generate_timeline(self, events: List[RequestEvent], hours: int) -> List[Dict[str, Any]]:
         """Generate hourly timeline data"""
         timeline = []

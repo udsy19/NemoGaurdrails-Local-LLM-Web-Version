@@ -8,6 +8,8 @@ from nemoguardrails.actions.actions import ActionResult
 
 from app.guardrails.config_loader import ConfigLoader
 from app.guardrails.custom_actions import set_model_manager
+from app.guardrails.pipeline.multi_stage_pipeline import get_multi_stage_pipeline
+from app.guardrails.models import PipelineContext
 from app.utils.logger import app_logger
 from app.utils.exceptions import GuardrailsException
 
@@ -20,22 +22,33 @@ class GuardrailsManager:
         self.active_detectors = []
         self.is_initialized = False
         
+        # Phase 4: Multi-stage pipeline integration
+        self.use_phase4_pipeline = True
+        self.phase4_pipeline = None
+        
         # Set model manager for custom actions
         set_model_manager(model_manager)
         
     async def initialize(self, active_detectors: Optional[List[str]] = None):
         """Initialize guardrails with specified detectors"""
         try:
-            app_logger.info("Initializing NeMo Guardrails...")
+            app_logger.info("Initializing Guardrails System...")
             
             # Default to all available detectors if none specified
             if active_detectors is None:
                 active_detectors = list(self.model_manager.available_detectors.keys())
             
+            # Initialize Phase 4 multi-stage pipeline
+            if self.use_phase4_pipeline:
+                app_logger.info("Initializing Phase 4 Multi-Stage Pipeline...")
+                self.phase4_pipeline = get_multi_stage_pipeline()
+                app_logger.info("Phase 4 pipeline initialized successfully")
+            
+            # Load traditional NeMo configuration as fallback
             await self.load_configuration(active_detectors)
             self.is_initialized = True
             
-            app_logger.info("NeMo Guardrails initialized successfully")
+            app_logger.info("Guardrails system initialized successfully")
             
         except Exception as e:
             app_logger.error(f"Failed to initialize guardrails: {e}")
@@ -227,6 +240,91 @@ define flow check facts
             
             app_logger.info(f"Processing message through guardrails: {message[:100]}...")
             
+            # Phase 4: Use multi-stage pipeline if available
+            if self.use_phase4_pipeline and self.phase4_pipeline:
+                return await self._process_with_phase4_pipeline(message, context)
+            
+            # Fallback to traditional processing
+            return await self._process_with_traditional_guardrails(message, context)
+            
+        except Exception as e:
+            app_logger.error(f"Failed to process message: {e}")
+            raise GuardrailsException(f"Message processing failed: {e}")
+    
+    async def _process_with_phase4_pipeline(self, message: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Process message using Phase 4 multi-stage pipeline"""
+        try:
+            app_logger.info("Processing with Phase 4 Multi-Stage Pipeline")
+            
+            # Create pipeline context
+            pipeline_context = PipelineContext(
+                conversation_history=context.get("conversation_history", []) if context else [],
+                user_risk_score=context.get("user_risk_score", 0.0) if context else 0.0,
+                domain_context=context.get("domain_context", "general") if context else "general",
+                metadata=context or {}
+            )
+            
+            # Define guardrail types to check
+            guardrail_types = ["toxicity", "pii", "prompt_injection", "spam", "topic"]
+            
+            # Process through multi-stage pipeline
+            pipeline_results = await self.phase4_pipeline.process(
+                message, 
+                guardrail_types, 
+                pipeline_context
+            )
+            
+            # Analyze results
+            blocked = any(result.blocked for result in pipeline_results.values())
+            blocking_reasons = []
+            guardrails_triggered = {}
+            max_confidence = 0.0
+            
+            for guardrail_type, result in pipeline_results.items():
+                guardrails_triggered[guardrail_type] = {
+                    "blocked": result.blocked,
+                    "confidence": result.confidence,
+                    "stage": result.stage.value,
+                    "reasons": result.reasons,
+                    "processing_time_ms": result.processing_time_ms,
+                    "escalation_required": result.escalation_required
+                }
+                
+                if result.blocked:
+                    blocking_reasons.extend(result.reasons)
+                    max_confidence = max(max_confidence, result.confidence)
+            
+            # Generate response based on results
+            if blocked:
+                response_text = "I cannot process this message due to safety concerns detected by our advanced guardrails system."
+                if blocking_reasons:
+                    response_text += f" Issues detected: {', '.join(set(blocking_reasons[:3]))}"
+            else:
+                # Generate AI response if not blocked
+                response_text = await self._generate_safe_response(message, pipeline_context)
+            
+            return {
+                "response": response_text,
+                "blocked": blocked,
+                "blocking_reasons": list(set(blocking_reasons)),
+                "guardrails_results": guardrails_triggered,
+                "pipeline_stage": "phase4_multi_stage",
+                "max_confidence": max_confidence,
+                "context": context,
+                "metadata": {
+                    "pipeline_performance": self.phase4_pipeline.get_performance_metrics(),
+                    "total_processing_time": sum(r.processing_time_ms for r in pipeline_results.values())
+                }
+            }
+            
+        except Exception as e:
+            app_logger.error(f"Phase 4 pipeline processing failed: {e}")
+            # Fallback to traditional processing
+            return await self._process_with_traditional_guardrails(message, context)
+    
+    async def _process_with_traditional_guardrails(self, message: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Process message using traditional NeMo guardrails (fallback)"""
+        try:
             # Prepare context
             if context is None:
                 context = {}
@@ -295,6 +393,17 @@ define flow check facts
                 "context": context or {},
                 "error": str(e)
             }
+    
+    async def _generate_safe_response(self, message: str, pipeline_context: PipelineContext) -> str:
+        """Generate a safe AI response using the model manager"""
+        try:
+            # Simple safe response generation for now
+            # In production, this would integrate with the LLM with safety constraints
+            return f"Thank you for your message. How can I assist you further?"
+            
+        except Exception as e:
+            app_logger.error(f"Failed to generate safe response: {e}")
+            return "I'm here to help. How can I assist you today?"
     
     async def update_active_detectors(self, detectors: List[str]):
         """Update active detectors and reload configuration"""

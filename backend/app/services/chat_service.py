@@ -127,8 +127,8 @@ class ChatService:
                     # If no detectors are enabled, skip detection entirely
                     if not enabled_detectors:
                         app_logger.info("No detectors enabled - allowing message without detection")
-                        # Generate AI response directly
-                        ai_response = await self._generate_ai_response(message, session_id)
+                        # Generate AI response directly with selected provider
+                        ai_response = await self._generate_ai_response(message, session_id, provider_id)
                         request_status = RequestStatus.ALLOWED
                         
                         guardrails_result = {
@@ -160,7 +160,7 @@ class ChatService:
                             }
                         else:
                             # Generate AI response using Ollama
-                            ai_response = await self._generate_ai_response(message, session_id)
+                            ai_response = await self._generate_ai_response(message, session_id, provider_id)
                             
                             # Analyze AI response using same detector configuration
                             output_detection = await self.detection_service.run_detection(
@@ -522,8 +522,8 @@ class ChatService:
             app_logger.error(f"Failed to export chat history: {e}")
             return {"error": str(e)}
     
-    async def _generate_ai_response(self, message: str, session_id: str) -> str:
-        """Generate AI response using Ollama"""
+    async def _generate_ai_response(self, message: str, session_id: str, provider_id: Optional[str] = None) -> str:
+        """Generate AI response using selected provider or default Ollama"""
         try:
             # Get chat history for context
             history = self.chat_history.get(session_id, [])
@@ -533,6 +533,26 @@ class ChatService:
             for msg in history[-10:]:  # Last 10 messages for context
                 conversation.append(f"{msg['role']}: {msg['content']}")
             
+            # Use provider service if provider_id is specified
+            if provider_id and hasattr(self, 'provider_service'):
+                try:
+                    # Check if provider is connected
+                    providers = await self.provider_service.get_providers()
+                    selected_provider = next((p for p in providers if p.id == provider_id), None)
+                    
+                    if selected_provider and selected_provider.status == "connected":
+                        # Use the provider service to generate response
+                        response = await self._generate_with_provider(message, history, provider_id)
+                        if response:
+                            return response
+                        else:
+                            app_logger.warning(f"Provider {provider_id} failed, falling back to Ollama")
+                    else:
+                        app_logger.warning(f"Provider {provider_id} not connected, using Ollama")
+                except Exception as e:
+                    app_logger.error(f"Provider {provider_id} error: {e}, falling back to Ollama")
+            
+            # Default: Use Ollama
             # Add current user message
             conversation.append(f"user: {message}")
             
@@ -563,6 +583,17 @@ assistant:"""
         except Exception as e:
             app_logger.error(f"Failed to generate AI response: {e}")
             return "I apologize, but I encountered an error while generating a response."
+    
+    async def _generate_with_provider(self, message: str, history: List[Dict], provider_id: str) -> Optional[str]:
+        """Generate response using a specific provider"""
+        try:
+            # For now, just fall back to Ollama
+            # TODO: Implement actual provider-specific generation
+            app_logger.info(f"Provider {provider_id} generation requested - falling back to Ollama for now")
+            return None
+        except Exception as e:
+            app_logger.error(f"Provider generation failed: {e}")
+            return None
 
     async def cleanup(self):
         """Clean up resources"""

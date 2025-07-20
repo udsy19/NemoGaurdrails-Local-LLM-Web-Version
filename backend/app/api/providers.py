@@ -175,40 +175,11 @@ async def test_provider_connection(provider_id: str, background_tasks: Backgroun
         # Start connection test in background
         success, error_message = await provider_service.test_provider_connection(provider_id)
         
-        # If connection successful, test LLM generation
-        llm_test_result = None
-        if success:
-            try:
-                test_prompt = "Hello! Please respond with 'Connection test successful' to confirm the LLM is working."
-                
-                # Import chat service to test generation
-                from app.main import chat_service
-                if chat_service:
-                    start_time = time.time()
-                    chat_response = await chat_service.process_message(
-                        message=test_prompt,
-                        detector_config={},  # Minimal config for test
-                        context={"test_mode": True, "provider": provider_id}
-                    )
-                    response_time = round((time.time() - start_time) * 1000, 2)
-                    
-                    llm_test_result = {
-                        "prompt": test_prompt,
-                        "response": chat_response.get("response", "No response"),
-                        "blocked": chat_response.get("blocked", False),
-                        "response_time_ms": response_time,
-                        "success": True
-                    }
-                else:
-                    llm_test_result = {
-                        "error": "Chat service not available",
-                        "success": False
-                    }
-            except Exception as e:
-                llm_test_result = {
-                    "error": f"LLM generation test failed: {str(e)}",
-                    "success": False
-                }
+        # Skip LLM generation test for basic connection test - just return connection result
+        llm_test_result = {
+            "skipped": True,
+            "message": "LLM test skipped for fast connection test. Use /test-llm endpoint for full test."
+        }
         
         # Get updated provider status
         updated_provider = provider_service.to_dict()[provider_id]
@@ -275,6 +246,72 @@ async def select_provider_model(provider_id: str, model_id: str):
         raise
     except Exception as e:
         logger.error(f"Error selecting model for provider {provider_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{provider_id}/test-llm")
+async def test_provider_llm_generation(provider_id: str):
+    """Test full LLM generation for a provider"""
+    try:
+        provider = provider_service.get_provider(provider_id)
+        if not provider:
+            raise HTTPException(status_code=404, detail="Provider not found")
+        
+        # First test basic connection
+        success, error_message = await provider_service.test_provider_connection(provider_id)
+        if not success:
+            return {
+                "provider_id": provider_id,
+                "connection_success": False,
+                "error_message": error_message,
+                "llm_test": {"success": False, "error": "Connection failed"},
+                "success": False
+            }
+        
+        # Test LLM generation
+        try:
+            test_prompt = "Hello! Please respond with 'Connection test successful' to confirm the LLM is working."
+            
+            # Import chat service to test generation
+            from app.main import chat_service
+            if chat_service:
+                start_time = time.time()
+                chat_response = await chat_service.process_message(
+                    message=test_prompt,
+                    detector_config={},  # Minimal config for test
+                    context={"test_mode": True, "provider": provider_id}
+                )
+                response_time = round((time.time() - start_time) * 1000, 2)
+                
+                llm_test_result = {
+                    "prompt": test_prompt,
+                    "response": chat_response.get("response", "No response"),
+                    "blocked": chat_response.get("blocked", False),
+                    "response_time_ms": response_time,
+                    "success": not chat_response.get("blocked", False) and chat_response.get("response")
+                }
+            else:
+                llm_test_result = {
+                    "error": "Chat service not available",
+                    "success": False
+                }
+        except Exception as e:
+            llm_test_result = {
+                "error": f"LLM generation test failed: {str(e)}",
+                "success": False
+            }
+        
+        return {
+            "provider_id": provider_id,
+            "connection_success": success,
+            "error_message": error_message,
+            "llm_test": llm_test_result,
+            "success": success and llm_test_result.get("success", False)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error testing LLM for provider {provider_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/port/{port}")
