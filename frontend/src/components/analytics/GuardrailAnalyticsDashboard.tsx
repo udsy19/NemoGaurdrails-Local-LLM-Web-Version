@@ -563,6 +563,7 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
                 </CardContent>
               </Card>
             </Box>
+          </Box>
           
           {/* Section 2: Content Analysis (removing language distribution) */}
           <Typography variant="h5" gutterBottom sx={{ mt: 6, mb: 3, color: '#ffffff', fontWeight: 600 }}>
