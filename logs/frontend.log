@@ -1,23 +1,21 @@
-[2025-07-15 17:33:15] [FRONTEND] 
-[2025-07-15 17:33:15] [FRONTEND] > frontend@0.1.0 start
-[2025-07-15 17:33:15] [FRONTEND] > react-scripts start
-[2025-07-15 17:33:15] [FRONTEND] 
-[2025-07-15 17:33:16] [FRONTEND] (node:77379) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
-[2025-07-15 17:33:16] [FRONTEND] (Use `node --trace-deprecation ...` to show where the warning was created)
-[2025-07-15 17:33:16] [FRONTEND] (node:77379) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
-[2025-07-15 17:33:16] [FRONTEND] Starting the development server...
-[2025-07-15 17:33:16] [FRONTEND] 
-[2025-07-15 17:33:17] [FRONTEND] Compiled successfully!
-[2025-07-15 17:33:17] [FRONTEND] 
-[2025-07-15 17:33:17] [FRONTEND] You can now view frontend in the browser.
-[2025-07-15 17:33:17] [FRONTEND] 
-[2025-07-15 17:33:17] [FRONTEND]   Local:            http://localhost:3000
-[2025-07-15 17:33:17] [FRONTEND]   On Your Network:  http://172.20.10.2:3000
-[2025-07-15 17:33:17] [FRONTEND] 
-[2025-07-15 17:33:17] [FRONTEND] Note that the development build is not optimized.
-[2025-07-15 17:33:17] [FRONTEND] To create a production build, use npm run build.
-[2025-07-15 17:33:17] [FRONTEND] 
-[2025-07-15 17:33:17] [FRONTEND] webpack compiled successfully
-[2025-07-15 17:33:17] [FRONTEND] Files successfully emitted, waiting for typecheck results...
-[2025-07-15 17:33:17] [FRONTEND] Issues checking in progress...
-[2025-07-15 17:33:17] [FRONTEND] No issues found.
+[2025-07-31 13:50:12] [FRONTEND] 
+[2025-07-31 13:50:12] [FRONTEND] > frontend@0.1.0 start
+[2025-07-31 13:50:12] [FRONTEND] > react-scripts start
+[2025-07-31 13:50:12] [FRONTEND] 
+[2025-07-31 13:50:12] [FRONTEND] (node:25338) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+[2025-07-31 13:50:12] [FRONTEND] (Use `node --trace-deprecation ...` to show where the warning was created)
+[2025-07-31 13:50:12] [FRONTEND] (node:25338) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+[2025-07-31 13:50:13] [FRONTEND] Starting the development server...
+[2025-07-31 13:50:13] [FRONTEND] 
+[2025-07-31 13:50:15] [FRONTEND] Compiled successfully!
+[2025-07-31 13:50:15] [FRONTEND] 
+[2025-07-31 13:50:15] [FRONTEND] You can now view frontend in the browser.
+[2025-07-31 13:50:15] [FRONTEND] 
+[2025-07-31 13:50:15] [FRONTEND]   Local:            http://localhost:3000
+[2025-07-31 13:50:15] [FRONTEND]   On Your Network:  http://172.20.10.2:3000
+[2025-07-31 13:50:15] [FRONTEND] 
+[2025-07-31 13:50:15] [FRONTEND] Note that the development build is not optimized.
+[2025-07-31 13:50:15] [FRONTEND] To create a production build, use npm run build.
+[2025-07-31 13:50:15] [FRONTEND] 
+[2025-07-31 13:50:15] [FRONTEND] webpack compiled successfully
+[2025-07-31 13:50:15] [FRONTEND] No issues found.

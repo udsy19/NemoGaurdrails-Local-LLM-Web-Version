@@ -46,7 +46,11 @@ import { ollamaDownloadService, DownloadProgress } from './services/ollamaDownlo
 import GuardrailsConfig from './components/guardrails/GuardrailsConfig';
 import ProvidersConfig from './components/providers/ProvidersConfig';
 import AnalyticsOverview from './components/analytics/AnalyticsOverview';
-import TestingPlaygroundSimple from './components/testing/TestingPlaygroundSimple';
+import GuardrailAnalyticsDashboard from './components/analytics/GuardrailAnalyticsDashboard';
+import AdvancedTestingPlayground from './components/testing/AdvancedTestingPlayground';
+import ModernChatInterface from './components/chat/ModernChatInterface';
+import GPUAcceleration from './components/gpu/GPUAcceleration';
+import DistributedProcessing from './components/distributed/DistributedProcessing';
 
 // Linear-inspired minimal theme
 const minimalTheme = {
@@ -95,7 +99,7 @@ const App: React.FC = () => {
   const [message, setMessage] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'models' | 'terminal' | 'guardrails' | 'providers' | 'analytics' | 'testing'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'models' | 'terminal' | 'guardrails' | 'providers' | 'analytics' | 'testing' | 'hardware'>('chat');
   const [terminalExpanded, setTerminalExpanded] = useState(false);
   const [modelSearch, setModelSearch] = useState('');
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
@@ -109,17 +113,18 @@ const App: React.FC = () => {
   const { health } = useSystemHealth();
   const { detectors, selectedDetectors, detectorConfig, toggleDetector } = useDetectors();
   const { messages, isLoading, sendMessage: sendChatMessage, clearHistory } = useChat(sessionId);
-  const { providers, enabledProviders } = useProviders();
+  const { providers, enabledProviders, connectedProviders } = useProviders();
+  
   
   // Provider selection state
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   
   // Set default provider when providers load
   useEffect(() => {
-    if (enabledProviders.length > 0 && !selectedProvider) {
-      setSelectedProvider(enabledProviders[0].id);
+    if (connectedProviders.length > 0 && !selectedProvider) {
+      setSelectedProvider(connectedProviders[0].id);
     }
-  }, [enabledProviders, selectedProvider]);
+  }, [connectedProviders, selectedProvider]);
 
   // Auto-scroll when new messages are added
   useEffect(() => {
@@ -389,7 +394,7 @@ const App: React.FC = () => {
 
           {/* Tab Navigation */}
           <Box sx={{ display: 'flex', gap: 1, mt: 3 }}>
-            {(['chat', 'testing', 'analytics', 'guardrails', 'providers', 'models', 'terminal'] as const).map((tab) => (
+            {(['chat', 'testing', 'analytics', 'guardrails', 'providers', 'hardware', 'models', 'terminal'] as const).map((tab) => (
               <Box
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -503,361 +508,43 @@ const App: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
+                style={{ height: '100vh', position: 'relative' }}
               >
-                {/* Guardrail Controls */}
-                <Card sx={{ mb: 3 }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-                      Safety Guardrails
-                    </Typography>
+                <ModernChatInterface
+                  messages={messages}
+                  onSendMessage={(msg, provider, detectorConfig) => {
+                    setMessage('');
+                    // Use the detector config or create one from selectedDetectors
+                    const config = detectorConfig || selectedDetectors.reduce((acc, detector) => {
+                      acc[detector] = { enabled: true };
+                      return acc;
+                    }, {} as any);
                     
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                      {detectors.map((detector) => (
-                        <Box
-                          key={detector.name}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            px: 2,
-                            py: 1,
-                            borderRadius: '8px',
-                            background: selectedDetectors.includes(detector.name)
-                              ? 'rgba(0, 212, 170, 0.1)'
-                              : 'rgba(255, 255, 255, 0.02)',
-                            border: selectedDetectors.includes(detector.name)
-                              ? '1px solid rgba(0, 212, 170, 0.3)'
-                              : '1px solid rgba(255, 255, 255, 0.06)',
-                            transition: 'all 0.2s',
-                          }}
-                        >
-                          <Switch
-                            checked={selectedDetectors.includes(detector.name)}
-                            onChange={(e) => toggleDetector(detector.name, e.target.checked)}
-                            size="small"
-                            sx={{
-                              '& .MuiSwitch-switchBase.Mui-checked': {
-                                color: '#00D4AA',
-                              },
-                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                backgroundColor: '#00D4AA',
-                              },
-                            }}
-                          />
-                          <Typography variant="body2" sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
-                            {detector.name.replace('_', ' ')}
-                          </Typography>
-                          <Chip
-                            size="small"
-                            label={detector.status}
-                            sx={{
-                              backgroundColor: detector.status === 'loaded' ? '#00D4AA20' : '#ef444420',
-                              color: detector.status === 'loaded' ? '#00D4AA' : '#ef4444',
-                              fontSize: '0.7rem',
-                            }}
-                          />
-                        </Box>
-                      ))}
-                    </Box>
-                  </CardContent>
-                </Card>
-
-                {/* Chat Container */}
-                <Card sx={{ 
-                  mb: 3, 
-                  height: '70vh', 
-                  minHeight: '500px', 
-                  maxHeight: '80vh', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  position: 'relative' 
-                }}>
-                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 0, height: '100%' }}>
-                    {/* Chat Messages */}
-                    <Box 
-                      ref={chatContainerRef}
-                      onScroll={handleScroll}
-                      sx={{ 
-                        flex: 1, 
-                        overflow: 'hidden auto', 
-                        overflowX: 'hidden',
-                        overflowY: 'auto',
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                        minHeight: 0, // Important for flex scrolling
-                        maxHeight: '100%', // Ensure it can scroll
-                        scrollBehavior: 'smooth',
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: 'rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05)',
-                        '&::-webkit-scrollbar': {
-                          width: '8px',
-                        },
-                        '&::-webkit-scrollbar-track': {
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          borderRadius: '4px',
-                        },
-                        '&::-webkit-scrollbar-thumb': {
-                          background: 'rgba(255, 255, 255, 0.2)',
-                          borderRadius: '4px',
-                          '&:hover': {
-                            background: 'rgba(255, 255, 255, 0.3)',
-                          },
-                        },
-                      }}
-                    >
-                      {messages.length === 0 && (
-                        <Box sx={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          height: '100%',
-                          textAlign: 'center',
-                          color: '#6b7280'
-                        }}>
-                          <Box>
-                            <Typography variant="h6" sx={{ mb: 1, color: '#00D4AA' }}>
-                              🛡️ AI Safety System Ready
-                            </Typography>
-                            <Typography variant="body2">
-                              I'm your local AI assistant with built-in safety guardrails.<br/>
-                              Ask me anything and I'll help while keeping our conversation safe and secure.
-                            </Typography>
-                          </Box>
-                        </Box>
-                      )}
-                      
-                      <AnimatePresence>
-                        {messages.map((msg, index) => (
-                          <motion.div
-                            key={msg.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <Box sx={{ 
-                              display: 'flex', 
-                              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                              mb: 1
-                            }}>
-                              <Box sx={{ 
-                                maxWidth: '70%',
-                                p: 2,
-                                borderRadius: '16px',
-                                backgroundColor: msg.role === 'user' 
-                                  ? '#00D4AA20' 
-                                  : msg.blocked 
-                                    ? '#ef444420'
-                                    : 'rgba(255, 255, 255, 0.05)',
-                                border: msg.blocked 
-                                  ? '1px solid #ef444440'
-                                  : '1px solid rgba(255, 255, 255, 0.06)',
-                              }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      px: 1,
-                                      py: 0.5,
-                                      borderRadius: '8px',
-                                      backgroundColor: msg.role === 'user' ? '#00D4AA' : '#6b7280',
-                                      color: '#ffffff',
-                                      textTransform: 'uppercase',
-                                      fontWeight: 600,
-                                      fontSize: '0.65rem',
-                                    }}
-                                  >
-                                    {msg.role}
-                                  </Typography>
-                                  <Typography variant="caption" sx={{ color: '#6b7280', fontSize: '0.7rem' }}>
-                                    {new Date(msg.timestamp || Date.now()).toLocaleTimeString('en-US', { 
-                                      hour12: false, 
-                                      hour: '2-digit', 
-                                      minute: '2-digit', 
-                                      second: '2-digit' 
-                                    })}
-                                  </Typography>
-                                  {msg.blocked && (
-                                    <Chip
-                                      icon={<AlertCircle size={10} />}
-                                      label="Blocked"
-                                      size="small"
-                                      sx={{
-                                        backgroundColor: '#ef4444',
-                                        color: '#ffffff',
-                                        fontSize: '0.6rem',
-                                        height: '18px',
-                                      }}
-                                    />
-                                  )}
-                                </Box>
-                                
-                                <Typography variant="body1" sx={{ 
-                                  lineHeight: 1.5,
-                                  color: msg.blocked ? '#ef4444' : '#ffffff',
-                                  fontSize: '0.9rem'
-                                }}>
-                                  {msg.content}
-                                </Typography>
-
-                                {msg.blocking_reasons && msg.blocking_reasons.length > 0 && (
-                                  <Alert severity="error" sx={{ mt: 1, fontSize: '0.8rem' }}>
-                                    {msg.blocking_reasons.join(', ')}
-                                  </Alert>
-                                )}
-                              </Box>
-                            </Box>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-
-                      {isLoading && (
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                          <Box sx={{ 
-                            maxWidth: '70%',
-                            p: 2,
-                            borderRadius: '16px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.06)',
-                          }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <LinearProgress sx={{ flexGrow: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
-                              <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '0.8rem' }}>
-                                Thinking...
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </Box>
-                      )}
-                    </Box>
-                    
-                    {/* Scroll to bottom button */}
-                    {showScrollButton && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
-                        style={{
-                          position: 'absolute',
-                          bottom: 16,
-                          right: 16,
-                          zIndex: 1000,
-                        }}
-                      >
-                        <IconButton
-                          onClick={() => scrollToBottom(true)}
-                          sx={{
-                            backgroundColor: '#00D4AA',
-                            color: '#ffffff',
-                            boxShadow: '0 4px 20px rgba(0, 212, 170, 0.3)',
-                            '&:hover': {
-                              backgroundColor: '#00A085',
-                              boxShadow: '0 6px 25px rgba(0, 212, 170, 0.4)',
-                            },
-                          }}
-                        >
-                          <ArrowDown size={20} />
-                        </IconButton>
-                      </motion.div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Provider Selection */}
-                {enabledProviders.length > 1 && (
-                  <Card sx={{ mb: 2 }}>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="body2" sx={{ color: '#A8B2D1', minWidth: 'auto' }}>
-                          AI Provider:
-                        </Typography>
-                        <Box sx={{ minWidth: 200 }}>
-                          <TextField
-                            select
-                            size="small"
-                            value={selectedProvider}
-                            onChange={(e) => setSelectedProvider(e.target.value)}
-                            disabled={isLoading}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                                '&:hover .MuiOutlinedInput-notchedOutline': {
-                                  borderColor: '#00D4AA',
-                                },
-                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                  borderColor: '#00D4AA',
-                                },
-                              },
-                              '& .MuiSelect-select': {
-                                color: '#FFFFFF',
-                              },
-                              '& .MuiSvgIcon-root': {
-                                color: '#A8B2D1',
-                              },
-                            }}
-                          >
-                            {enabledProviders.map((provider) => (
-                              <MenuItem key={provider.id} value={provider.id}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Typography variant="body2">
-                                    {provider.display_name}
-                                  </Typography>
-                                  <Chip
-                                    size="small"
-                                    label={provider.status === 'connected' ? 'Connected' : provider.status}
-                                    sx={{
-                                      backgroundColor: provider.status === 'connected' ? '#00D4AA20' : '#ef444420',
-                                      color: provider.status === 'connected' ? '#00D4AA' : '#ef4444',
-                                      fontSize: '0.7rem',
-                                    }}
-                                  />
-                                </Box>
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                        </Box>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Message Input */}
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        maxRows={4}
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage();
-                          }
-                        }}
-                        placeholder="Type your message..."
-                        disabled={!isConnected || isLoading}
-                        variant="outlined"
-                      />
-                      <IconButton
-                        onClick={handleSendMessage}
-                        disabled={!message.trim() || !isConnected || isLoading}
-                        sx={{
-                          backgroundColor: message.trim() && isConnected && !isLoading ? '#00D4AA' : 'rgba(255, 255, 255, 0.1)',
-                          color: '#ffffff',
-                          '&:hover': {
-                            backgroundColor: message.trim() && isConnected && !isLoading ? '#00A085' : 'rgba(255, 255, 255, 0.2)',
-                          },
-                        }}
-                      >
-                        <Send size={18} />
-                      </IconButton>
-                    </Box>
-                  </CardContent>
-                </Card>
+                    sendChatMessage(msg, config, provider);
+                  }}
+                  isLoading={isLoading}
+                  disabled={!isConnected}
+                  detectorConfig={detectorConfig}
+                  onDetectorConfigChange={(config) => {
+                    // Update detector config using the proper hook
+                    Object.keys(config).forEach(detector => {
+                      const isEnabled = config[detector]?.enabled || false;
+                      const wasEnabled = detectorConfig[detector]?.enabled || false;
+                      if (isEnabled !== wasEnabled) {
+                        toggleDetector(detector, isEnabled);
+                      }
+                    });
+                  }}
+                  onClearHistory={() => {
+                    clearHistory();
+                    toast.success('Chat history cleared');
+                  }}
+                  availableProviders={connectedProviders}
+                  selectedProvider={selectedProvider}
+                  onProviderChange={setSelectedProvider}
+                  onNavigateToProviders={() => setActiveTab('providers')}
+                  onNavigateToGuardrails={() => setActiveTab('guardrails')}
+                />
               </motion.div>
             )}
 
@@ -1086,12 +773,7 @@ const App: React.FC = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <AnalyticsOverview 
-                  onRefresh={() => {
-                    // Handle analytics refresh
-                    console.log('Analytics refreshed');
-                  }}
-                />
+                <GuardrailAnalyticsDashboard />
               </motion.div>
             )}
 
@@ -1103,7 +785,45 @@ const App: React.FC = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <TestingPlaygroundSimple />
+                <AdvancedTestingPlayground />
+              </motion.div>
+            )}
+
+            {activeTab === 'hardware' && (
+              <motion.div
+                key="hardware"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography variant="h4" component="h1">
+                    Hardware & Distributed Computing
+                  </Typography>
+                  
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, 1fr)' }, gap: 3 }}>
+                    {/* GPU Acceleration Section */}
+                    <Card>
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                          GPU Acceleration
+                        </Typography>
+                        <GPUAcceleration />
+                      </CardContent>
+                    </Card>
+
+                    {/* Distributed Processing Section */}
+                    <Card>
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                          Distributed Computing
+                        </Typography>
+                        <DistributedProcessing />
+                      </CardContent>
+                    </Card>
+                  </Box>
+                </Box>
               </motion.div>
             )}
 

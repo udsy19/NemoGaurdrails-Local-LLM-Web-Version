@@ -61,17 +61,17 @@ trap cleanup SIGINT SIGTERM
 
 # Kill any existing processes on ports 8000 and 3000
 echo "🔍 Checking for existing processes on ports 8000 and 3000..."
-EXISTING_PID_8000=$(lsof -ti:8000)
+EXISTING_PID_8000=$(lsof -ti:8000 2>/dev/null || true)
 if [ ! -z "$EXISTING_PID_8000" ]; then
     echo "🛑 Killing existing process $EXISTING_PID_8000 on port 8000..."
-    kill -9 $EXISTING_PID_8000 2>/dev/null
+    kill $EXISTING_PID_8000 2>/dev/null || kill -9 $EXISTING_PID_8000 2>/dev/null || true
     sleep 2
 fi
 
-EXISTING_PID_3000=$(lsof -ti:3000)
+EXISTING_PID_3000=$(lsof -ti:3000 2>/dev/null || true)
 if [ ! -z "$EXISTING_PID_3000" ]; then
     echo "🛑 Killing existing process $EXISTING_PID_3000 on port 3000..."
-    kill -9 $EXISTING_PID_3000 2>/dev/null
+    kill $EXISTING_PID_3000 2>/dev/null || kill -9 $EXISTING_PID_3000 2>/dev/null || true
     sleep 2
 fi
 

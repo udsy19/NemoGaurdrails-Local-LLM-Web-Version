@@ -240,9 +240,9 @@ export const useAnalytics = () => {
     }
   }, [fetchRealtimeStats]);
 
-  const exportAnalyticsData = useCallback(async () => {
+  const exportAnalyticsToExcel = useCallback(async (hours: number = 24, comprehensive: boolean = true) => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/analytics/export`);
+      const response = await fetch(`${BACKEND_URL}/api/analytics/export?hours=${hours}&comprehensive=${comprehensive}`);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -250,6 +250,120 @@ export const useAnalytics = () => {
       const data = await response.json();
       
       if (data.success) {
+        // Create Excel export data structure
+        const exportData = data.export_data;
+        const excelData = {
+          metadata: {
+            exportDate: new Date().toISOString(),
+            timeframe: hours === 24 ? 'Last 24 Hours' : hours === 168 ? 'Last Week' : `Last ${hours} Hours`,
+            type: comprehensive ? 'Comprehensive' : 'Basic',
+            ...exportData.metadata
+          },
+          
+          // Summary Sheet
+          summary: {
+            'Total Requests': exportData.realtime_stats?.total_requests || 0,
+            'Blocked Requests': exportData.realtime_stats?.blocked_requests || 0,
+            'Allowed Requests': exportData.realtime_stats?.allowed_requests || 0,
+            'Block Rate (%)': exportData.realtime_stats?.block_rate || 0,
+            'Unique Users': exportData.realtime_stats?.unique_users_total || 0,
+            'Average Response Time (ms)': exportData.realtime_stats?.avg_response_time || 0,
+            'Requests per Minute': exportData.realtime_stats?.requests_per_minute || 0,
+            'Error Rate (%)': exportData.analytics_summary?.error_rate || 0,
+          },
+          
+          // Request Timeline
+          timeline: exportData.analytics_summary?.request_timeline || [],
+          
+          // Detector Performance
+          detectors: exportData.analytics_summary?.detector_stats?.map((detector: any) => ({
+            'Detector Name': detector.name,
+            'Total Detections': detector.total_detections,
+            'Blocked Count': detector.blocked_count,
+            'Allowed Count': detector.allowed_count,
+            'Block Rate (%)': detector.block_rate,
+            'Average Confidence (%)': (detector.avg_confidence * 100).toFixed(1),
+            'Last Triggered': detector.last_triggered || 'Never',
+            'Effectiveness': detector.blocked_count > 0 ? 'High' : 'Low'
+          })) || [],
+          
+          // User Activity
+          userActivity: exportData.analytics_summary?.user_activity?.map((user: any) => ({
+            'IP Address': user.ip_address,
+            'Total Requests': user.total_requests,
+            'Blocked Requests': user.blocked_requests,
+            'Allowed Requests': user.allowed_requests,
+            'Block Rate (%)': user.block_rate,
+            'First Seen': user.first_seen,
+            'Last Seen': user.last_seen,
+            'Risk Level': user.block_rate > 50 ? 'High' : user.block_rate > 25 ? 'Medium' : 'Low'
+          })) || [],
+          
+          // Top Blocking Reasons
+          blockingReasons: exportData.analytics_summary?.top_blocking_reasons?.map((reason: any) => ({
+            'Reason': reason.reason,
+            'Count': reason.count,
+            'Percentage': ((reason.count / (exportData.realtime_stats?.blocked_requests || 1)) * 100).toFixed(1)
+          })) || [],
+          
+          // Geographic Data
+          geographic: exportData.analytics_summary?.geographic_data || [],
+          
+          // Events (if comprehensive)
+          events: comprehensive ? exportData.events || [] : [],
+          
+          // System Health
+          systemHealth: exportData.system_health || {}
+        };
+        
+        // Convert to CSV-like format for Excel compatibility
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const timeframeStr = hours === 24 ? 'daily' : hours === 168 ? 'weekly' : `${hours}h`;
+        const typeStr = comprehensive ? 'comprehensive' : 'basic';
+        const filename = `ai-safety-analytics-${typeStr}-${timeframeStr}-${timestamp}.json`;
+        
+        // Create download link
+        const blob = new Blob([JSON.stringify(excelData, null, 2)], {
+          type: 'application/json',
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        toast.success('Excel-compatible analytics data exported successfully!');
+        return true;
+      } else {
+        throw new Error('Failed to export analytics data');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      toast.error(`Export failed: ${errorMessage}`);
+      console.error('Export error:', errorMessage);
+      return false;
+    }
+  }, []);
+
+  const exportAnalyticsData = useCallback(async (hours: number = 24, comprehensive: boolean = true) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/analytics/export?hours=${hours}&comprehensive=${comprehensive}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Create comprehensive filename with metadata
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const timeframeStr = hours === 24 ? 'daily' : hours === 168 ? 'weekly' : `${hours}h`;
+        const typeStr = comprehensive ? 'comprehensive' : 'basic';
+        const filename = `ai-safety-analytics-${typeStr}-${timeframeStr}-${timestamp}.json`;
+        
         // Create download link
         const blob = new Blob([JSON.stringify(data.export_data, null, 2)], {
           type: 'application/json',
@@ -257,13 +371,19 @@ export const useAnalytics = () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `analytics-export-${new Date().toISOString().slice(0, 10)}.json`;
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        toast.success('Analytics data exported successfully');
+        // Enhanced success message with export details
+        const exportMetadata = data.export_data.metadata;
+        const message = comprehensive 
+          ? `Comprehensive analytics exported: ${exportMetadata?.total_events_exported || 0} events, ${exportMetadata?.total_users_exported || 0} users, ${exportMetadata?.total_detectors || 0} detectors`
+          : 'Basic analytics data exported successfully';
+        
+        toast.success(message);
         return true;
       } else {
         throw new Error('Failed to export analytics data');
@@ -333,6 +453,7 @@ export const useAnalytics = () => {
     fetchTimeline,
     trackRequest,
     exportAnalyticsData,
+    exportAnalyticsToExcel,
     cleanupOldData,
     
     // Computed values

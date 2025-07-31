@@ -25,6 +25,10 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Menu,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import {
   BarChart,
@@ -61,6 +65,9 @@ import {
   PieChart as PieChartIcon,
   Calendar,
   ChevronDown as ExpandMore,
+  FileText,
+  Database,
+  ChevronDown,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -79,6 +86,7 @@ const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({ onRefresh }) => {
     fetchAnalyticsSummary,
     fetchRealtimeStats,
     exportAnalyticsData,
+    exportAnalyticsToExcel,
     isLoaded,
     hasData,
     blockRate,
@@ -88,6 +96,8 @@ const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({ onRefresh }) => {
   const [timeframe, setTimeframe] = useState(24);
   const [refreshing, setRefreshing] = useState(false);
   const [expanded, setExpanded] = useState<string | false>('overview');
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleTimeframeChange = async (newTimeframe: number) => {
     setTimeframe(newTimeframe);
@@ -115,6 +125,27 @@ const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({ onRefresh }) => {
     isExpanded: boolean
   ) => {
     setExpanded(isExpanded ? panel : false);
+  };
+
+  const handleExportClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+    setExportMenuOpen(true);
+  };
+
+  const handleExportMenuClose = () => {
+    setAnchorEl(null);
+    setExportMenuOpen(false);
+  };
+
+  const handleExportOption = async (comprehensive: boolean, format: 'json' | 'excel' = 'json') => {
+    setAnchorEl(null);
+    setExportMenuOpen(false);
+    
+    if (format === 'excel') {
+      await exportAnalyticsToExcel(timeframe, comprehensive);
+    } else {
+      await exportAnalyticsData(timeframe, comprehensive);
+    }
   };
 
   // Chart colors
@@ -220,12 +251,68 @@ const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({ onRefresh }) => {
               
               <Tooltip title="Export Data">
                 <IconButton
-                  onClick={exportAnalyticsData}
+                  onClick={handleExportClick}
                   sx={{ color: '#a1a1aa', '&:hover': { color: '#ffffff' } }}
                 >
                   <Download size={20} />
                 </IconButton>
               </Tooltip>
+              
+              <Menu
+                anchorEl={anchorEl}
+                open={exportMenuOpen}
+                onClose={handleExportMenuClose}
+                PaperProps={{
+                  sx: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    minWidth: 280,
+                  },
+                }}
+              >
+                <MenuItem onClick={() => handleExportOption(true, 'json')} sx={{ color: '#ffffff' }}>
+                  <ListItemIcon>
+                    <Database size={20} style={{ color: colors.primary }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Comprehensive JSON Export"
+                    secondary="Full dashboard data + events + analysis"
+                    secondaryTypographyProps={{ sx: { color: '#a1a1aa' } }}
+                  />
+                </MenuItem>
+                <MenuItem onClick={() => handleExportOption(true, 'excel')} sx={{ color: '#ffffff' }}>
+                  <ListItemIcon>
+                    <FileText size={20} style={{ color: colors.success }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Excel-Compatible Export"
+                    secondary="Structured data for Excel analysis"
+                    secondaryTypographyProps={{ sx: { color: '#a1a1aa' } }}
+                  />
+                </MenuItem>
+                <MenuItem onClick={() => handleExportOption(false, 'json')} sx={{ color: '#ffffff' }}>
+                  <ListItemIcon>
+                    <FileText size={20} style={{ color: colors.secondary }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Basic JSON Export"
+                    secondary="Summary statistics only"
+                    secondaryTypographyProps={{ sx: { color: '#a1a1aa' } }}
+                  />
+                </MenuItem>
+                <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+                <MenuItem disabled sx={{ color: '#a1a1aa' }}>
+                  <ListItemIcon>
+                    <Calendar size={20} style={{ color: '#a1a1aa' }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={`${timeframe === 24 ? 'Daily' : timeframe === 168 ? 'Weekly' : `${timeframe}h`} Timeframe`}
+                    secondary="Change timeframe above to export different periods"
+                    secondaryTypographyProps={{ sx: { color: '#6b7280' } }}
+                  />
+                </MenuItem>
+              </Menu>
               
               <Tooltip title="Refresh">
                 <IconButton
@@ -469,7 +556,7 @@ const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({ onRefresh }) => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              {summary && summary.detector_stats.length > 0 && (
+              {summary && summary.detector_stats.length > 0 ? (
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, 1fr)' }, gap: 3 }}>
                   {/* Detector Stats Table */}
                   <Card sx={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
@@ -488,45 +575,79 @@ const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({ onRefresh }) => {
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {summary.detector_stats.map((detector) => (
-                              <TableRow key={detector.name}>
-                                <TableCell sx={{ color: '#ffffff' }}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    {detector.name.replace('_', ' ').split(' ').map(word => 
-                                      word.charAt(0).toUpperCase() + word.slice(1)
-                                    ).join(' ')}
-                                    {detector.last_triggered && (
-                                      <Chip
-                                        size="small"
-                                        label="Active"
+                            {summary.detector_stats
+                              .sort((a, b) => b.total_detections - a.total_detections)
+                              .map((detector) => {
+                                const detectorIcons: { [key: string]: string } = {
+                                  'toxicity': '🔥',
+                                  'pii': '🔒',
+                                  'prompt_injection': '🚫',
+                                  'hate_speech': '⚠️',
+                                  'bias': '⚖️',
+                                  'privacy': '🛡️',
+                                  'spam': '🗑️',
+                                  'topic': '📝',
+                                  'fact_check': '✅',
+                                };
+                                const icon = detectorIcons[detector.name] || '🔍';
+                                
+                                return (
+                                  <TableRow key={detector.name}>
+                                    <TableCell sx={{ color: '#ffffff' }}>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <span style={{ fontSize: '1.1rem' }}>{icon}</span>
+                                        <Box>
+                                          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                            {detector.name.replace('_', ' ').split(' ').map(word => 
+                                              word.charAt(0).toUpperCase() + word.slice(1)
+                                            ).join(' ')}
+                                          </Typography>
+                                          <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                                            {detector.name === 'toxicity' ? 'Harmful content detection' :
+                                             detector.name === 'pii' ? 'Personal information protection' :
+                                             detector.name === 'prompt_injection' ? 'Manipulation prevention' :
+                                             detector.name === 'hate_speech' ? 'Hate speech filtering' :
+                                             detector.name === 'bias' ? 'Bias detection' :
+                                             detector.name === 'privacy' ? 'Privacy protection' :
+                                             detector.name === 'spam' ? 'Spam filtering' :
+                                             detector.name === 'topic' ? 'Topic classification' :
+                                             detector.name === 'fact_check' ? 'Fact verification' :
+                                             'Content analysis'}
+                                          </Typography>
+                                        </Box>
+                                        {detector.last_triggered && (
+                                          <Chip
+                                            size="small"
+                                            label="Active"
+                                            sx={{
+                                              backgroundColor: colors.success + '20',
+                                              color: colors.success,
+                                              fontSize: '0.7rem',
+                                            }}
+                                          />
+                                        )}
+                                      </Box>
+                                    </TableCell>
+                                    <TableCell sx={{ color: '#ffffff' }} align="right">
+                                      {detector.total_detections}
+                                    </TableCell>
+                                    <TableCell sx={{ color: '#ffffff' }} align="right">
+                                      <Typography
+                                        variant="body2"
                                         sx={{
-                                          backgroundColor: colors.success + '20',
-                                          color: colors.success,
-                                          fontSize: '0.7rem',
+                                          color: detector.block_rate > 50 ? colors.danger : 
+                                                 detector.block_rate > 25 ? colors.warning : colors.success
                                         }}
-                                      />
-                                    )}
-                                  </Box>
-                                </TableCell>
-                                <TableCell sx={{ color: '#ffffff' }} align="right">
-                                  {detector.total_detections}
-                                </TableCell>
-                                <TableCell sx={{ color: '#ffffff' }} align="right">
-                                  <Typography
-                                    variant="body2"
-                                    sx={{
-                                      color: detector.block_rate > 50 ? colors.danger : 
-                                             detector.block_rate > 25 ? colors.warning : colors.success
-                                    }}
-                                  >
-                                    {detector.block_rate.toFixed(1)}%
-                                  </Typography>
-                                </TableCell>
-                                <TableCell sx={{ color: '#ffffff' }} align="right">
-                                  {(detector.avg_confidence * 100).toFixed(1)}%
-                                </TableCell>
-                              </TableRow>
-                            ))}
+                                      >
+                                        {detector.block_rate.toFixed(1)}%
+                                      </Typography>
+                                    </TableCell>
+                                    <TableCell sx={{ color: '#ffffff' }} align="right">
+                                      {(detector.avg_confidence * 100).toFixed(1)}%
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
                           </TableBody>
                         </Table>
                       </TableContainer>
@@ -563,6 +684,142 @@ const AnalyticsOverview: React.FC<AnalyticsOverviewProps> = ({ onRefresh }) => {
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>
+                </Box>
+              ) : (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Filter size={48} style={{ color: '#6b7280', marginBottom: 16 }} />
+                  <Typography variant="h6" sx={{ color: '#ffffff', mb: 2 }}>
+                    No Detection Data Available
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#a1a1aa', mb: 3, maxWidth: 600, mx: 'auto' }}>
+                    Start using the AI Safety System to generate detector performance analytics. 
+                    Once you send messages through the chat interface, you'll see detailed insights here.
+                  </Typography>
+
+                  {/* Sample Detector Overview */}
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 2, mt: 3 }}>
+                    {[
+                      { name: 'Toxicity', icon: '🔥', description: 'Detects harmful, offensive, or toxic content', color: '#ef4444' },
+                      { name: 'PII Protection', icon: '🔒', description: 'Identifies and protects personal information', color: '#f59e0b' },
+                      { name: 'Prompt Injection', icon: '🚫', description: 'Prevents manipulation and injection attacks', color: '#dc2626' },
+                      { name: 'Hate Speech', icon: '⚠️', description: 'Filters hateful and discriminatory content', color: '#ef4444' },
+                      { name: 'Bias Detection', icon: '⚖️', description: 'Identifies potential biases in responses', color: '#6366f1' },
+                      { name: 'Privacy Guard', icon: '🛡️', description: 'Protects user privacy and data', color: '#00D4AA' },
+                    ].map((detector, index) => (
+                      <Card key={detector.name} sx={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                        <CardContent sx={{ textAlign: 'center', p: 2 }}>
+                          <Box sx={{ fontSize: '1.5rem', mb: 1 }}>{detector.icon}</Box>
+                          <Typography variant="subtitle2" sx={{ color: '#ffffff', mb: 1 }}>
+                            {detector.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#a1a1aa', fontSize: '0.75rem' }}>
+                            {detector.description}
+                          </Typography>
+                          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
+                            <Chip
+                              size="small"
+                              label="Ready"
+                              sx={{
+                                backgroundColor: `${detector.color}20`,
+                                color: detector.color,
+                                border: `1px solid ${detector.color}`,
+                                fontSize: '0.7rem',
+                              }}
+                            />
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Box>
+
+                  {/* Getting Started Tips */}
+                  <Box sx={{ mt: 4, textAlign: 'left', maxWidth: 800, mx: 'auto' }}>
+                    <Typography variant="h6" sx={{ color: '#00D4AA', mb: 2 }}>
+                      💡 Getting Started with AI Safety Analytics
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
+                      <Card sx={{ backgroundColor: 'rgba(0, 212, 170, 0.05)', border: '1px solid rgba(0, 212, 170, 0.2)' }}>
+                        <CardContent>
+                          <Typography variant="subtitle2" sx={{ color: '#00D4AA', mb: 1 }}>
+                            1. Configure Providers
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#a1a1aa', fontSize: '0.85rem' }}>
+                            Set up your AI providers (OpenAI, Anthropic, Ollama) in the Providers tab to start processing requests.
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card sx={{ backgroundColor: 'rgba(0, 212, 170, 0.05)', border: '1px solid rgba(0, 212, 170, 0.2)' }}>
+                        <CardContent>
+                          <Typography variant="subtitle2" sx={{ color: '#00D4AA', mb: 1 }}>
+                            2. Enable Guardrails
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#a1a1aa', fontSize: '0.85rem' }}>
+                            Configure your safety guardrails in the Guardrails tab to protect against various threats.
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card sx={{ backgroundColor: 'rgba(0, 212, 170, 0.05)', border: '1px solid rgba(0, 212, 170, 0.2)' }}>
+                        <CardContent>
+                          <Typography variant="subtitle2" sx={{ color: '#00D4AA', mb: 1 }}>
+                            3. Start Chatting
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#a1a1aa', fontSize: '0.85rem' }}>
+                            Use the Chat tab to send messages. Each interaction will generate analytics data.
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card sx={{ backgroundColor: 'rgba(0, 212, 170, 0.05)', border: '1px solid rgba(0, 212, 170, 0.2)' }}>
+                        <CardContent>
+                          <Typography variant="subtitle2" sx={{ color: '#00D4AA', mb: 1 }}>
+                            4. Test & Monitor
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#a1a1aa', fontSize: '0.85rem' }}>
+                            Use the Testing tab to run comprehensive safety tests and monitor performance.
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Box>
+                  </Box>
+
+                  {/* Quick Actions */}
+                  <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        background: 'linear-gradient(135deg, #00D4AA 0%, #00A085 100%)',
+                        color: '#ffffff',
+                        '&:hover': { background: 'linear-gradient(135deg, #00A085 0%, #00896B 100%)' },
+                      }}
+                      onClick={() => window.location.href = '#chat'}
+                    >
+                      Start Chatting
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        borderColor: '#00D4AA',
+                        color: '#00D4AA',
+                        '&:hover': { borderColor: '#00A085', backgroundColor: '#00D4AA10' },
+                      }}
+                      onClick={() => window.location.href = '#testing'}
+                    >
+                      Run Tests
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        borderColor: '#6b7280',
+                        color: '#6b7280',
+                        '&:hover': { borderColor: '#9ca3af', backgroundColor: '#6b728010' },
+                      }}
+                      onClick={() => window.location.href = '#guardrails'}
+                    >
+                      Configure Guardrails
+                    </Button>
+                  </Box>
                 </Box>
               )}
             </AccordionDetails>
