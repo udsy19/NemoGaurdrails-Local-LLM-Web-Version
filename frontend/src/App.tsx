@@ -17,6 +17,7 @@ import {
   Alert,
   MenuItem,
   Button,
+  Divider,
 } from '@mui/material';
 import {
   Send,
@@ -42,6 +43,7 @@ import { darkTheme } from './themes/darkTheme';
 import { useApi, useSystemHealth, useDetectors, useChat } from './hooks/useApi';
 import { useRealTimeLogs } from './hooks/useRealTime';
 import { useProviders } from './hooks/useProviders';
+import { useOllamaModels } from './hooks/useOllamaModels';
 import { ollamaService, SystemInfo, ModelRecommendation, OllamaModel } from './services/ollama';
 import { ollamaDownloadService, DownloadProgress } from './services/ollamaDownload';
 import GuardrailsConfig from './components/guardrails/GuardrailsConfig';
@@ -53,6 +55,10 @@ import ModernChatInterface from './components/chat/ModernChatInterface';
 import GPUAcceleration from './components/gpu/GPUAcceleration';
 import DistributedProcessing from './components/distributed/DistributedProcessing';
 import DocsPage from './components/docs/DocsPage';
+
+// Auth components
+import { AuthProvider } from './contexts/AuthContext';
+import AuthGuard from './components/auth/AuthGuard';
 
 // Linear-inspired minimal theme
 const minimalTheme = {
@@ -96,7 +102,7 @@ const minimalTheme = {
   },
 };
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
   // Core state
   const [message, setMessage] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -121,6 +127,9 @@ const App: React.FC = () => {
   const [recommendations, setRecommendations] = useState<ModelRecommendation[]>([]);
   const [installedModels, setInstalledModels] = useState<OllamaModel[]>([]);
   const [showInstalledOnly, setShowInstalledOnly] = useState(false);
+  const [selectedCapabilities, setSelectedCapabilities] = useState<string[]>([]);
+  const [compatibilityFilter, setCompatibilityFilter] = useState<string>('all');
+  const [filteredOllamaModels, setFilteredOllamaModels] = useState<import('./services/ollamaModels').OllamaModel[]>([]);
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
   const [downloadProgress, setDownloadProgress] = useState<Map<string, DownloadProgress>>(new Map());
   const [sessionId] = useState(() => `session_${Date.now()}`);
@@ -131,6 +140,14 @@ const App: React.FC = () => {
   const { detectors, selectedDetectors, detectorConfig, toggleDetector } = useDetectors();
   const { messages, isLoading, sendMessage: sendChatMessage, clearHistory } = useChat(sessionId);
   const { providers, enabledProviders, connectedProviders } = useProviders();
+  const { 
+    models: ollamaModels, 
+    topRecommended, 
+    isLoading: modelsLoading, 
+    error: modelsError,
+    refreshModels,
+    searchModels: searchOllamaModels 
+  } = useOllamaModels();
   
   
   // Load selected provider from localStorage
@@ -394,7 +411,47 @@ const App: React.FC = () => {
     });
   };
 
-  // Filter recommendations based on search
+  // Filter Ollama models based on search, capabilities, and compatibility
+  useEffect(() => {
+    let filtered = ollamaModels;
+
+    // Apply search filter
+    if (modelSearch) {
+      filtered = filtered.filter(model =>
+        model.name.toLowerCase().includes(modelSearch.toLowerCase()) ||
+        model.description.toLowerCase().includes(modelSearch.toLowerCase()) ||
+        model.capabilities.some(cap => cap.toLowerCase().includes(modelSearch.toLowerCase()))
+      );
+    }
+
+    // Apply capability filter
+    if (selectedCapabilities.length > 0) {
+      filtered = filtered.filter(model =>
+        selectedCapabilities.every(cap => model.capabilities.includes(cap))
+      );
+    }
+
+    // Apply compatibility filter
+    if (compatibilityFilter !== 'all') {
+      filtered = filtered.filter(model => model.compatibility_label === compatibilityFilter);
+    }
+
+    // Sort by compatibility score and popularity
+    filtered.sort((a, b) => {
+      // Primary sort: compatibility score
+      if (b.compatibility_score !== a.compatibility_score) {
+        return b.compatibility_score - a.compatibility_score;
+      }
+      // Secondary sort: pull count (convert string like "1.5M" to number)
+      const aPulls = parseFloat(a.pull_count.replace(/[KM]/g, '')) * (a.pull_count.includes('M') ? 1000000 : a.pull_count.includes('K') ? 1000 : 1);
+      const bPulls = parseFloat(b.pull_count.replace(/[KM]/g, '')) * (b.pull_count.includes('M') ? 1000000 : b.pull_count.includes('K') ? 1000 : 1);
+      return bPulls - aPulls;
+    });
+
+    setFilteredOllamaModels(filtered);
+  }, [ollamaModels, modelSearch, selectedCapabilities, compatibilityFilter]);
+
+  // Filter recommendations based on search (legacy support)
   const filteredRecommendations = recommendations.filter(rec =>
     rec.model.name.toLowerCase().includes(modelSearch.toLowerCase())
   );
@@ -412,923 +469,628 @@ const App: React.FC = () => {
   };
 
   return (
-    <ThemeProvider theme={minimalTheme}>
-      <CssBaseline />
-      <Toaster position="top-center" />
-      
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
+        color: '#ffffff',
+        fontFamily: '"Inter", system-ui, sans-serif',
+      }}
+    >
+      {/* Header */}
       <Box
         sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
-          color: '#ffffff',
-          fontFamily: '"Inter", system-ui, sans-serif',
+          p: 3,
+          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          backdropFilter: 'blur(20px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
         }}
       >
-        {/* Header */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Shield size={24} color="#00D4AA" />
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                background: 'linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              AI Safety System
+            </Typography>
+          </Box>
+
+          {/* Status indicator */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                px: 2,
+                py: 0.5,
+                borderRadius: '20px',
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: `1px solid ${getStatusColor()}30`,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  backgroundColor: getStatusColor(),
+                  animation: isConnected ? 'pulse 2s infinite' : 'none',
+                }}
+              />
+              <Typography variant="caption" sx={{ color: getStatusColor() }}>
+                {isConnected ? 'Online' : 'Offline'}
+              </Typography>
+            </Box>
+
+            {/* Terminal toggle */}
+            <Tooltip title="Toggle Terminal">
+              <IconButton
+                onClick={() => setTerminalExpanded(!terminalExpanded)}
+                sx={{
+                  color: terminalExpanded ? '#00D4AA' : '#6b7280',
+                  '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
+                }}
+              >
+                <Terminal size={18} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+
+        {/* Tab Navigation */}
+        <Box sx={{ display: 'flex', gap: 1, mt: 3 }}>
+          {(['chat', 'testing', 'analytics', 'guardrails', 'providers', 'hardware', 'models', 'docs', 'terminal'] as const).map((tab) => (
+            <Box
+              key={tab}
+              onClick={() => {
+                setActiveTab(tab);
+                // Save to localStorage
+                try {
+                  localStorage.setItem('app_active_tab', tab);
+                } catch (error) {
+                  console.error('Failed to save active tab to localStorage:', error);
+                }
+              }}
+              sx={{
+                px: 3,
+                py: 1.5,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                backgroundColor: activeTab === tab ? 'rgba(0, 212, 170, 0.1)' : 'transparent',
+                color: activeTab === tab ? '#00D4AA' : '#6b7280',
+                border: activeTab === tab ? '1px solid rgba(0, 212, 170, 0.2)' : '1px solid transparent',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                },
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
+                {tab}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      {/* Terminal Overlay */}
+      <Collapse in={terminalExpanded}>
         <Box
           sx={{
             p: 3,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            background: 'rgba(0, 0, 0, 0.8)',
             backdropFilter: 'blur(20px)',
-            position: 'sticky',
-            top: 0,
-            zIndex: 100,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            maxHeight: '250px',
+            overflow: 'auto',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Shield size={24} color="#00D4AA" />
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 600,
-                  background: 'linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
-              >
-                AI Safety System
-              </Typography>
-            </Box>
-
-            {/* Status indicator */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 0.5,
-                  borderRadius: '20px',
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  border: `1px solid ${getStatusColor()}30`,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    backgroundColor: getStatusColor(),
-                    animation: isConnected ? 'pulse 2s infinite' : 'none',
-                  }}
-                />
-                <Typography variant="caption" sx={{ color: getStatusColor() }}>
-                  {isConnected ? 'Online' : 'Offline'}
-                </Typography>
-              </Box>
-
-              {/* Terminal toggle */}
-              <Tooltip title="Toggle Terminal">
-                <IconButton
-                  onClick={() => setTerminalExpanded(!terminalExpanded)}
-                  sx={{
-                    color: terminalExpanded ? '#00D4AA' : '#6b7280',
-                    '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
-                  }}
-                >
-                  <Terminal size={18} />
-                </IconButton>
-              </Tooltip>
-            </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" sx={{ color: '#00D4AA', fontWeight: 500 }}>
+              Live System Logs
+            </Typography>
+            <IconButton
+              onClick={() => setTerminalExpanded(false)}
+              sx={{ color: '#6b7280', '&:hover': { color: '#ffffff' } }}
+            >
+              <X size={18} />
+            </IconButton>
           </Box>
-
-          {/* Tab Navigation */}
-          <Box sx={{ display: 'flex', gap: 1, mt: 3 }}>
-            {(['chat', 'testing', 'analytics', 'guardrails', 'providers', 'hardware', 'models', 'docs', 'terminal'] as const).map((tab) => (
-              <Box
-                key={tab}
-                onClick={() => {
-                  setActiveTab(tab);
-                  // Save to localStorage
-                  try {
-                    localStorage.setItem('app_active_tab', tab);
-                  } catch (error) {
-                    console.error('Failed to save active tab to localStorage:', error);
-                  }
-                }}
-                sx={{
-                  px: 3,
-                  py: 1.5,
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  backgroundColor: activeTab === tab ? 'rgba(0, 212, 170, 0.1)' : 'transparent',
-                  color: activeTab === tab ? '#00D4AA' : '#6b7280',
-                  border: activeTab === tab ? '1px solid rgba(0, 212, 170, 0.2)' : '1px solid transparent',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                  },
-                }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
-                  {tab}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-
-        {/* Terminal Overlay */}
-        <Collapse in={terminalExpanded}>
+          
           <Box
             sx={{
-              p: 3,
-              background: 'rgba(0, 0, 0, 0.8)',
-              backdropFilter: 'blur(20px)',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-              maxHeight: '250px',
-              overflow: 'auto',
+              fontFamily: 'JetBrains Mono, Monaco, monospace',
+              fontSize: '0.8rem',
+              lineHeight: 1.5,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="h6" sx={{ color: '#00D4AA', fontWeight: 500 }}>
-                Live System Logs
-              </Typography>
-              <IconButton
-                onClick={() => setTerminalExpanded(false)}
-                sx={{ color: '#6b7280', '&:hover': { color: '#ffffff' } }}
-              >
-                <X size={18} />
-              </IconButton>
-            </Box>
-            
-            <Box
-              sx={{
-                fontFamily: 'JetBrains Mono, Monaco, monospace',
-                fontSize: '0.8rem',
-                lineHeight: 1.5,
-              }}
-            >
-              <AnimatePresence>
-                {logs.slice(-10).map((log, index) => (
-                  <motion.div
-                    key={log.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      marginBottom: 4,
-                      padding: 4,
-                      borderRadius: 4,
-                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+            <AnimatePresence>
+              {logs.slice(-10).map((log, index) => (
+                <motion.div
+                  key={log.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 4,
+                    padding: 4,
+                    borderRadius: 4,
+                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#6b7280',
+                      minWidth: '60px',
+                      fontSize: '0.7rem',
                     }}
                   >
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: '#6b7280',
-                        minWidth: '60px',
-                        fontSize: '0.7rem',
-                      }}
-                    >
-                      {new Date(log.timestamp).toLocaleTimeString()}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color:
-                          log.level === 'error' ? '#ef4444' :
-                          log.level === 'warn' ? '#f59e0b' :
-                          log.level === 'success' ? '#00D4AA' : '#ffffff',
-                        fontSize: '0.8rem',
-                      }}
-                    >
-                      [{log.source}] {log.message}
-                    </Typography>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </Box>
+                    {new Date(log.timestamp).toLocaleTimeString()}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color:
+                        log.level === 'error' ? '#ef4444' :
+                        log.level === 'warn' ? '#f59e0b' :
+                        log.level === 'success' ? '#00D4AA' : '#ffffff',
+                      fontSize: '0.8rem',
+                    }}
+                  >
+                    [{log.source}] {log.message}
+                  </Typography>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </Box>
-        </Collapse>
+        </Box>
+      </Collapse>
 
-        {/* Main Content */}
-        <Box sx={{ p: 3 }}>
-          <AnimatePresence mode="wait">
-            {activeTab === 'chat' && (
-              <motion.div
-                key="chat"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                style={{ minHeight: '500px', maxHeight: '85vh', position: 'relative' }}
-              >
-                <ModernChatInterface
-                  messages={messages}
-                  onSendMessage={(msg, provider, detectorConfig) => {
-                    setMessage('');
-                    // Only use detectors that are explicitly enabled in detectorConfig
-                    // Don't auto-enable all selectedDetectors - this was causing blocking of simple messages
-                    const config = detectorConfig || {};
-                    
-                    sendChatMessage(msg, config, provider);
-                  }}
-                  isLoading={isLoading}
-                  disabled={!isConnected}
-                  detectorConfig={detectorConfig}
-                  onDetectorConfigChange={(config) => {
-                    // Update detector config using the proper hook
-                    Object.keys(config).forEach(detector => {
-                      const isEnabled = config[detector]?.enabled || false;
-                      const wasEnabled = detectorConfig[detector]?.enabled || false;
-                      if (isEnabled !== wasEnabled) {
-                        toggleDetector(detector, isEnabled);
-                      }
-                    });
-                  }}
-                  onClearHistory={() => {
-                    clearHistory();
-                    toast.success('Chat history cleared');
-                  }}
-                  availableProviders={connectedProviders}
-                  selectedProvider={selectedProvider}
-                  onProviderChange={(providerId) => {
-                    setSelectedProvider(providerId);
-                    // Save to localStorage
-                    try {
-                      localStorage.setItem('selected_provider', providerId);
-                    } catch (error) {
-                      console.error('Failed to save selected provider to localStorage:', error);
+      {/* Main Content */}
+      <Box sx={{ p: 3 }}>
+        <AnimatePresence mode="wait">
+          {activeTab === 'chat' && (
+            <motion.div
+              key="chat"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              style={{ minHeight: '500px', maxHeight: '85vh', position: 'relative' }}
+            >
+              <ModernChatInterface
+                messages={messages}
+                onSendMessage={(msg, provider, detectorConfig) => {
+                  setMessage('');
+                  // Only use detectors that are explicitly enabled in detectorConfig
+                  // Don't auto-enable all selectedDetectors - this was causing blocking of simple messages
+                  const config = detectorConfig || {};
+                  
+                  sendChatMessage(msg, config, provider);
+                }}
+                isLoading={isLoading}
+                disabled={!isConnected}
+                detectorConfig={detectorConfig}
+                onDetectorConfigChange={(config) => {
+                  // Update detector config using the proper hook
+                  Object.keys(config).forEach(detector => {
+                    const isEnabled = config[detector]?.enabled || false;
+                    const wasEnabled = detectorConfig[detector]?.enabled || false;
+                    if (isEnabled !== wasEnabled) {
+                      toggleDetector(detector, isEnabled);
                     }
-                  }}
-                  onNavigateToProviders={() => setActiveTab('providers')}
-                  onNavigateToGuardrails={() => setActiveTab('guardrails')}
-                />
-              </motion.div>
-            )}
+                  });
+                }}
+                onClearHistory={() => {
+                  clearHistory();
+                  toast.success('Chat history cleared');
+                }}
+                availableProviders={connectedProviders}
+                selectedProvider={selectedProvider}
+                onProviderChange={(providerId) => {
+                  setSelectedProvider(providerId);
+                  // Save to localStorage
+                  try {
+                    localStorage.setItem('selected_provider', providerId);
+                  } catch (error) {
+                    console.error('Failed to save selected provider to localStorage:', error);
+                  }
+                }}
+                onNavigateToProviders={() => setActiveTab('providers')}
+                onNavigateToGuardrails={() => setActiveTab('guardrails')}
+              />
+            </motion.div>
+          )}
 
-            {activeTab === 'models' && (
-              <motion.div
-                key="models"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {/* System Info */}
-                {systemInfo && (
-                  <Card sx={{ mb: 3 }}>
-                    <CardContent>
-                      <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-                        System Information
-                      </Typography>
-                      
-                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Cpu size={20} color="#00D4AA" />
-                          <Box>
-                            <Typography variant="body2" sx={{ color: '#6b7280' }}>CPU Cores</Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>{systemInfo.cpu.cores}</Typography>
-                          </Box>
-                        </Box>
-                        
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <HardDrive size={20} color="#f59e0b" />
-                          <Box>
-                            <Typography variant="body2" sx={{ color: '#6b7280' }}>Memory</Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                              {(systemInfo.memory.total / 1024).toFixed(1)} GB
-                            </Typography>
-                          </Box>
-                        </Box>
-                        
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Zap size={20} color="#8b5cf6" />
-                          <Box>
-                            <Typography variant="body2" sx={{ color: '#6b7280' }}>Platform</Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>{systemInfo.platform}</Typography>
-                          </Box>
-                        </Box>
-                      </Box>
-                    </CardContent>
-                  </Card>
+          {activeTab === 'models' && (
+            <motion.div
+              key="models"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Header */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
+                  Model Explorer
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#a1a1aa', mb: 2 }}>
+                  Discover and download AI models with intelligent compatibility scoring for your system
+                </Typography>
+                
+                {modelsError && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    {modelsError} - Showing cached results.
+                  </Alert>
                 )}
 
-                {/* Model Search */}
-                <Card sx={{ mb: 3 }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Search size={20} color="#6b7280" />
-                      <TextField
-                        fullWidth
-                        value={modelSearch}
-                        onChange={(e) => setModelSearch(e.target.value)}
-                        placeholder="Search models..."
-                        variant="outlined"
-                        size="small"
-                      />
-                      <Filter size={20} color="#6b7280" />
-                    </Box>
-                  </CardContent>
-                </Card>
-
-                {/* Toggle between Available and Installed Models */}
-                <Card sx={{ mb: 3 }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {showInstalledOnly ? '🖥️ Installed Models' : '🌐 Available Models'}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="body2" sx={{ color: showInstalledOnly ? '#6b7280' : '#00D4AA' }}>
-                          Available
-                        </Typography>
-                        <Switch
-                          checked={showInstalledOnly}
-                          onChange={(e) => setShowInstalledOnly(e.target.checked)}
-                          sx={{
-                            '& .MuiSwitch-thumb': {
-                              backgroundColor: '#00D4AA',
-                            },
-                            '& .MuiSwitch-track': {
-                              backgroundColor: showInstalledOnly ? '#00D4AA' : '#6b7280',
-                            },
-                          }}
-                        />
-                        <Typography variant="body2" sx={{ color: showInstalledOnly ? '#00D4AA' : '#6b7280' }}>
-                          Installed
-                        </Typography>
-                        <Chip 
-                          label={showInstalledOnly ? `${filteredInstalledModels.length} models` : `${filteredRecommendations.length} available`}
-                          size="small"
-                          sx={{ backgroundColor: 'rgba(0, 212, 170, 0.1)', color: '#00D4AA' }}
-                        />
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-
-                {/* Models Display */}
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 2 }}>
-                  {showInstalledOnly ? (
-                    // Display installed models
-                    filteredInstalledModels.map((model) => (
-                      <Card key={model.name}>
-                        <CardContent>
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                              {model.name}
-                            </Typography>
-                            
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Chip
-                                size="small"
-                                label="Installed"
-                                sx={{
-                                  backgroundColor: '#00D4AA20',
-                                  color: '#00D4AA',
-                                  fontSize: '0.7rem',
-                                }}
-                              />
-                            </Box>
-                          </Box>
-
-                          <Typography variant="body2" sx={{ color: '#a1a1aa', mb: 2 }}>
-                            {model.details?.family || 'Local model'} • Modified: {new Date(model.modified_at).toLocaleDateString()}
-                          </Typography>
-
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                            <Chip
-                              label={`${(model.size / (1024 * 1024 * 1024)).toFixed(1)} GB`}
-                              size="small"
-                              sx={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                color: '#a1a1aa',
-                                fontSize: '0.7rem',
-                              }}
-                            />
-                            {model.details?.parameter_size && (
-                              <Chip
-                                label={model.details.parameter_size}
-                                size="small"
-                                sx={{
-                                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                  color: '#a1a1aa',
-                                  fontSize: '0.7rem',
-                                }}
-                              />
-                            )}
-                          </Box>
-
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                              {model.digest.slice(0, 12)}...
-                            </Typography>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              sx={{
-                                borderColor: '#ef4444',
-                                color: '#ef4444',
-                                '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
-                              }}
-                              onClick={() => handleDeleteModel(model.name)}
-                            >
-                              Remove
-                            </Button>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    // Display available models (recommendations)
-                    filteredRecommendations.map((rec) => (
-                      <Card key={rec.model.name}>
-                        <CardContent>
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                              {rec.model.name}
-                            </Typography>
-                            
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Chip
-                                size="small"
-                                label={rec.compatibility}
-                                sx={{
-                                  backgroundColor:
-                                    rec.compatibility === 'perfect' ? '#00D4AA20' :
-                                    rec.compatibility === 'good' ? '#f59e0b20' :
-                                    rec.compatibility === 'partial' ? '#f59e0b20' : '#ef444420',
-                                  color:
-                                    rec.compatibility === 'perfect' ? '#00D4AA' :
-                                    rec.compatibility === 'good' ? '#f59e0b' :
-                                    rec.compatibility === 'partial' ? '#f59e0b' : '#ef4444',
-                                  fontSize: '0.7rem',
-                                }}
-                              />
-                              
-                              {downloadingModels.has(rec.model.name) ? (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Box sx={{ width: 60 }}>
-                                    <LinearProgress 
-                                      variant="determinate" 
-                                      value={downloadProgress.get(rec.model.name)?.percentage || 0}
-                                      sx={{ 
-                                        '& .MuiLinearProgress-bar': { 
-                                          backgroundColor: '#00D4AA' 
-                                        } 
-                                      }}
-                                    />
-                                  </Box>
-                                  <IconButton
-                                    onClick={() => handleCancelDownload(rec.model.name)}
-                                    size="small"
-                                    sx={{
-                                      color: '#ef4444',
-                                      '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
-                                    }}
-                                  >
-                                    <X size={14} />
-                                  </IconButton>
-                                </Box>
-                              ) : (
-                                <IconButton
-                                  onClick={() => handleDownloadModel(rec.model.name)}
-                                  disabled={rec.compatibility === 'incompatible'}
-                                  sx={{
-                                    color: rec.compatibility === 'incompatible' ? '#6b7280' : '#00D4AA',
-                                    '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
-                                  }}
-                                >
-                                  <Download size={16} />
-                                </IconButton>
-                              )}
-                            </Box>
-                          </Box>
-
-                          <Typography variant="body2" sx={{ color: '#a1a1aa', mb: 2 }}>
-                            {rec.model.description || 'No description available'}
-                          </Typography>
-
-                          <Typography variant="body2" sx={{ color: '#6b7280', mb: 2 }}>
-                            {rec.reason}
-                          </Typography>
-
-                          {/* Download Progress Details */}
-                          {downloadingModels.has(rec.model.name) && (
-                            <Box sx={{ mb: 2 }}>
-                              <Typography variant="body2" sx={{ color: '#00D4AA', mb: 1 }}>
-                                {downloadProgress.get(rec.model.name)?.message || 'Downloading...'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                                {downloadProgress.get(rec.model.name)?.percentage || 0}% complete
-                              </Typography>
-                            </Box>
-                          )}
-
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                            {(rec.model.tags || []).slice(0, 3).map((tag) => (
-                              <Chip
-                                key={tag}
-                                label={tag}
-                                size="small"
-                                sx={{
-                                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                  color: '#a1a1aa',
-                                  fontSize: '0.7rem',
-                                }}
-                              />
-                            ))}
-                          </Box>
-
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                              {((rec.model.size || 0) / (1024 * 1024 * 1024)).toFixed(1)} GB
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                              {(rec.model.pulls || 0).toLocaleString()} pulls
-                            </Typography>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
+                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                  <Chip 
+                    label={`${ollamaModels.length} Available Models`} 
+                    variant="outlined"
+                    sx={{ color: '#ffffff', borderColor: 'rgba(255, 255, 255, 0.2)' }} 
+                  />
+                  <Chip 
+                    label={`${topRecommended.length} Recommended`} 
+                    variant="outlined"
+                    sx={{ color: '#00D4AA', borderColor: '#00D4AA' }} 
+                  />
                 </Box>
-              </motion.div>
-            )}
+              </Box>
 
-            {activeTab === 'guardrails' && (
-              <motion.div
-                key="guardrails"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <GuardrailsConfig 
-                  detectorConfig={detectorConfig}
-                  onDetectorToggle={toggleDetector}
-                  onConfigChange={(config) => {
-                    // Handle real-time configuration changes
-                    console.log('Guardrails config updated:', config);
-                    // TODO: Implement real-time config update to detector system
-                  }}
-                />
-              </motion.div>
-            )}
-
-            {activeTab === 'providers' && (
-              <motion.div
-                key="providers"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ProvidersConfig 
-                  onProviderChange={(providers) => {
-                    // Handle provider configuration changes
-                    console.log('Providers config updated:', providers);
-                    // TODO: Implement real-time provider updates
-                  }}
-                />
-              </motion.div>
-            )}
-
-            {activeTab === 'analytics' && (
-              <motion.div
-                key="analytics"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <GuardrailAnalyticsDashboard />
-              </motion.div>
-            )}
-
-            {activeTab === 'testing' && (
-              <motion.div
-                key="testing"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <AdvancedTestingPlayground />
-              </motion.div>
-            )}
-
-            {activeTab === 'hardware' && (
-              <motion.div
-                key="hardware"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography variant="h4" component="h1">
-                    Hardware & Distributed Computing
+              {/* Search and Filters */}
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                    Search & Filters
                   </Typography>
                   
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, 1fr)' }, gap: 3 }}>
-                    {/* GPU Acceleration Section */}
-                    <Card>
-                      <CardContent>
-                        <Typography variant="h6" gutterBottom>
-                          GPU Acceleration
-                        </Typography>
-                        <GPUAcceleration />
-                      </CardContent>
-                    </Card>
-
-                    {/* Distributed Processing Section */}
-                    <Card>
-                      <CardContent>
-                        <Typography variant="h6" gutterBottom>
-                          Distributed Computing
-                        </Typography>
-                        <DistributedProcessing />
-                      </CardContent>
-                    </Card>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                    <Search size={20} color="#6b7280" />
+                    <TextField
+                      fullWidth
+                      value={modelSearch}
+                      onChange={(e) => setModelSearch(e.target.value)}
+                      placeholder="Search models..."
+                      variant="outlined"
+                      size="small"
+                      sx={{ flex: 1 }}
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={refreshModels}
+                      disabled={modelsLoading}
+                      size="small"
+                      startIcon={<Download size={16} />}
+                    >
+                      {modelsLoading ? 'Loading...' : 'Refresh'}
+                    </Button>
                   </Box>
-                </Box>
-              </motion.div>
-            )}
 
-            {activeTab === 'docs' && (
-              <motion.div
-                key="docs"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <DocsPage />
-              </motion.div>
-            )}
+                  <Divider sx={{ mb: 2 }} />
 
-            {activeTab === 'terminal' && (
-              <motion.div
-                key="terminal"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  {/* Header */}
-                  <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                        <Terminal size={24} style={{ color: '#00D4AA' }} />
-                        <Typography variant="h5" sx={{ fontWeight: 600, color: '#ffffff' }}>
-                          🖥️ System Activity Monitor
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" sx={{ color: '#a1a1aa', mb: 2 }}>
-                        Real-time system logs and activity tracking. Monitor requests, responses, and system events.
+                  {/* Capability Filters */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" sx={{ color: '#6b7280', mb: 1, fontWeight: 500 }}>
+                      Capabilities
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {['tools', 'vision', 'thinking', 'embedding'].map((capability) => (
+                        <Chip
+                          key={capability}
+                          label={capability}
+                          size="small"
+                          variant={selectedCapabilities.includes(capability) ? 'filled' : 'outlined'}
+                          onClick={() => {
+                            setSelectedCapabilities(prev =>
+                              prev.includes(capability)
+                                ? prev.filter(c => c !== capability)
+                                : [...prev, capability]
+                            );
+                          }}
+                          sx={{
+                            backgroundColor: selectedCapabilities.includes(capability) ? '#00D4AA' : 'transparent',
+                            color: selectedCapabilities.includes(capability) ? '#000000' : '#ffffff',
+                            borderColor: selectedCapabilities.includes(capability) ? '#00D4AA' : 'rgba(255, 255, 255, 0.2)',
+                            '&:hover': {
+                              backgroundColor: selectedCapabilities.includes(capability) ? '#00B894' : 'rgba(0, 212, 170, 0.1)',
+                            },
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+
+                  {/* Compatibility Filter */}
+                  <Box>
+                    <Typography variant="body2" sx={{ color: '#6b7280', mb: 1, fontWeight: 500 }}>
+                      Compatibility Level
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {['all', 'Excellent', 'Good', 'Fair', 'Limited'].map((level) => (
+                        <Chip
+                          key={level}
+                          label={level === 'all' ? 'All Levels' : level}
+                          size="small"
+                          variant={compatibilityFilter === level ? 'filled' : 'outlined'}
+                          onClick={() => setCompatibilityFilter(level)}
+                          sx={{
+                            backgroundColor: compatibilityFilter === level ? 
+                              (level === 'Excellent' ? '#00D4AA' :
+                               level === 'Good' ? '#f59e0b' :
+                               level === 'Fair' ? '#6b7280' :
+                               level === 'Limited' ? '#ef4444' : '#00D4AA') : 'transparent',
+                            color: compatibilityFilter === level ? '#000000' : '#ffffff',
+                            borderColor: compatibilityFilter === level ? 'transparent' : 'rgba(255, 255, 255, 0.2)',
+                            '&:hover': {
+                              backgroundColor: compatibilityFilter === level ? 
+                                (level === 'Excellent' ? '#00B894' :
+                                 level === 'Good' ? '#d97706' :
+                                 level === 'Fair' ? '#4b5563' :
+                                 level === 'Limited' ? '#dc2626' : '#00B894') : 'rgba(255, 255, 255, 0.05)',
+                            },
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Top Recommendations */}
+              {!modelSearch && selectedCapabilities.length === 0 && compatibilityFilter === 'all' && topRecommended.length > 0 && (
+                <Card sx={{ mb: 3 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <CheckCircle size={20} color="#00D4AA" />
+                      <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                        Recommended for Your System
                       </Typography>
-                      
-                      {/* Stats */}
-                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                        <Chip
-                          label={`📊 ${logs.length} Total Events`}
-                          size="small"
-                          sx={{
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            color: '#3b82f6',
-                            border: '1px solid rgba(59, 130, 246, 0.2)',
-                          }}
-                        />
-                        <Chip
-                          label={`✅ ${logs.filter(l => l.level === 'success').length} Success`}
-                          size="small"
-                          sx={{
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            color: '#00D4AA',
-                            border: '1px solid rgba(0, 212, 170, 0.2)',
-                          }}
-                        />
-                        <Chip
-                          label={`⚠️ ${logs.filter(l => l.level === 'warn').length} Warnings`}
-                          size="small"
-                          sx={{
-                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                            color: '#f59e0b',
-                            border: '1px solid rgba(245, 158, 11, 0.2)',
-                          }}
-                        />
-                        <Chip
-                          label={`❌ ${logs.filter(l => l.level === 'error').length} Errors`}
-                          size="small"
-                          sx={{
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            color: '#ef4444',
-                            border: '1px solid rgba(239, 68, 68, 0.2)',
-                          }}
-                        />
-                      </Box>
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#a1a1aa', mb: 3 }}>
+                      These models offer the best compatibility with your hardware configuration
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 2 }}>
+                      {topRecommended.slice(0, 3).map((model) => (
+                        <Card key={model.name} sx={{ border: '1px solid rgba(0, 212, 170, 0.3)', backgroundColor: 'rgba(0, 212, 170, 0.02)' }}>
+                          <CardContent sx={{ p: 2 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                {model.name}
+                              </Typography>
+                              <Chip
+                                label={`${model.compatibility_score}%`}
+                                size="small"
+                                sx={{ backgroundColor: '#00D4AA', color: '#000000', fontWeight: 600 }}
+                              />
+                            </Box>
+                            <Typography variant="caption" sx={{ color: '#6b7280', display: 'block', mb: 1 }}>
+                              {model.estimated_memory_usage} • {model.performance_tier}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: '#a1a1aa', fontSize: '0.85rem' }}>
+                              {model.description.substring(0, 100)}...
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Models Grid */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 2 }}>
+                {modelsLoading ? (
+                  // Loading skeleton
+                  [...Array(6)].map((_, i) => (
+                    <Card key={i}>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                          <Box sx={{ height: '24px', width: '150px', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: 1 }} />
+                          <Box sx={{ height: '20px', width: '80px', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: 1 }} />
+                        </Box>
+                        <Box sx={{ height: '40px', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: 1, mb: 2 }} />
+                        <Box sx={{ height: '20px', width: '60%', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: 1 }} />
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : filteredOllamaModels.length === 0 ? (
+                  <Card sx={{ gridColumn: '1 / -1' }}>
+                    <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                      <Search size={48} color="#6b7280" />
+                      <Typography variant="h6" sx={{ color: '#6b7280', mb: 1, mt: 2 }}>
+                        No models found
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#a1a1aa' }}>
+                        Try adjusting your search terms or filters
+                      </Typography>
                     </CardContent>
                   </Card>
-
-                  {/* Logs Container */}
-                  <Card sx={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                    <CardContent sx={{ p: 0 }}>
-                      <Box
-                        sx={{
-                          height: '350px',
-                          overflow: 'auto',
-                          fontFamily: 'JetBrains Mono, Monaco, "Fira Code", monospace',
-                          fontSize: '0.9rem',
-                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                          position: 'relative',
-                          '&::-webkit-scrollbar': {
-                            width: '8px',
-                          },
-                          '&::-webkit-scrollbar-track': {
-                            background: 'rgba(255, 255, 255, 0.05)',
-                          },
-                          '&::-webkit-scrollbar-thumb': {
-                            background: 'rgba(255, 255, 255, 0.2)',
-                            borderRadius: '4px',
-                            '&:hover': {
-                              background: 'rgba(255, 255, 255, 0.3)',
-                            },
-                          },
-                        }}
-                      >
-                        {logs.length === 0 ? (
-                          <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            height: '100%',
-                            flexDirection: 'column',
-                            gap: 2
-                          }}>
-                            <Typography variant="h6" sx={{ color: '#6b7280' }}>
-                              🌟 System Ready
+                ) : (
+                  filteredOllamaModels.map((model) => (
+                    <Card key={model.name}>
+                      <CardContent>
+                        {/* Model Header */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Box sx={{ flex: 1, mr: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                              {model.name}
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#a1a1aa', textAlign: 'center' }}>
-                              No recent activity. System logs will appear here as requests are processed.
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                              <Chip
+                                label={`${model.compatibility_score}%`}
+                                size="small"
+                                sx={{
+                                  backgroundColor: model.compatibility_label === 'Excellent' ? '#00D4AA' : 
+                                                model.compatibility_label === 'Good' ? '#f59e0b' :
+                                                model.compatibility_label === 'Fair' ? '#6b7280' : '#ef4444',
+                                  color: '#000000',
+                                  fontWeight: 600,
+                                  fontSize: '0.75rem',
+                                }}
+                              />
+                              <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                                {model.performance_tier}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Typography variant="caption" sx={{ color: '#00D4AA', fontWeight: 500 }}>
+                            {model.pull_count} pulls
+                          </Typography>
+                        </Box>
+
+                        {/* Description */}
+                        <Typography variant="body2" sx={{ color: '#a1a1aa', mb: 2, lineHeight: 1.4 }}>
+                          {model.description}
+                        </Typography>
+
+                        {/* Model Details */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <HardDrive size={14} color="#6b7280" />
+                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                              {model.estimated_memory_usage}
                             </Typography>
                           </Box>
-                        ) : (
-                          <AnimatePresence>
-                            {logs.map((log, index) => {
-                              const getLogIcon = (level: string, source: string) => {
-                                if (level === 'error') return '💥';
-                                if (level === 'warn') return '⚠️';
-                                if (level === 'success') return '✅';
-                                if (source === 'Chat Service') return '💬';
-                                if (source === 'Detection Service') return '🛡️';
-                                if (source === 'Provider Service') return '🔌';
-                                if (source === 'Analytics Service') return '📊';
-                                return '📝';
-                              };
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Cpu size={14} color="#6b7280" />
+                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                              {model.sizes.join(', ')}
+                            </Typography>
+                          </Box>
+                          <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                            {model.tag_count} variants
+                          </Typography>
+                        </Box>
 
-                              const getLogColor = (level: string) => {
-                                switch (level) {
-                                  case 'error': return '#ef4444';
-                                  case 'warn': return '#f59e0b';
-                                  case 'success': return '#00D4AA';
-                                  default: return '#ffffff';
-                                }
-                              };
-
-                              const getSourceColor = (source: string) => {
-                                const colors: { [key: string]: string } = {
-                                  'Chat Service': '#3b82f6',
-                                  'Detection Service': '#8b5cf6',
-                                  'Provider Service': '#10b981',
-                                  'Analytics Service': '#f59e0b',
-                                  'System': '#6b7280',
-                                };
-                                return colors[source] || '#00D4AA';
-                              };
-
-                              return (
-                                <motion.div
-                                  key={log.id}
-                                  initial={{ opacity: 0, x: -20 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  exit={{ opacity: 0, x: 20 }}
-                                  transition={{ duration: 0.3, delay: index * 0.02 }}
-                                >
-                                  <Box
+                        {/* Capabilities & Recommended Use */}
+                        <Box sx={{ mb: 2 }}>
+                          {model.capabilities.length > 0 && (
+                            <Box sx={{ mb: 1 }}>
+                              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                {model.capabilities.map((capability) => (
+                                  <Chip
+                                    key={capability}
+                                    label={capability}
+                                    size="small"
+                                    variant="outlined"
                                     sx={{
-                                      display: 'flex',
-                                      alignItems: 'flex-start',
-                                      gap: 1.5,
-                                      mb: 0.25,
-                                      p: 1.5,
-                                      borderRadius: 1,
-                                      backgroundColor: log.level === 'error' ? 'rgba(239, 68, 68, 0.05)' : 
-                                                     log.level === 'warn' ? 'rgba(245, 158, 11, 0.05)' : 
-                                                     log.level === 'success' ? 'rgba(0, 212, 170, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-                                      border: `1px solid ${
-                                        log.level === 'error' ? 'rgba(239, 68, 68, 0.2)' : 
-                                        log.level === 'warn' ? 'rgba(245, 158, 11, 0.2)' : 
-                                        log.level === 'success' ? 'rgba(0, 212, 170, 0.2)' : 'rgba(255, 255, 255, 0.06)'
-                                      }`,
-                                      position: 'relative',
-                                      '&:hover': {
-                                        backgroundColor: log.level === 'error' ? 'rgba(239, 68, 68, 0.1)' : 
-                                                       log.level === 'warn' ? 'rgba(245, 158, 11, 0.1)' : 
-                                                       log.level === 'success' ? 'rgba(0, 212, 170, 0.1)' : 'rgba(255, 255, 255, 0.04)',
-                                      },
+                                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                                      color: '#ffffff',
+                                      fontSize: '0.7rem',
+                                      height: '24px',
                                     }}
-                                  >
-                                  {/* Time & Icon */}
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: '100px' }}>
-                                    <Typography
-                                      variant="caption"
-                                      sx={{
-                                        color: '#6b7280',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 500,
-                                      }}
-                                    >
-                                      {new Date(log.timestamp || Date.now()).toLocaleTimeString('en-US', { 
-                                        hour12: false, 
-                                        hour: '2-digit', 
-                                        minute: '2-digit', 
-                                        second: '2-digit' 
-                                      })}
-                                    </Typography>
-                                    <span style={{ fontSize: '16px' }}>
-                                      {getLogIcon(log.level, log.source)}
-                                    </span>
-                                  </Box>
+                                  />
+                                ))}
+                              </Box>
+                            </Box>
+                          )}
+                          <Typography variant="caption" sx={{ color: '#00D4AA' }}>
+                            Best for: {model.recommended_for.join(', ')}
+                          </Typography>
+                        </Box>
 
-                                  {/* Source Badge */}
-                                  <Box sx={{ minWidth: '120px' }}>
-                                    <Chip
-                                      label={log.source}
-                                      size="small"
-                                      sx={{
-                                        backgroundColor: `${getSourceColor(log.source)}20`,
-                                        color: getSourceColor(log.source),
-                                        border: `1px solid ${getSourceColor(log.source)}40`,
-                                        fontSize: '0.7rem',
-                                        fontWeight: 500,
-                                      }}
-                                    />
-                                  </Box>
-
-                                    {/* Message */}
-                                    <Typography
-                                      variant="body2"
-                                      sx={{
-                                        color: getLogColor(log.level),
-                                        fontSize: '0.9rem',
-                                        lineHeight: 1.4,
-                                        flex: 1,
-                                        fontWeight: log.level === 'error' ? 600 : 400,
-                                      }}
-                                    >
-                                      {log.message}
-                                    </Typography>
-
-                                    {/* Level Badge */}
-                                    <Box sx={{ minWidth: '80px', display: 'flex', justifyContent: 'flex-end' }}>
-                                      <Chip
-                                        label={log.level.toUpperCase()}
-                                        size="small"
-                                        variant="outlined"
-                                        sx={{
-                                          color: getLogColor(log.level),
-                                          borderColor: getLogColor(log.level),
-                                          fontSize: '0.7rem',
-                                          fontWeight: 600,
-                                          backgroundColor: `${getLogColor(log.level)}10`,
-                                        }}
-                                      />
-                                    </Box>
-                                  </Box>
-                                </motion.div>
-                              );
-                            })}
-                          </AnimatePresence>
+                        {/* Download Progress */}
+                        {downloadProgress.has(model.name) && (
+                          <Box sx={{ mb: 2 }}>
+                            <LinearProgress 
+                              variant="determinate" 
+                              value={downloadProgress.get(model.name)?.percentage || 0}
+                              sx={{ mb: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                            />
+                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                              {downloadProgress.get(model.name)?.status}: {downloadProgress.get(model.name)?.percentage.toFixed(1)}%
+                            </Typography>
+                          </Box>
                         )}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Box>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Box>
 
-        {/* Global styles for animations */}
-        <style>
-          {`
-            @keyframes pulse {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0.5; }
-            }
-          `}
-        </style>
+                        <Divider sx={{ my: 2 }} />
+
+                        {/* Action Buttons */}
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => window.open(`https://ollama.com${model.library_path}`, '_blank')}
+                          >
+                            Details
+                          </Button>
+                          {downloadingModels.has(model.name) ? (
+                            <Button
+                              variant="contained"
+                              color="error"
+                              size="small"
+                              onClick={() => handleCancelDownload(model.name)}
+                            >
+                              Cancel
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => handleDownloadModel(model.name)}
+                              startIcon={<Download size={16} />}
+                              disabled={model.compatibility_score < 40}
+                              sx={{
+                                backgroundColor: model.compatibility_score >= 40 ? '#00D4AA' : 'rgba(255, 255, 255, 0.1)',
+                                color: model.compatibility_score >= 40 ? '#000000' : '#6b7280',
+                                '&:hover': { 
+                                  backgroundColor: model.compatibility_score >= 40 ? '#00B894' : 'rgba(255, 255, 255, 0.1)' 
+                                },
+                              }}
+                            >
+                              {model.compatibility_score >= 40 ? 'Download' : 'Incompatible'}
+                            </Button>
+                          )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </Box>
+            </motion.div>
+          )}
+
+          {/* Other tabs content */}
+          {activeTab === 'testing' && <AdvancedTestingPlayground />}
+
+          {activeTab === 'analytics' && <GuardrailAnalyticsDashboard />}
+          {activeTab === 'guardrails' && <GuardrailsConfig />}
+          {activeTab === 'providers' && <ProvidersConfig />}
+          {activeTab === 'hardware' && <GPUAcceleration />}
+          {activeTab === 'docs' && <DocsPage />}
+        </AnimatePresence>
       </Box>
+    </Box>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider theme={minimalTheme}>
+      <CssBaseline />
+      <Toaster position="top-center" />
+      <AuthProvider>
+        <AuthGuard>
+          <MainApp />
+        </AuthGuard>
+      </AuthProvider>
     </ThemeProvider>
   );
 };
