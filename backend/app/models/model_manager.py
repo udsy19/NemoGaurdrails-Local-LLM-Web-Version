@@ -197,8 +197,26 @@ class ModelManager:
             config = self.detector_configs.get(detector_name, {})
             config.update(kwargs)
             
-            # Filter out non-detector parameters that are used for system management
-            detector_params = {k: v for k, v in config.items() if k not in ['enabled', 'name', 'type', 'model']}
+            # Filter out non-detector parameters and only include supported parameters per detector type
+            detector_params = {}
+            
+            # Each detector has different supported parameters
+            if detector_name == 'toxicity':
+                # ToxicityDetector only supports threshold parameter
+                if 'threshold' in config:
+                    detector_params['threshold'] = config['threshold']
+            elif detector_name == 'pii':
+                # PIIDetector supports sensitivity parameter
+                if 'sensitivity' in config:
+                    detector_params['sensitivity'] = config['sensitivity']
+            elif detector_name in ['prompt_injection', 'spam', 'topic', 'fact_check']:
+                # These detectors support threshold parameter
+                if 'threshold' in config:
+                    detector_params['threshold'] = config['threshold']
+            else:
+                # For any other detectors, only pass threshold if present
+                if 'threshold' in config:
+                    detector_params['threshold'] = config['threshold']
             
             result = await detector.detect(text, **detector_params)
             
@@ -321,10 +339,39 @@ class ModelManager:
         app_logger.info(f"Active detectors updated: {list(self.active_detectors)}")
     
     def update_detector_config(self, detector_name: str, config: Dict[str, Any]):
-        """Update configuration for a specific detector"""
+        """Update configuration for a specific detector with parameter filtering"""
         if detector_name in self.detector_configs:
-            self.detector_configs[detector_name].update(config)
-            app_logger.info(f"Updated config for {detector_name}: {config}")
+            # Filter out unsupported parameters before storing
+            filtered_config = {}
+            
+            # Each detector has different supported parameters
+            if detector_name == 'toxicity':
+                # ToxicityDetector only supports threshold parameter
+                if 'threshold' in config:
+                    filtered_config['threshold'] = config['threshold']
+                if 'enabled' in config:
+                    filtered_config['enabled'] = config['enabled']
+            elif detector_name == 'pii':
+                # PIIDetector supports sensitivity parameter
+                if 'sensitivity' in config:
+                    filtered_config['sensitivity'] = config['sensitivity']
+                if 'enabled' in config:
+                    filtered_config['enabled'] = config['enabled']
+            elif detector_name in ['prompt_injection', 'spam', 'topic', 'fact_check']:
+                # These detectors support threshold parameter
+                if 'threshold' in config:
+                    filtered_config['threshold'] = config['threshold']
+                if 'enabled' in config:
+                    filtered_config['enabled'] = config['enabled']
+            else:
+                # For any other detectors, only pass standard parameters
+                if 'threshold' in config:
+                    filtered_config['threshold'] = config['threshold']
+                if 'enabled' in config:
+                    filtered_config['enabled'] = config['enabled']
+            
+            self.detector_configs[detector_name].update(filtered_config)
+            app_logger.info(f"Updated config for {detector_name}: {filtered_config}")
     
     async def get_system_status(self) -> Dict[str, Any]:
         """Get overall system status"""
