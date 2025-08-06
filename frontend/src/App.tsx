@@ -308,7 +308,22 @@ const App: React.FC = () => {
     setMessage('');
     
     try {
-      await sendChatMessage(messageText, detectorConfig, selectedProvider);
+      // Filter detector config to only include enabled detectors with supported parameters
+      const filteredConfig: any = {};
+      Object.entries(detectorConfig).forEach(([detectorName, config]: [string, any]) => {
+        if (config.enabled) {
+          filteredConfig[detectorName] = {
+            enabled: config.enabled,
+            threshold: config.threshold
+          };
+          // Add PII-specific parameters if it's PII detector
+          if (detectorName === 'PIIDetector' && config.sensitivity) {
+            filteredConfig[detectorName].sensitivity = config.sensitivity;
+          }
+        }
+      });
+      
+      await sendChatMessage(messageText, filteredConfig, selectedProvider);
       // Force scroll to bottom after sending message with multiple attempts
       setTimeout(() => scrollToBottom(true), 100);
       setTimeout(() => scrollToBottom(true), 500);
@@ -948,6 +963,8 @@ const App: React.FC = () => {
                 transition={{ duration: 0.3 }}
               >
                 <GuardrailsConfig 
+                  detectorConfig={detectorConfig}
+                  onDetectorToggle={toggleDetector}
                   onConfigChange={(config) => {
                     // Handle real-time configuration changes
                     console.log('Guardrails config updated:', config);

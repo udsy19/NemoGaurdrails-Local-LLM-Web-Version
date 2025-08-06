@@ -67,7 +67,7 @@ export const useProviders = () => {
   // Save provider configurations to localStorage
   const saveProviderConfigs = useCallback((updatedProviders: Record<string, Provider>) => {
     try {
-      const configsToSave = Object.values(updatedProviders).reduce((acc, provider) => {
+      const configsToSave = Object.values(updatedProviders || {}).reduce((acc, provider) => {
         acc[provider.id] = {
           api_key: provider.api_key,
           selected_model: provider.selected_model,
@@ -97,7 +97,7 @@ export const useProviders = () => {
       if (data.success) {
         // Force update providers to ensure state sync
         console.log('🔄 Fetched providers:', Object.keys(data.providers).length, 'providers');
-        console.log('🔗 Connected providers:', Object.values(data.providers).filter((p: any) => p.status === 'connected').length);
+        console.log('🔗 Connected providers:', Object.values(data.providers || {}).filter((p: any) => p.status === 'connected').length);
         
         // Merge with saved configurations from localStorage
         const savedConfigs = loadProviderConfigs();
@@ -378,7 +378,7 @@ export const useProviders = () => {
 
   const testAllConnections = useCallback(async () => {
     try {
-      const enabledProviders = Object.values(providers).filter(p => p.enabled);
+      const enabledProviders = Object.values(providers || {}).filter(p => p.enabled);
       
       if (enabledProviders.length === 0) {
         toast('No enabled providers to test', { icon: 'ℹ️' });
@@ -487,14 +487,14 @@ export const useProviders = () => {
 
   // Auto-refresh stats every 30 seconds
   useEffect(() => {
-    if (Object.keys(providers).length > 0) {
+    if (Object.keys(providers || {}).length > 0) {
       const interval = setInterval(getProviderStats, 30000);
       return () => clearInterval(interval);
     }
   }, [providers, getProviderStats]);
 
   return {
-    providers: Object.values(providers),
+    providers: Object.values(providers || {}),
     providersMap: providers,
     stats,
     loading,
@@ -514,8 +514,8 @@ export const useProviders = () => {
     getProviderStats,
     
     // Computed values
-    enabledProviders: Object.values(providers).filter(p => p.enabled),
-    connectedProviders: Object.values(providers).filter(p => p.enabled && p.status === 'connected'),
-    availablePorts: Object.values(providers).map(p => p.port),
+    enabledProviders: Object.values(providers || {}).filter(p => p.enabled),
+    connectedProviders: Object.values(providers || {}).filter(p => p.enabled && p.status === 'connected'),
+    availablePorts: Object.values(providers || {}).map(p => p.port),
   };
 };

@@ -8,6 +8,8 @@ python-dotenv>=1.0.0
 pyyaml>=6.0.1
 requests>=2.31.0
 httpx>=0.25.2
+aiohttp>=3.9.0
+aiofiles>=23.2.0
 
 # Data processing (Python 3.13 compatible)
 numpy>=1.26.0

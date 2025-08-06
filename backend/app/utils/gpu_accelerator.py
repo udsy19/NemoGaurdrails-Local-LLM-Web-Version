@@ -402,40 +402,131 @@ class GPUAccelerator:
         }
     
     def benchmark_device(self, device: torch.device = None) -> Dict[str, float]:
-        """Benchmark device performance"""
+        """Benchmark device performance with accurate timing and meaningful metrics"""
         device = device or self.active_device
         
         try:
             logger.info(f"Benchmarking device: {device}")
             
-            # Create test tensors
-            sizes = [100, 500, 1000, 2000]
+            # Warmup GPU if CUDA device
+            if device.type == "cuda":
+                warmup_tensor = torch.randn(512, 512, device=device)
+                for _ in range(5):
+                    torch.matmul(warmup_tensor, warmup_tensor)
+                torch.cuda.synchronize()
+                del warmup_tensor
+            
+            # Test different matrix sizes for comprehensive benchmarking
+            sizes = [256, 512, 1024, 2048]
             results = {}
             
             for size in sizes:
-                # Matrix multiplication benchmark
-                start_time = time.time()
+                logger.info(f"Benchmarking matrix size: {size}x{size}")
                 
-                a = torch.randn(size, size, device=device)
-                b = torch.randn(size, size, device=device)
+                # Pre-allocate tensors outside timing
+                a = torch.randn(size, size, device=device, dtype=torch.float32)
+                b = torch.randn(size, size, device=device, dtype=torch.float32)
                 
-                for _ in range(10):
-                    c = torch.matmul(a, b)
-                
+                # Let GPU finish allocation
                 if device.type == "cuda":
                     torch.cuda.synchronize()
                 
-                end_time = time.time()
-                avg_time = (end_time - start_time) / 10 * 1000  # ms
+                # Run multiple iterations for statistical accuracy
+                times = []
+                iterations = 50 if size <= 1024 else 20  # Fewer iterations for large matrices
                 
-                results[f"matmul_{size}x{size}_ms"] = avg_time
+                for _ in range(iterations):
+                    # Proper timing with GPU synchronization
+                    if device.type == "cuda":
+                        torch.cuda.synchronize()
+                    
+                    start_time = time.perf_counter()
+                    c = torch.matmul(a, b)
+                    
+                    if device.type == "cuda":
+                        torch.cuda.synchronize()
+                    
+                    end_time = time.perf_counter()
+                    times.append((end_time - start_time) * 1000)  # Convert to ms
+                
+                # Use median time for robustness against outliers
+                median_time = sorted(times)[len(times) // 2]
+                
+                # Calculate FLOPS (Floating Point Operations Per Second)
+                # Matrix multiplication: 2 * n^3 operations for n x n matrices
+                flops = 2 * (size ** 3)
+                tflops = flops / (median_time / 1000) / 1e12  # TFLOPS
+                
+                results[f"Matrix {size}x{size}"] = {
+                    "time_ms": round(median_time, 2),
+                    "tflops": round(tflops, 2),
+                    "operations": f"{flops:,}",
+                    "memory_gb": round((size * size * 4 * 3) / (1024**3), 3)  # 3 matrices, 4 bytes per float32
+                }
+                
+                # Cleanup
+                del a, b, c
+            
+            # Add memory bandwidth test
+            results["Memory Bandwidth"] = self._benchmark_memory_bandwidth(device)
+            
+            # Add device information
+            results["Device Info"] = {
+                "name": str(device),
+                "type": device.type,
+                "index": device.index if hasattr(device, 'index') else 0
+            }
+            
+            if device.type == "cuda":
+                results["Device Info"]["cuda_capability"] = torch.cuda.get_device_capability(device)
+                results["Device Info"]["memory_gb"] = round(torch.cuda.get_device_properties(device).total_memory / (1024**3), 1)
             
             logger.info(f"Benchmark completed for {device}")
             return results
             
         except Exception as e:
             logger.error(f"Benchmark failed for {device}: {e}")
-            return {}
+            return {"error": str(e)}
+    
+    def _benchmark_memory_bandwidth(self, device: torch.device) -> Dict[str, float]:
+        """Benchmark memory bandwidth"""
+        try:
+            # Test memory copy performance
+            size_mb = 100  # 100MB test
+            elements = size_mb * 1024 * 1024 // 4  # 4 bytes per float32
+            
+            # Create source tensor
+            src = torch.randn(elements, device=device, dtype=torch.float32)
+            
+            if device.type == "cuda":
+                torch.cuda.synchronize()
+            
+            times = []
+            for _ in range(10):
+                if device.type == "cuda":
+                    torch.cuda.synchronize()
+                
+                start_time = time.perf_counter()
+                dst = src.clone()
+                
+                if device.type == "cuda":
+                    torch.cuda.synchronize()
+                
+                end_time = time.perf_counter()
+                times.append(end_time - start_time)
+            
+            median_time = sorted(times)[len(times) // 2]
+            bandwidth_gb_s = (size_mb / 1024) / median_time  # GB/s
+            
+            return {
+                "bandwidth_gb_s": round(bandwidth_gb_s, 1),
+                "test_size_mb": size_mb,
+                "time_ms": round(median_time * 1000, 2)
+            }
+            
+        except Exception as e:
+            logger.error(f"Memory bandwidth test failed: {e}")
+            return {"error": str(e)}
     
     def get_memory_usage(self) -> Dict[str, Any]:
         """Get current memory usage"""

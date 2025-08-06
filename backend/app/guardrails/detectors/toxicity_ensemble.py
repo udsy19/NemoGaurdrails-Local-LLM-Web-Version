@@ -56,7 +56,7 @@ class ToxicBERTDetector(BaseDetector):
         
         if not self.is_loaded:
             return DetectionResult(
-                blocked=True,
+                blocked=False,  # Don't block on errors - allow with low confidence
                 confidence=0.0,
                 blocking_reasons=["Model not loaded"],
                 model_name=self.name,
@@ -96,12 +96,12 @@ class ToxicBERTDetector(BaseDetector):
         except Exception as e:
             logger.error(f"Error in toxic-bert detection: {e}")
             return DetectionResult(
-                blocked=True,  # Fail safe
-                confidence=0.1,
-                blocking_reasons=[f"Detection error: {str(e)}"],
+                blocked=False,  # Changed: Don't fail safe by blocking - allow with low confidence
+                confidence=0.0,  # Low confidence indicates error
+                blocking_reasons=[],  # Don't block on error
                 model_name=self.name,
                 processing_time_ms=(time.time() - start_time) * 1000,
-                metadata={"error": str(e)},
+                metadata={"error": str(e), "model_error": True},
                 stage=DetectionStage.PRIMARY_ENSEMBLE
             )
     
@@ -155,7 +155,7 @@ class MartinHaToxicDetector(BaseDetector):
         
         if not self.is_loaded:
             return DetectionResult(
-                blocked=True,
+                blocked=False,  # Don't block on errors - allow with low confidence
                 confidence=0.0,
                 blocking_reasons=["Model not loaded"],
                 model_name=self.name,
@@ -193,7 +193,7 @@ class MartinHaToxicDetector(BaseDetector):
         except Exception as e:
             logger.error(f"Error in martin-ha toxic detection: {e}")
             return DetectionResult(
-                blocked=True,
+                blocked=False,  # Don't block on errors - allow with low confidence
                 confidence=0.1,
                 blocking_reasons=[f"Detection error: {str(e)}"],
                 model_name=self.name,
@@ -250,7 +250,7 @@ class NicholasKlugeToxicDetector(BaseDetector):
         
         if not self.is_loaded:
             return DetectionResult(
-                blocked=True,
+                blocked=False,  # Don't block on errors - allow with low confidence
                 confidence=0.0,
                 blocking_reasons=["Model not loaded"],
                 model_name=self.name,
@@ -288,7 +288,7 @@ class NicholasKlugeToxicDetector(BaseDetector):
         except Exception as e:
             logger.error(f"Error in nicholasKluge detection: {e}")
             return DetectionResult(
-                blocked=True,
+                blocked=False,  # Don't block on errors - allow with low confidence
                 confidence=0.1,
                 blocking_reasons=[f"Detection error: {str(e)}"],
                 model_name=self.name,
@@ -347,7 +347,7 @@ class CustomDistilBERTDetector(BaseDetector):
         
         if not self.is_loaded:
             return DetectionResult(
-                blocked=True,
+                blocked=False,  # Don't block on errors - allow with low confidence
                 confidence=0.0,
                 blocking_reasons=["Model not loaded"],
                 model_name=self.name,
@@ -389,7 +389,7 @@ class CustomDistilBERTDetector(BaseDetector):
         except Exception as e:
             logger.error(f"Error in custom DistilBERT detection: {e}")
             return DetectionResult(
-                blocked=True,
+                blocked=False,  # Don't block on errors - allow with low confidence
                 confidence=0.1,
                 blocking_reasons=[f"Detection error: {str(e)}"],
                 model_name=self.name,

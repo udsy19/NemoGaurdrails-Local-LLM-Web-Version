@@ -263,10 +263,23 @@ async def chat_with_ollama(context: Optional[Dict[str, Any]] = None, messages: l
             else:
                 return "Error: No messages provided"
         
-        # Chat with Ollama
-        response = await _model_manager.ollama_client.chat(messages)
+        # Chat with Ollama - convert to generate format
+        prompt_parts = []
+        for msg in messages:
+            prompt_parts.append(f"{msg['role']}: {msg['content']}")
+        prompt = "\n".join(prompt_parts) + "\nassistant:"
         
-        return response.get("message", {}).get("content", "No response generated")
+        response = await _model_manager.ollama_client.generate(
+            model="llama3.1:8b",
+            prompt=prompt,
+            options={
+                "temperature": 0.7,
+                "max_tokens": 500,
+                "top_p": 0.9
+            }
+        )
+        
+        return response.get("response", "No response generated").strip()
         
     except Exception as e:
         app_logger.error(f"Ollama chat failed: {e}")

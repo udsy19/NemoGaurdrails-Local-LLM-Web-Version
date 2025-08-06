@@ -250,7 +250,6 @@ async def get_performance_metrics() -> Dict[str, Any]:
                 'packets_sent': network_io.packets_sent if network_io else 0,
                 'packets_recv': network_io.packets_recv if network_io else 0
             },
-            'gpu': gpu_usage,
             'system': {
                 'process_count': process_count,
                 'boot_time': boot_time,
@@ -258,6 +257,10 @@ async def get_performance_metrics() -> Dict[str, Any]:
             },
             'timestamp': time.time()
         }
+        
+        # Only add GPU data if it's available
+        if gpu_usage:
+            performance_data['gpu'] = gpu_usage
         
         return performance_data
     
@@ -275,21 +278,26 @@ async def get_hardware_metrics() -> Dict[str, Any]:
         model_load_times = {}
         try:
             from app.main import model_manager
-            if model_manager and hasattr(model_manager, 'gpu_accelerator'):
-                # Simulate model load times based on cached models
-                cache_info = model_manager.gpu_accelerator.get_device_info().get('cache_info', {})
-                cached_models = cache_info.get('cached_models', 0)
-                hit_rate = cache_info.get('hit_rate', 0)
-                
-                # Estimate load times based on cache performance
-                base_load_time = 500  # Base 500ms
-                for detector_name in model_manager.available_detectors.keys():
-                    if detector_name in model_manager.detectors:
-                        # Faster load time if cached
-                        load_time = base_load_time * (1 - hit_rate / 100) + 50
-                        model_load_times[detector_name] = round(load_time, 1)
+            if model_manager and hasattr(model_manager, 'gpu_accelerator') and model_manager.gpu_accelerator:
+                # Safely get device info
+                device_info = model_manager.gpu_accelerator.get_device_info()
+                if device_info and isinstance(device_info, dict):
+                    cache_info = device_info.get('cache_info', {})
+                    cached_models = cache_info.get('cached_models', 0)
+                    hit_rate = cache_info.get('hit_rate', 0)
+                    
+                    # Estimate load times based on cache performance
+                    base_load_time = 500  # Base 500ms
+                    for detector_name in model_manager.available_detectors.keys():
+                        if detector_name in model_manager.detectors:
+                            # Faster load time if cached
+                            load_time = base_load_time * (1 - hit_rate / 100) + 50
+                            model_load_times[detector_name] = round(load_time, 1)
         except Exception:
-            # Default model load times if model manager not available
+            pass
+        
+        # Use default model load times if we couldn't get them from model manager
+        if not model_load_times:
             model_load_times = {
                 'toxicity': 450,
                 'pii': 380,
@@ -429,75 +437,5 @@ async def get_model_recommendations() -> Dict[str, Any]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate recommendations: {str(e)}")
 
-@router.get("/hardware")
-async def get_hardware_metrics() -> Dict[str, Any]:
-    """Get detailed hardware metrics for the analytics dashboard"""
-    try:
-        # CPU usage
-        cpu_usage = psutil.cpu_percent(interval=1)
-        
-        # Memory usage
-        memory = psutil.virtual_memory()
-        memory_usage = memory.percent
-        
-        # Disk usage
-        disk = psutil.disk_usage('/')
-        disk_usage = (disk.used / disk.total) * 100
-        
-        # Network I/O
-        network_io = psutil.net_io_counters()
-        
-        # Temperature (try to get if available)
-        temperature = 0
-        try:
-            if hasattr(psutil, 'sensors_temperatures'):
-                temps = psutil.sensors_temperatures()
-                if temps:
-                    for name, entries in temps.items():
-                        if entries:
-                            temperature = entries[0].current
-                            break
-        except:
-            temperature = 0
-        
-        # GPU usage (if available)
-        gpu_usage = None
-        try:
-            result = subprocess.run(['nvidia-smi', '--query-gpu=utilization.gpu', '--format=csv,noheader,nounits'], 
-                                  capture_output=True, text=True, timeout=5)
-            if result.returncode == 0:
-                gpu_usage = float(result.stdout.strip())
-        except:
-            gpu_usage = None
-        
-        # Model load times (simulated for now)
-        model_load_times = {
-            "toxicity_detector": 120,
-            "pii_detector": 85,
-            "spam_detector": 95,
-            "prompt_injection_detector": 110,
-            "topic_classifier": 140,
-            "fact_checker": 160
-        }
-        
-        hardware_data = {
-            "cpu_usage": cpu_usage,
-            "memory_usage": memory_usage,
-            "disk_usage": disk_usage,
-            "network_io": {
-                "sent": network_io.bytes_sent,
-                "received": network_io.bytes_recv
-            },
-            "temperature": temperature,
-            "model_load_times": model_load_times
-        }
-        
-        if gpu_usage is not None:
-            hardware_data["gpu_usage"] = gpu_usage
-        
-        return hardware_data
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get hardware metrics: {str(e)}")
 
 system_router = router

@@ -15,7 +15,7 @@ class OllamaClient:
             timeout=120.0,
             headers={"Content-Type": "application/json"}
         )
-        self.current_model = "llama3.1:latest"
+        self.current_model = "llama3.1:8b"
         
         # Initialize circuit breaker for Ollama connections
         self.circuit_breaker = circuit_breaker_registry.register(

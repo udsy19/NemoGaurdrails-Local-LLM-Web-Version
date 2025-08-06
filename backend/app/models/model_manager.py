@@ -27,14 +27,14 @@ class ModelManager:
             'spam': SpamDetector
         }
         
-        # Default detector configurations
+        # Default detector configurations - adjusted for better usability
         self.detector_configs = {
-            'toxicity': {'threshold': 0.7},
-            'pii': {'sensitivity': 0.8},
-            'prompt_injection': {'threshold': 0.5},
-            'topic': {'threshold': 0.7},
-            'fact_check': {'threshold': 0.5},
-            'spam': {'threshold': 0.6}
+            'toxicity': {'threshold': 0.85},      # Increased from 0.7 to reduce false positives
+            'pii': {'sensitivity': 0.6},          # Reduced from 0.8 to be less aggressive  
+            'prompt_injection': {'threshold': 0.7}, # Increased from 0.5 for better accuracy
+            'topic': {'threshold': 0.85},         # Increased from 0.7 to be less sensitive
+            'fact_check': {'threshold': 0.6},     # Increased from 0.5 for better accuracy
+            'spam': {'threshold': 0.75}           # Increased from 0.6 for better accuracy
         }
         
         # Active detectors (can be modified at runtime)

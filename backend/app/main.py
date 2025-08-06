@@ -31,6 +31,7 @@ from app.api.config import config_router
 from app.api.system import system_router
 from app.api.providers import router as providers_router
 from app.api.analytics import router as analytics_router
+from app.api.analytics_endpoints import router as kpmg_analytics_router
 from app.api.ollama import router as ollama_router
 from app.api.gpu import router as gpu_router
 from app.api.distributed import router as distributed_router
@@ -43,6 +44,8 @@ from app.services.distributed_detection_service import initialize_distributed_de
 from app.utils.multi_tenant import get_multi_tenant_manager
 from app.utils.ab_testing import get_ab_testing_manager
 from app.core.dependencies import initialize_dependencies
+from app.middleware.analytics_middleware import AnalyticsMiddleware, ChatAnalyticsMiddleware
+from app.services.export_scheduler import export_scheduler
 
 # Try to import NeMo Guardrails, fall back to simple implementation
 try:
@@ -217,6 +220,10 @@ async def lifespan(app: FastAPI):
         # Start background task to monitor enterprise deployment status
         asyncio.create_task(_enterprise_monitoring_task(model_manager))
         
+        # Start KPMG export scheduler
+        await export_scheduler.start()
+        add_system_log("success", "analytics", "KPMG export scheduler started")
+        
         # Store in app state
         app.state.model_manager = model_manager
         app.state.detection_service = detection_service
@@ -273,6 +280,10 @@ async def lifespan(app: FastAPI):
     # Stop advanced monitoring systems
     await performance_monitor.stop_monitoring()
     await self_healing_system.stop_self_healing()
+    
+    # Stop KPMG export scheduler
+    await export_scheduler.stop()
+    add_system_log("info", "analytics", "KPMG export scheduler stopped")
     
     # Clear correlation context
     CorrelationContextManager.clear_context()
@@ -599,13 +610,16 @@ app.add_middleware(
         "http://localhost:8501", 
         "http://127.0.0.1:8501",
         "http://localhost:3000",
-        "http://127.0.0.1:3000", 
-        "*"
+        "http://127.0.0.1:3000"
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
 )
+
+# Add analytics middleware for comprehensive data collection
+app.add_middleware(AnalyticsMiddleware)
+app.add_middleware(ChatAnalyticsMiddleware)
 
 # Exception handlers
 @app.exception_handler(AILLMSafetyException)
@@ -637,6 +651,7 @@ app.include_router(config_router, prefix="/api/config", tags=["config"])
 app.include_router(system_router, prefix="/api/system", tags=["system"])
 app.include_router(providers_router, tags=["providers"])
 app.include_router(analytics_router, tags=["analytics"])
+app.include_router(kpmg_analytics_router, tags=["kpmg-analytics"])
 app.include_router(ollama_router, tags=["ollama"])
 app.include_router(gpu_router, tags=["gpu"])
 app.include_router(distributed_router, tags=["distributed"])
@@ -667,7 +682,6 @@ async def api_root():
     }
 
 @app.get("/health")
-@with_correlation_context()
 async def health_check():
     """Enhanced health check with comprehensive system monitoring"""
     try:

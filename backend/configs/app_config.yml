@@ -31,26 +31,39 @@ chat:
   session_timeout: 3600
 detectors:
   fact_check:
-    enabled: false
-    threshold: 0.5
+    enabled: true
+    threshold: 0.6
   pii:
+    actionType: block
+    blockedWords: []
+    customKeywords:
+    - email
+    customResponse: Personal information detected
     enabled: false
     model: en_core_web_sm
-    sensitivity: 0.8
+    sensitivity: 0.6
+    severity: high
+    threshold: 0.6
   prompt_injection:
     enabled: false
-    threshold: 0.5
-  spam:
-    enabled: false
-    threshold: 0.6
-  topic:
-    enabled: false
-    model: all-MiniLM-L6-v2
     threshold: 0.7
+  spam:
+    enabled: true
+    threshold: 0.75
+  topic:
+    enabled: true
+    model: all-MiniLM-L6-v2
+    threshold: 0.85
   toxicity:
+    actionType: block
+    blockedWords: []
+    customKeywords:
+    - test
+    customResponse: Test response
     enabled: true
     model: martin-ha/toxic-comment-model
-    threshold: 0.7
+    severity: high
+    threshold: 0.85
 guardrails:
   config_dir: configs/guardrails
   input_enabled: true

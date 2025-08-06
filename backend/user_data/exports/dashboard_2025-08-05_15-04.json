@@ -1,0 +1,450 @@
+{
+  "export_metadata": {
+    "generated_at": "2025-08-05T15:04:15.557431",
+    "export_version": "1.0",
+    "time_ranges": [
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "3d",
+      "1w"
+    ],
+    "database_path": "user_data/ai_safety_analytics.db",
+    "system_info": {
+      "total_records": 861,
+      "database_size_mb": 0.3
+    }
+  },
+  "time_ranges": {
+    "1h": {
+      "summary": {
+        "total_requests": 207,
+        "blocked_requests": 68,
+        "block_rate": 0.329,
+        "unique_users": 1,
+        "avg_response_time_ms": 764.44,
+        "total_tokens_input": 414,
+        "total_tokens_output": 0,
+        "avg_tokens_per_request": 2.0
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 207,
+          "blocked_requests": 68,
+          "block_rate": 32.9,
+          "avg_response_time": 764.44,
+          "total_tokens": 414,
+          "unique_sessions": 0,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 42.9,
+          "first_seen": "2025-08-05T14:04:23.749381",
+          "last_seen": "2025-08-05T15:03:49.452715"
+        }
+      },
+      "provider_performance": {},
+      "alerts": [
+        {
+          "type": "high_block_rate",
+          "severity": "warning",
+          "message": "Block rate elevated: 32.9%",
+          "threshold": 0.3,
+          "current": 0.329,
+          "impact": "High blocking may indicate aggressive guardrails or attack patterns"
+        }
+      ],
+      "data_points": 207
+    },
+    "6h": {
+      "summary": {
+        "total_requests": 859,
+        "blocked_requests": 111,
+        "block_rate": 0.129,
+        "unique_users": 1,
+        "avg_response_time_ms": 1372.6,
+        "total_tokens_input": 1728,
+        "total_tokens_output": 0,
+        "avg_tokens_per_request": 2.01
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 859,
+          "blocked_requests": 111,
+          "block_rate": 12.9,
+          "avg_response_time": 1372.6,
+          "total_tokens": 1728,
+          "unique_sessions": 4,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 22.9,
+          "first_seen": "2025-08-05T11:15:50.760925",
+          "last_seen": "2025-08-05T15:03:49.452715"
+        }
+      },
+      "provider_performance": {},
+      "alerts": [],
+      "data_points": 859
+    },
+    "12h": {
+      "summary": {
+        "total_requests": 859,
+        "blocked_requests": 111,
+        "block_rate": 0.129,
+        "unique_users": 1,
+        "avg_response_time_ms": 1372.6,
+        "total_tokens_input": 1728,
+        "total_tokens_output": 0,
+        "avg_tokens_per_request": 2.01
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 859,
+          "blocked_requests": 111,
+          "block_rate": 12.9,
+          "avg_response_time": 1372.6,
+          "total_tokens": 1728,
+          "unique_sessions": 4,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 22.9,
+          "first_seen": "2025-08-05T11:15:50.760925",
+          "last_seen": "2025-08-05T15:03:49.452715"
+        }
+      },
+      "provider_performance": {},
+      "alerts": [],
+      "data_points": 859
+    },
+    "24h": {
+      "summary": {
+        "total_requests": 859,
+        "blocked_requests": 111,
+        "block_rate": 0.129,
+        "unique_users": 1,
+        "avg_response_time_ms": 1372.6,
+        "total_tokens_input": 1728,
+        "total_tokens_output": 0,
+        "avg_tokens_per_request": 2.01
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 859,
+          "blocked_requests": 111,
+          "block_rate": 12.9,
+          "avg_response_time": 1372.6,
+          "total_tokens": 1728,
+          "unique_sessions": 4,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 22.9,
+          "first_seen": "2025-08-05T11:15:50.760925",
+          "last_seen": "2025-08-05T15:03:49.452715"
+        }
+      },
+      "provider_performance": {},
+      "alerts": [],
+      "data_points": 859
+    },
+    "3d": {
+      "summary": {
+        "total_requests": 861,
+        "blocked_requests": 111,
+        "block_rate": 0.129,
+        "unique_users": 2,
+        "avg_response_time_ms": 1369.7,
+        "total_tokens_input": 1732,
+        "total_tokens_output": 2,
+        "avg_tokens_per_request": 2.01
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 0,
+          "avg_confidence": 0.001,
+          "max_score": 0.1,
+          "total_analyzed": 1,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 860,
+          "blocked_requests": 111,
+          "block_rate": 12.9,
+          "avg_response_time": 1371.01,
+          "total_tokens": 1730,
+          "unique_sessions": 4,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 22.9,
+          "first_seen": "2025-08-03T19:24:59.195214",
+          "last_seen": "2025-08-05T15:03:49.452715"
+        },
+        "192.168.1.100": {
+          "total_requests": 1,
+          "blocked_requests": 0,
+          "block_rate": 0.0,
+          "avg_response_time": 250.0,
+          "total_tokens": 4,
+          "unique_sessions": 0,
+          "top_blocked_guardrail": null,
+          "risk_score": 0.0,
+          "first_seen": "2025-08-03T12:31:34.540750",
+          "last_seen": "2025-08-03T12:31:34.540750"
+        }
+      },
+      "provider_performance": {},
+      "alerts": [],
+      "data_points": 861
+    },
+    "1w": {
+      "summary": {
+        "total_requests": 861,
+        "blocked_requests": 111,
+        "block_rate": 0.129,
+        "unique_users": 2,
+        "avg_response_time_ms": 1369.7,
+        "total_tokens_input": 1732,
+        "total_tokens_output": 2,
+        "avg_tokens_per_request": 2.01
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 0,
+          "avg_confidence": 0.001,
+          "max_score": 0.1,
+          "total_analyzed": 1,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 0,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 860,
+          "blocked_requests": 111,
+          "block_rate": 12.9,
+          "avg_response_time": 1371.01,
+          "total_tokens": 1730,
+          "unique_sessions": 4,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 22.9,
+          "first_seen": "2025-08-03T19:24:59.195214",
+          "last_seen": "2025-08-05T15:03:49.452715"
+        },
+        "192.168.1.100": {
+          "total_requests": 1,
+          "blocked_requests": 0,
+          "block_rate": 0.0,
+          "avg_response_time": 250.0,
+          "total_tokens": 4,
+          "unique_sessions": 0,
+          "top_blocked_guardrail": null,
+          "risk_score": 0.0,
+          "first_seen": "2025-08-03T12:31:34.540750",
+          "last_seen": "2025-08-03T12:31:34.540750"
+        }
+      },
+      "provider_performance": {},
+      "alerts": [],
+      "data_points": 861
+    }
+  }
+}

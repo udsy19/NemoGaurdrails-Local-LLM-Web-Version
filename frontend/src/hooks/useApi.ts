@@ -116,13 +116,13 @@ export const useDetectors = () => {
                 if (detector.name) {
                   config[detector.name] = {
                     enabled: detector.enabled || false,
-                    threshold: detector.threshold || 0.5,
-                    customKeywords: detector.customKeywords || [],
-                    blockedWords: detector.blockedWords || [],
-                    customResponse: detector.customResponse || '',
-                    actionType: detector.actionType || 'block',
-                    severity: detector.severity || 'medium'
+                    threshold: detector.threshold || 0.5
                   };
+                  
+                  // Add PII-specific config if it's PII detector
+                  if (detector.name === 'PIIDetector' && (detector as any).sensitivity) {
+                    (config[detector.name] as any).sensitivity = (detector as any).sensitivity;
+                  }
                 }
               });
             } else {

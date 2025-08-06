@@ -102,8 +102,12 @@ class ChatService:
                         context = context or {}
                         context["provider_id"] = provider_id
                     
+                    # Get session detector config
+                    session_config = self.session_configs.get(session_id, {})
+                    
                     guardrails_result = await self.guardrails_manager.process_message(
                         message, 
+                        detector_config=session_config,
                         context=context
                     )
                 else:
@@ -275,12 +279,23 @@ class ChatService:
                     "content": message
                 })
                 
-                # Generate response
-                ollama_response = await self.model_manager.ollama_client.chat(
-                    conversation_messages
+                # Generate response - convert messages to prompt format
+                prompt_parts = []
+                for msg in conversation_messages:
+                    prompt_parts.append(f"{msg['role']}: {msg['content']}")
+                prompt = "\n".join(prompt_parts) + "\nassistant:"
+                
+                ollama_response = await self.model_manager.ollama_client.generate(
+                    model="llama3.1:8b",
+                    prompt=prompt,
+                    options={
+                        "temperature": 0.7,
+                        "max_tokens": 500,
+                        "top_p": 0.9
+                    }
                 )
                 
-                assistant_response = ollama_response.get("message", {}).get("content", "I apologize, but I couldn't generate a response.")
+                assistant_response = ollama_response.get("response", "I apologize, but I couldn't generate a response.").strip()
                 
             except Exception as e:
                 app_logger.error(f"Ollama response generation failed: {e}")
@@ -566,7 +581,7 @@ assistant:"""
 
             # Generate response using Ollama
             response = await self.model_manager.ollama_client.generate(
-                model="llama3.1:latest",
+                model="llama3.1:8b",
                 prompt=prompt,
                 options={
                     "temperature": 0.7,

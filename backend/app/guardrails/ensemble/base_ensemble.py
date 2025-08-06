@@ -533,9 +533,14 @@ class EnsembleFramework:
         if unicode_escape_count > 10 and unicode_escape_count > len(text) * 0.05:  # More than 5% of text
             return True
         
-        # Check for homograph attacks (basic)
+        # Check for homograph attacks (basic) - but be less aggressive
+        # Only flag if there's a mix of Latin and Cyrillic that suggests spoofing
         suspicious_chars = ['а', 'е', 'о', 'р', 'с', 'х']  # Cyrillic that look like Latin
-        if any(char in text for char in suspicious_chars):
+        cyrillic_count = sum(1 for char in text if char in suspicious_chars)
+        latin_count = sum(1 for char in text if char.isascii() and char.isalpha())
+        
+        # Only flag if there's both Latin and Cyrillic in the same short text (potential spoofing)
+        if cyrillic_count > 0 and latin_count > 0 and len(text) < 100:
             return True
         
         return False

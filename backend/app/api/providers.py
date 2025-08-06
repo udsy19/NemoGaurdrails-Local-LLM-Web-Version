@@ -18,6 +18,11 @@ class ProviderConfigUpdate(BaseModel):
     api_key: Optional[str] = None
     selected_model: Optional[str] = None
 
+class AzureConfigUpdate(BaseModel):
+    azure_endpoint: Optional[str] = None
+    azure_api_version: Optional[str] = None
+    azure_deployment_name: Optional[str] = None
+
 class TestConnectionRequest(BaseModel):
     provider_id: str
 
@@ -222,7 +227,7 @@ async def set_provider_api_key(provider_id: str, api_key: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error setting API key for provider {provider_id}: {e}")
+        logger.error(f"Error setting API key for provider {provider_id}: {str(e)} (API key redacted for security)")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/{provider_id}/select-model")
@@ -441,4 +446,57 @@ async def test_all_connections(background_tasks: BackgroundTasks):
         
     except Exception as e:
         logger.error(f"Error testing all connections: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/azure_openai/config")
+async def update_azure_openai_config(config: AzureConfigUpdate):
+    """Update Azure OpenAI specific configuration"""
+    try:
+        provider = provider_service.get_provider("azure_openai")
+        if not provider:
+            raise HTTPException(status_code=404, detail="Azure OpenAI provider not found")
+        
+        # Update Azure configuration
+        success = provider_service.update_azure_config(
+            provider_id="azure_openai",
+            endpoint=config.azure_endpoint,
+            api_version=config.azure_api_version,
+            deployment_name=config.azure_deployment_name
+        )
+        if not success:
+            raise HTTPException(status_code=400, detail="Failed to update Azure configuration")
+        
+        # Return updated provider
+        updated_provider = provider_service.to_dict()["azure_openai"]
+        return {
+            "provider": updated_provider,
+            "message": "Azure OpenAI configuration updated successfully",
+            "success": True
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating Azure OpenAI configuration: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/azure_openai/config")
+async def get_azure_openai_config():
+    """Get Azure OpenAI specific configuration"""
+    try:
+        provider = provider_service.get_provider("azure_openai")
+        if not provider:
+            raise HTTPException(status_code=404, detail="Azure OpenAI provider not found")
+        
+        return {
+            "azure_endpoint": provider.azure_endpoint,
+            "azure_api_version": provider.azure_api_version,
+            "azure_deployment_name": provider.azure_deployment_name,
+            "success": True
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting Azure OpenAI configuration: {e}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -199,9 +199,9 @@ class SystemHealthMonitor:
                 "percent": memory.percent
             }
             
-            # CPU metrics
+            # CPU metrics (non-blocking call)
             cpu_metrics = {
-                "percent": psutil.cpu_percent(interval=1),
+                "percent": psutil.cpu_percent(interval=0),  # Non-blocking call
                 "count": psutil.cpu_count(),
                 "load_average": os.getloadavg() if hasattr(os, 'getloadavg') else None
             }

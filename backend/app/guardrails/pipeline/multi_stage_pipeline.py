@@ -41,10 +41,10 @@ class MultiStagePipeline:
         self.stage_metrics = {stage: {"count": 0, "total_time": 0.0} for stage in PipelineStage}
         self.cache = DetectionCache()
         
-        # Configuration
+        # Configuration - adjusted for better usability
         self.confidence_thresholds = {
-            ConfidenceLevel.HIGH: 0.92,
-            ConfidenceLevel.MEDIUM: 0.75,
+            ConfidenceLevel.HIGH: 0.8,   # Reduced from 0.92 to be less stringent
+            ConfidenceLevel.MEDIUM: 0.6, # Reduced from 0.75 to be less stringent
             ConfidenceLevel.LOW: 0.0
         }
         

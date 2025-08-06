@@ -39,10 +39,11 @@ cd ..
 echo "🔥 Starting enhanced backend and React frontend..."
 echo ""
 echo "🌐 React frontend will be available at: http://localhost:3000"
-echo "🔧 Backend API will be available at: http://localhost:8000"
-echo "📊 Analytics dashboard included"
-echo "🤖 Enhanced ML detection enabled"
-echo "🛡️ Provider management enabled"
+echo "🔧 Backend API will be available at: http://localhost:8001"
+echo "📊 KPMG Analytics system active with 5-minute exports"
+echo "🤖 Enhanced ML detection enabled (6 guardrails)"
+echo "🛡️ Multi-provider management enabled"
+echo "🔒 Enterprise security features active"
 echo ""
 echo "💡 Press Ctrl+C to stop both services"
 echo "=============================================================="
@@ -59,12 +60,12 @@ cleanup() {
 # Set trap to cleanup on exit
 trap cleanup SIGINT SIGTERM
 
-# Kill any existing processes on ports 8000 and 3000
-echo "🔍 Checking for existing processes on ports 8000 and 3000..."
-EXISTING_PID_8000=$(lsof -ti:8000 2>/dev/null || true)
-if [ ! -z "$EXISTING_PID_8000" ]; then
-    echo "🛑 Killing existing process $EXISTING_PID_8000 on port 8000..."
-    kill $EXISTING_PID_8000 2>/dev/null || kill -9 $EXISTING_PID_8000 2>/dev/null || true
+# Kill any existing processes on ports 8001 and 3000
+echo "🔍 Checking for existing processes on ports 8001 and 3000..."
+EXISTING_PID_8001=$(lsof -ti:8001 2>/dev/null || true)
+if [ ! -z "$EXISTING_PID_8001" ]; then
+    echo "🛑 Killing existing process $EXISTING_PID_8001 on port 8001..."
+    kill $EXISTING_PID_8001 2>/dev/null || kill -9 $EXISTING_PID_8001 2>/dev/null || true
     sleep 2
 fi
 
@@ -75,9 +76,18 @@ if [ ! -z "$EXISTING_PID_3000" ]; then
     sleep 2
 fi
 
+# Set environment variables for backend
+export KPMG_DASHBOARD_ENDPOINT="https://kpmg-dashboard-api.com/api/v1/client-data/ingest"
+export KPMG_CLIENT_ID="ai-safety-client-001"
+export EXPORT_INTERVAL_MINUTES="5"
+
 # Start backend in background with formatted logging
-echo "🚀 Starting unified AI Safety System backend on port 8000..."
-(cd backend && PYTHONPATH=. python3 app/main.py 2>&1 | while IFS= read -r line; do echo "[$(date '+%Y-%m-%d %H:%M:%S')] [BACKEND] $line"; done > ../logs/backend.log) &
+echo "🚀 Starting unified AI Safety System backend on port 8001..."
+(cd backend && PYTHONPATH=. python3 -c "
+import uvicorn
+from app.main import app
+uvicorn.run(app, host='0.0.0.0', port=8001, reload=False)
+" 2>&1 | while IFS= read -r line; do echo "[$(date '+%Y-%m-%d %H:%M:%S')] [BACKEND] $line"; done > ../logs/backend.log) &
 BACKEND_PID=$!
 
 # Wait a moment for backend to start
@@ -88,8 +98,8 @@ if kill -0 $BACKEND_PID 2>/dev/null; then
     echo "✅ Backend started successfully (PID: $BACKEND_PID)"
     # Test if backend is responding
     sleep 2
-    if curl -s http://localhost:8000/ >/dev/null 2>&1; then
-        echo "✅ Backend is responding on port 8000"
+    if curl -s http://localhost:8001/health >/dev/null 2>&1; then
+        echo "✅ Backend is responding on port 8001"
     else
         echo "⚠️  Backend started but not responding yet (may need more time to initialize)"
     fi
@@ -100,9 +110,12 @@ else
     exit 1
 fi
 
+# Ensure frontend has correct backend URL
+echo "REACT_APP_BACKEND_URL=http://localhost:8001" > frontend/.env
+
 # Start React frontend in background
 echo "🌐 Starting React frontend on port 3000..."
-(cd frontend && export BROWSER=none && export REACT_APP_API_URL=http://localhost:8000 && npm start 2>&1 | while IFS= read -r line; do echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FRONTEND] $line"; done > ../logs/frontend.log) &
+(cd frontend && export BROWSER=none && npm start 2>&1 | while IFS= read -r line; do echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FRONTEND] $line"; done > ../logs/frontend.log) &
 FRONTEND_PID=$!
 
 # Wait a moment for frontend to start

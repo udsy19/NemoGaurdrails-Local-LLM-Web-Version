@@ -232,7 +232,7 @@ define flow check facts
             app_logger.error(f"Failed to write output flows: {e}")
             raise GuardrailsException(f"Failed to write output flows: {e}")
     
-    async def process_message(self, message: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def process_message(self, message: str, detector_config: Optional[Dict[str, Any]] = None, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Process a message through the guardrails"""
         try:
             if not self.is_initialized:
@@ -242,7 +242,7 @@ define flow check facts
             
             # Phase 4: Use multi-stage pipeline if available
             if self.use_phase4_pipeline and self.phase4_pipeline:
-                return await self._process_with_phase4_pipeline(message, context)
+                return await self._process_with_phase4_pipeline(message, detector_config, context)
             
             # Fallback to traditional processing
             return await self._process_with_traditional_guardrails(message, context)
@@ -251,7 +251,7 @@ define flow check facts
             app_logger.error(f"Failed to process message: {e}")
             raise GuardrailsException(f"Message processing failed: {e}")
     
-    async def _process_with_phase4_pipeline(self, message: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def _process_with_phase4_pipeline(self, message: str, detector_config: Optional[Dict[str, Any]] = None, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Process message using Phase 4 multi-stage pipeline"""
         try:
             app_logger.info("Processing with Phase 4 Multi-Stage Pipeline")
@@ -264,8 +264,32 @@ define flow check facts
                 metadata=context or {}
             )
             
-            # Define guardrail types to check
-            guardrail_types = ["toxicity", "pii", "prompt_injection", "spam", "topic"]
+            # Define guardrail types to check based on user configuration
+            # Only run detectors that are explicitly enabled
+            guardrail_types = []
+            if detector_config:
+                app_logger.info(f"Phase 4 Pipeline received detector_config: {detector_config}")
+                for detector_name, config in detector_config.items():
+                    if config.get("enabled", False):
+                        guardrail_types.append(detector_name)
+                        app_logger.info(f"Enabling detector: {detector_name}")
+            
+            app_logger.info(f"Active guardrail types: {guardrail_types}")
+            
+            # If no detectors are enabled, don't run any guardrails
+            if not guardrail_types:
+                app_logger.info("No detectors enabled - skipping all guardrails processing")
+                return {
+                    "response": None, 
+                    "blocked": False,  
+                    "blocking_reasons": [],
+                    "input_analysis": {},
+                    "output_analysis": {},
+                    "confidence": 0.0,
+                    "processing_time_ms": 0,
+                    "pipeline_stage": "skipped",
+                    "guardrails_triggered": {}
+                }
             
             # Process through multi-stage pipeline
             pipeline_results = await self.phase4_pipeline.process(
@@ -336,26 +360,45 @@ define flow check facts
             input_analysis = None
             if self.detection_service:
                 app_logger.info("Running input detection through safety detectors...")
-                input_detection_result = await self.detection_service.run_detection(
-                    message,
-                    detector_names=self.active_detectors
-                )
-                
-                input_analysis = {
-                    "user_message": message,
-                    "active_detectors": self.active_detectors,
-                    "detection_results": input_detection_result.get("results", {}),
-                    "blocked": input_detection_result.get("blocked", False),
-                    "blocking_reasons": input_detection_result.get("blocking_reasons", [])
-                }
+                try:
+                    input_detection_result = await self.detection_service.run_detection(
+                        message,
+                        detector_names=self.active_detectors
+                    )
+                    
+                    if input_detection_result:
+                        input_analysis = {
+                            "user_message": message,
+                            "active_detectors": self.active_detectors,
+                            "detection_results": input_detection_result.get("results", {}),
+                            "blocked": input_detection_result.get("blocked", False),
+                            "blocking_reasons": input_detection_result.get("blocking_reasons", [])
+                        }
+                    else:
+                        input_analysis = {
+                            "error": "detection_result_none",
+                            "message": "Detection service returned None",
+                            "fallback_applied": True,
+                            "blocked": False,
+                            "blocked_by": "Detection system error"
+                        }
+                except Exception as e:
+                    app_logger.error(f"Detection service failed: {e}")
+                    input_analysis = {
+                        "error": "guardrail_system_error",
+                        "message": str(e),
+                        "fallback_applied": True,
+                        "blocked": True,
+                        "blocked_by": f"Guardrail system error: {str(e)}"
+                    }
                 
                 # If input is blocked, return immediately
-                if input_detection_result.get("blocked", False):
-                    app_logger.warning(f"Input blocked by detectors: {input_detection_result.get('blocking_reasons', [])}")
+                if input_analysis and input_analysis.get("blocked", False):
+                    app_logger.warning(f"Input blocked: {input_analysis.get('blocking_reasons', [])} - {input_analysis.get('blocked_by', 'Unknown')}")
                     return {
                         "response": "I cannot proceed with that request. Is there anything else I can help you with?",
                         "blocked": True,
-                        "blocking_reasons": input_detection_result.get("blocking_reasons", []),
+                        "blocking_reasons": input_analysis.get("blocking_reasons", []),
                         "context": context,
                         "input_analysis": input_analysis
                     }

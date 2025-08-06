@@ -32,33 +32,36 @@ async def get_analytics_summary(hours: int = 24):
         
         summary = analytics_service.get_analytics_summary(hours)
         
+        # Convert guardrails analysis to detector stats format for compatibility
+        detector_stats = []
+        guardrails_analysis = summary.get("guardrails_analysis", {})
+        for guardrail_name, guardrail_data in guardrails_analysis.items():
+            detector_stats.append({
+                "name": guardrail_name,
+                "total_detections": guardrail_data.get("total_analyzed", 0),
+                "blocked_count": guardrail_data.get("triggers", 0),
+                "allowed_count": guardrail_data.get("total_analyzed", 0) - guardrail_data.get("triggers", 0),
+                "avg_confidence": round(guardrail_data.get("avg_confidence", 0.0), 3),
+                "last_triggered": None,  # Not available in current data
+                "block_rate": round(guardrail_data.get("effectiveness_percentage", 0.0), 1)
+            })
+            
         return {
             "success": True,
             "summary": {
-                "timeframe_hours": summary.timeframe_hours,
-                "total_requests": summary.total_requests,
-                "blocked_requests": summary.blocked_requests,
-                "allowed_requests": summary.allowed_requests,
-                "unique_users": summary.unique_users,
-                "unique_ips": summary.unique_ips,
-                "top_blocking_reasons": summary.top_blocking_reasons,
-                "detector_stats": [
-                    {
-                        "name": stat.name,
-                        "total_detections": stat.total_detections,
-                        "blocked_count": stat.blocked_count,
-                        "allowed_count": stat.allowed_count,
-                        "avg_confidence": round(stat.avg_confidence, 3),
-                        "last_triggered": stat.last_triggered.isoformat() if stat.last_triggered else None,
-                        "block_rate": round(stat.blocked_count / stat.total_detections * 100, 1) if stat.total_detections > 0 else 0
-                    }
-                    for stat in summary.detector_stats
-                ],
-                "request_timeline": summary.request_timeline,
-                "user_activity": summary.user_activity,
-                "geographic_data": summary.geographic_data,
-                "error_rate": round(summary.error_rate, 2),
-                "avg_response_time": round(summary.avg_response_time, 2)
+                "timeframe_hours": hours,
+                "total_requests": summary.get("total_requests", 0),
+                "blocked_requests": summary.get("blocked_requests", 0),
+                "allowed_requests": summary.get("allowed_requests", 0),
+                "unique_users": summary.get("unique_users", 0),
+                "unique_ips": summary.get("unique_users", 0),  # Use same as unique_users for now
+                "top_blocking_reasons": summary.get("top_blocked_reasons", []),
+                "detector_stats": detector_stats,
+                "request_timeline": [],  # Not available in current format
+                "user_activity": [],    # Not available in current format
+                "geographic_data": [],  # Not available in current format
+                "error_rate": 0.0,      # Not available in current format
+                "avg_response_time": round(summary.get("avg_response_time", 0), 2)
             }
         }
         
@@ -137,17 +140,20 @@ async def get_detector_analytics():
         summary = analytics_service.get_analytics_summary(24)
         
         detector_analytics = []
-        for stat in summary.detector_stats:
+        guardrails_analysis = summary.get("guardrails_analysis", {})
+        for guardrail_name, guardrail_data in guardrails_analysis.items():
+            total_detections = guardrail_data.get("total_analyzed", 0)
+            blocked_count = guardrail_data.get("triggers", 0)
             detector_analytics.append({
-                "name": stat.name,
-                "display_name": stat.name.replace("_", " ").title(),
-                "total_detections": stat.total_detections,
-                "blocked_count": stat.blocked_count,
-                "allowed_count": stat.allowed_count,
-                "block_rate": round(stat.blocked_count / stat.total_detections * 100, 1) if stat.total_detections > 0 else 0,
-                "avg_confidence": round(stat.avg_confidence, 3),
-                "last_triggered": stat.last_triggered.isoformat() if stat.last_triggered else None,
-                "effectiveness": "high" if stat.blocked_count > 0 else "low"
+                "name": guardrail_name,
+                "display_name": guardrail_name.replace("_", " ").title(),
+                "total_detections": total_detections,
+                "blocked_count": blocked_count,
+                "allowed_count": total_detections - blocked_count,
+                "block_rate": round(blocked_count / total_detections * 100, 1) if total_detections > 0 else 0,
+                "avg_confidence": round(guardrail_data.get("avg_confidence", 0.0), 3),
+                "last_triggered": None,  # Not available in current data
+                "effectiveness": "high" if blocked_count > 0 else "low"
             })
         
         return {
@@ -167,13 +173,13 @@ async def get_fast_guardrail_analytics(hours: int = 24):
         summary = analytics_service.get_analytics_summary(min(hours, 24))  # Limit to 24h for speed
         
         return {
-            "total_requests": summary.total_requests,
-            "blocked_requests": summary.blocked_requests,
-            "allowed_requests": summary.allowed_requests,
-            "block_rate": round(summary.blocked_requests / summary.total_requests * 100, 1) if summary.total_requests > 0 else 0,
-            "unique_users": summary.unique_users,
-            "detector_count": len(summary.detector_stats),
-            "avg_response_time": round(summary.avg_response_time, 2),
+            "total_requests": summary.get("total_requests", 0),
+            "blocked_requests": summary.get("blocked_requests", 0),
+            "allowed_requests": summary.get("allowed_requests", 0),
+            "block_rate": round(summary.get("blocked_requests", 0) / summary.get("total_requests", 1) * 100, 1) if summary.get("total_requests", 0) > 0 else 0,
+            "unique_users": summary.get("unique_users", 0),
+            "detector_count": len(summary.get("guardrails_analysis", {})),
+            "avg_response_time": round(summary.get("avg_response_time", 0), 2),
         }
     except Exception as e:
         logger.error(f"Error getting fast guardrail analytics: {e}")
@@ -198,38 +204,48 @@ async def get_guardrail_analytics(hours: int = 24):
         
         # Enhanced detector performance with accuracy metrics
         detector_performance = {}
-        for stat in summary.detector_stats:
-            detector_performance[stat.name] = {
+        guardrails_analysis = summary.get("guardrails_analysis", {})
+        for guardrail_name, guardrail_data in guardrails_analysis.items():
+            confidence = guardrail_data.get("avg_confidence", 0.8)
+            triggers = guardrail_data.get("triggers", 0)
+            detector_performance[guardrail_name] = {
                 "enabled": True,
-                "accuracy": stat.avg_confidence,  # Use confidence as proxy for accuracy
-                "precision": min(0.95, stat.avg_confidence + 0.1),  # Simulated precision
-                "recall": min(0.98, stat.avg_confidence + 0.05),    # Simulated recall
-                "f1_score": min(0.92, stat.avg_confidence),         # Simulated F1
-                "avg_response_time": 50 + (hash(stat.name) % 50),  # Simulated response time
-                "request_count": stat.total_detections,
-                "block_rate": round(stat.blocked_count / stat.total_detections * 100, 1) if stat.total_detections > 0 else 0
+                "accuracy": confidence,  # Use confidence as proxy for accuracy
+                "precision": min(0.95, confidence + 0.1),  # Simulated precision
+                "recall": min(0.98, confidence + 0.05),    # Simulated recall
+                "f1_score": min(0.92, confidence),         # Simulated F1
+                "avg_response_time": 50 + (hash(guardrail_name) % 50),  # Simulated response time
+                "request_count": triggers,
+                "block_rate": round(guardrail_data.get("effectiveness_percentage", 0), 1)
             }
         
         # Top blocked categories from blocking reasons
         top_blocked_categories = {}
         try:
-            if hasattr(summary, 'top_blocking_reasons') and summary.top_blocking_reasons:
-                for item in summary.top_blocking_reasons:
-                    if isinstance(item, (list, tuple)) and len(item) >= 2:
+            top_blocking_reasons = summary.get('top_blocked_reasons', [])
+            if top_blocking_reasons:
+                for item in top_blocking_reasons:
+                    if isinstance(item, dict) and 'reason' in item and 'count' in item:
+                        reason = item['reason']
+                        count = item['count']
+                        category = reason.split(':')[0] if ':' in reason else reason
+                        top_blocked_categories[category] = top_blocked_categories.get(category, 0) + count
+                    elif isinstance(item, (list, tuple)) and len(item) >= 2:
                         reason, count = item[0], item[1]
                         category = reason.split(':')[0] if ':' in reason else reason
                         top_blocked_categories[category] = top_blocked_categories.get(category, 0) + count
                     elif isinstance(item, str):
                         top_blocked_categories[item] = top_blocked_categories.get(item, 0) + 1
         except Exception as e:
-            app_logger.warning(f"Error processing blocking reasons: {e}")
+            logger.warning(f"Error processing blocking reasons: {e}")
             top_blocked_categories = {"toxicity": 5, "spam": 3, "pii": 2}
         
         # Hourly stats for timeline
         hourly_stats = []
         try:
-            if hasattr(summary, 'request_timeline') and summary.request_timeline:
-                for item in summary.request_timeline:
+            request_timeline = summary.get('request_timeline', [])
+            if request_timeline:
+                for item in request_timeline:
                     if isinstance(item, (list, tuple)) and len(item) >= 2:
                         timestamp, data = item[0], item[1]
                         hourly_stats.append({
@@ -239,7 +255,7 @@ async def get_guardrail_analytics(hours: int = 24):
                             "total": data.get("total", 0) if isinstance(data, dict) else 0
                         })
         except Exception as e:
-            app_logger.warning(f"Error processing timeline: {e}")
+            logger.warning(f"Error processing timeline: {e}")
             # Generate sample data
             for i in range(24):
                 hourly_stats.append({
@@ -250,46 +266,40 @@ async def get_guardrail_analytics(hours: int = 24):
                 })
         
         # User analytics
+        unique_users = summary.get("unique_users", 0)
         user_analytics = {
-            "unique_users": summary.unique_users,
-            "repeat_violators": max(0, int(summary.unique_users * 0.1)),  # Estimate 10% repeat violators
-            "new_users_today": max(0, int(summary.unique_users * 0.3))    # Estimate 30% new users
+            "unique_users": unique_users,
+            "repeat_violators": max(0, int(unique_users * 0.1)),  # Estimate 10% repeat violators
+            "new_users_today": max(0, int(unique_users * 0.3))    # Estimate 30% new users
         }
         
-        # Content analysis (simulated for now)
-        content_analysis = {
-            "common_words": {
-                "inappropriate": 45,
-                "spam": 32,
-                "toxic": 28,
-                "offensive": 21,
-                "harassment": 18,
-                "hate": 15,
-                "abuse": 12,
-                "threat": 9,
-                "discrimination": 7,
-                "violence": 5
-            },
-            "language_distribution": {
-                "English": 85,
-                "Spanish": 8,
-                "French": 4,
-                "Other": 3
-            },
-            "content_categories": {
-                "Toxicity": 45,
-                "Spam": 25,
-                "PII": 15,
-                "Inappropriate": 10,
-                "Other": 5
+        # Content analysis - Get real data from analytics service
+        try:
+            real_content_analysis = await analytics_service.get_content_analysis(hours)
+            content_analysis = {
+                "common_words": real_content_analysis.get("common_words", {}),
+                "language_distribution": real_content_analysis.get("language_distribution", {"English": 100}),
+                "content_categories": real_content_analysis.get("content_categories", {})
             }
-        }
+        except Exception as e:
+            from app.utils.logger import app_logger
+            app_logger.warning(f"Failed to get real content analysis: {e}")
+            # Fallback to empty/minimal data instead of fake data
+            content_analysis = {
+                "common_words": {},
+                "language_distribution": {"English": 100},
+                "content_categories": {}
+            }
+        
+        total_requests = summary.get("total_requests", 0)
+        blocked_requests = summary.get("blocked_requests", 0)
+        allowed_requests = summary.get("allowed_requests", 0)
         
         return {
-            "total_requests": summary.total_requests,
-            "blocked_requests": summary.blocked_requests,
-            "allowed_requests": summary.allowed_requests,
-            "block_rate": round(summary.blocked_requests / summary.total_requests * 100, 1) if summary.total_requests > 0 else 0,
+            "total_requests": total_requests,
+            "blocked_requests": blocked_requests,
+            "allowed_requests": allowed_requests,
+            "block_rate": round(blocked_requests / total_requests * 100, 1) if total_requests > 0 else 0,
             "top_blocked_categories": top_blocked_categories,
             "detector_performance": detector_performance,
             "hourly_stats": hourly_stats,
@@ -311,13 +321,13 @@ async def get_user_analytics(limit: int = 50):
         summary = analytics_service.get_analytics_summary(24)
         
         # Limit user activity results
-        user_activity = summary.user_activity[:limit]
+        user_activity = summary.get("user_activity", [])[:limit]
         
         return {
             "success": True,
             "users": user_activity,
-            "total_unique_ips": summary.unique_ips,
-            "total_unique_users": summary.unique_users
+            "total_unique_ips": summary.get("unique_users", 0),
+            "total_unique_users": summary.get("unique_users", 0)
         }
         
     except Exception as e:
@@ -358,7 +368,7 @@ async def get_request_timeline(hours: int = 24):
         
         return {
             "success": True,
-            "timeline": summary.request_timeline,
+            "timeline": summary.get("request_timeline", []),
             "timeframe_hours": hours
         }
         
@@ -372,10 +382,11 @@ async def get_geographic_analytics():
     try:
         summary = analytics_service.get_analytics_summary(24)
         
+        geographic_data = summary.get("geographic_data", [])
         return {
             "success": True,
-            "geographic_data": summary.geographic_data,
-            "total_locations": len(summary.geographic_data)
+            "geographic_data": geographic_data,
+            "total_locations": len(geographic_data)
         }
         
     except Exception as e:

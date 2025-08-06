@@ -77,9 +77,11 @@ interface DetectorConfig {
 
 interface GuardrailsConfigProps {
   onConfigChange?: (config: { [key: string]: { enabled: boolean; threshold: number; [key: string]: any } }) => void;
+  detectorConfig?: { [key: string]: any };
+  onDetectorToggle?: (detectorName: string, enabled: boolean) => void;
 }
 
-const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) => {
+const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange, detectorConfig, onDetectorToggle }) => {
   // Load saved configuration from localStorage on component mount
   const loadSavedConfig = (): DetectorConfig[] => {
     try {
@@ -215,44 +217,69 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
   const [newKeyword, setNewKeyword] = useState('');
   const [newBlockedWord, setNewBlockedWord] = useState('');
 
-  // Save configuration to localStorage and sync with backend
-  const syncConfigToBackend = async (updatedDetectors: DetectorConfig[]) => {
+  // Sync local state with parent detector config when it changes
+  useEffect(() => {
+    if (detectorConfig) {
+      const syncedDetectors = detectors.map(detector => ({
+        ...detector,
+        enabled: detectorConfig[detector.name]?.enabled ?? detector.enabled,
+        threshold: detectorConfig[detector.name]?.threshold ?? detector.threshold,
+      }));
+      setDetectors(syncedDetectors);
+    }
+  }, [detectorConfig]);
+
+  // Manual bulk sync function (for reset/import operations)
+  const syncAllConfigsToBackend = async (updatedDetectors: DetectorConfig[]) => {
     try {
-      // Save to localStorage for immediate UI updates
-      localStorage.setItem('guardrails_config', JSON.stringify(updatedDetectors));
+      console.log('🔄 Syncing all configurations with backend...');
       
-      // Also save a simple config format for useApi compatibility
-      const simpleConfig = updatedDetectors.reduce((acc, detector) => {
-        acc[detector.name] = {
+      // Save to localStorage first (exclude React components and non-serializable properties)
+      const serializableDetectors = updatedDetectors.map(detector => ({
+        name: detector.name,
+        displayName: detector.displayName,
+        description: detector.description,
+        threshold: detector.threshold,
+        enabled: detector.enabled,
+        defaultThreshold: detector.defaultThreshold,
+        customKeywords: detector.customKeywords,
+        blockedWords: detector.blockedWords,
+        allowedDomains: detector.allowedDomains,
+        customResponse: detector.customResponse,
+        actionType: detector.actionType,
+        severity: detector.severity,
+        color: detector.color
+      }));
+      localStorage.setItem('guardrails_config', JSON.stringify(serializableDetectors));
+      
+      // Sync each detector individually to avoid batch failures
+      const syncPromises = updatedDetectors.map(async (detector) => {
+        // Only send parameters that the backend actually uses for detection
+        const backendConfig: any = {
           enabled: detector.enabled,
-          threshold: detector.threshold,
-          customKeywords: detector.customKeywords || [],
-          blockedWords: detector.blockedWords || [],
-          customResponse: detector.customResponse || '',
-          actionType: detector.actionType || 'block',
-          severity: detector.severity || 'medium'
+          threshold: detector.threshold
         };
-        return acc;
-      }, {} as { [key: string]: any });
+        
+        // Add detector-specific parameters that the backend supports
+        if (detector.name === 'pii') {
+          backendConfig.sensitivity = detector.threshold;
+        }
+        
+        await apiService.updateDetectorConfig(detector.name, backendConfig);
+      });
       
-      localStorage.setItem('detector_simple_config', JSON.stringify(simpleConfig));
-      
-      // Sync with backend API for persistence
-      console.log('🔄 Syncing configuration with backend...', simpleConfig);
-      await apiService.updateAllDetectorConfigs(simpleConfig);
-      
-      console.log('✅ Configuration synced with backend successfully');
-      toast.success('Configuration saved to backend successfully');
+      await Promise.all(syncPromises);
+      console.log('✅ All configurations synced with backend successfully');
+      toast.success('All configurations saved to backend successfully');
     } catch (error) {
-      console.error('❌ Failed to sync guardrails config with backend:', error);
-      toast.error('Failed to save configuration to backend. Changes are temporary.');
+      console.error('❌ Failed to sync all configs with backend:', error);
+      toast.error('Failed to save some configurations to backend');
     }
   };
 
-  // Save configuration whenever detectors change
-  useEffect(() => {
-    syncConfigToBackend(detectors);
-  }, [detectors]);
+  // Note: We don't auto-sync on every detector change anymore to avoid conflicts
+  // Individual detector changes are handled directly in handleToggleDetector
+  // Full sync can be triggered manually if needed
 
   // Notify parent component of config changes
   useEffect(() => {
@@ -298,6 +325,11 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
   };
 
   const handleToggleDetector = async (detectorName: string, enabled: boolean) => {
+    // Call parent toggle function first if available (for centralized state management)
+    if (onDetectorToggle) {
+      onDetectorToggle(detectorName, enabled);
+    }
+
     const updatedDetectors = detectors.map(detector => 
       detector.name === detectorName 
         ? { ...detector, enabled }
@@ -306,14 +338,41 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
     
     setDetectors(updatedDetectors);
     
-    // Immediate sync for critical changes
+    // Save to localStorage immediately (exclude React components and non-serializable properties)
+    const serializableDetectors = updatedDetectors.map(detector => ({
+      name: detector.name,
+      displayName: detector.displayName,
+      description: detector.description,
+      threshold: detector.threshold,
+      enabled: detector.enabled,
+      defaultThreshold: detector.defaultThreshold,
+      customKeywords: detector.customKeywords,
+      blockedWords: detector.blockedWords,
+      allowedDomains: detector.allowedDomains,
+      customResponse: detector.customResponse,
+      actionType: detector.actionType,
+      severity: detector.severity,
+      color: detector.color
+    }));
+    localStorage.setItem('guardrails_config', JSON.stringify(serializableDetectors));
+    
+    // Sync individual detector with backend
     try {
-      await apiService.updateDetectorConfig(detectorName, {
+      const detectorToUpdate = updatedDetectors.find(d => d.name === detectorName);
+      // Only send parameters that the backend actually uses for detection
+      const backendConfig: any = {
         enabled: enabled,
-        threshold: updatedDetectors.find(d => d.name === detectorName)?.threshold
-      });
+        threshold: detectorToUpdate?.threshold || 0.5
+      };
       
-      toast.success(`${detectorName} ${enabled ? 'enabled' : 'disabled'} successfully`);
+      // Add detector-specific parameters that the backend supports
+      if (detectorName === 'pii') {
+        backendConfig.sensitivity = detectorToUpdate?.threshold || 0.6;
+      }
+      
+      await apiService.updateDetectorConfig(detectorName, backendConfig);
+      
+      toast.success(`${detectorToUpdate?.displayName || detectorName} ${enabled ? 'enabled' : 'disabled'} successfully`);
     } catch (error) {
       console.error(`Failed to toggle ${detectorName}:`, error);
       toast.error(`Failed to ${enabled ? 'enable' : 'disable'} ${detectorName}`);
@@ -321,12 +380,6 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
     
     // Trigger parent callback for real-time sync
     if (onConfigChange) {
-      const updatedDetectors = detectors.map(detector => 
-        detector.name === detectorName 
-          ? { ...detector, enabled }
-          : detector
-      );
-      
       const config = updatedDetectors.reduce((acc, detector) => {
         acc[detector.name] = {
           enabled: detector.enabled,
@@ -342,23 +395,25 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
       
       onConfigChange(config);
     }
-    
-    toast.success(`${detectors.find(d => d.name === detectorName)?.displayName} ${enabled ? 'enabled' : 'disabled'}`);
   };
 
-  const resetToDefaults = () => {
-    setDetectors(prev => 
-      prev.map(detector => ({
-        ...detector,
-        threshold: detector.defaultThreshold,
-        enabled: false, // All detectors disabled by default for better usability
-        customKeywords: detector.customKeywords || [],
-        blockedWords: detector.blockedWords || [],
-        customResponse: detector.customResponse || '',
-        actionType: detector.actionType || 'block',
-        severity: detector.severity || 'medium',
-      }))
-    );
+  const resetToDefaults = async () => {
+    const resetDetectors = detectors.map(detector => ({
+      ...detector,
+      threshold: detector.defaultThreshold,
+      enabled: false, // All detectors disabled by default for better usability
+      customKeywords: detector.customKeywords || [],
+      blockedWords: detector.blockedWords || [],
+      customResponse: detector.customResponse || '',
+      actionType: detector.actionType || 'block',
+      severity: detector.severity || 'medium',
+    }));
+    
+    setDetectors(resetDetectors);
+    
+    // Sync all reset configurations with backend
+    await syncAllConfigsToBackend(resetDetectors);
+    
     toast.success('Reset to default settings');
   };
 

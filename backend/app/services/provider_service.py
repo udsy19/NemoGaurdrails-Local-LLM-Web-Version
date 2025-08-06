@@ -45,6 +45,10 @@ class Provider:
     status: ProviderStatus = ProviderStatus.DISCONNECTED
     last_tested: Optional[datetime] = None
     error_message: Optional[str] = None
+    # Azure OpenAI specific fields
+    azure_endpoint: str = ""
+    azure_api_version: str = "2024-10-21"
+    azure_deployment_name: str = ""
 
 class ProviderService:
     """Manages multiple LLM providers with port-based routing"""
@@ -55,6 +59,11 @@ class ProviderService:
         self.running_services: Dict[str, bool] = {}  # provider_id -> is_running
         self.server_tasks: Dict[str, asyncio.Task] = {}  # provider_id -> server_task
         self.executor = ThreadPoolExecutor(max_workers=4)
+        
+        # Add locks to prevent race conditions
+        self._provider_locks: Dict[str, asyncio.Lock] = {}  # provider_id -> lock
+        self._global_lock = asyncio.Lock()
+        
         self._initialize_default_providers()
     
     def _initialize_default_providers(self):
@@ -138,8 +147,30 @@ class ProviderService:
             selected_model="llama3.2"
         )
         
+        # Azure OpenAI - Same models as regular OpenAI but via Azure endpoints
+        azure_openai_models = [
+            LLMModel("gpt-4o", "GPT-4o (Azure)", "Latest flagship model via Azure OpenAI Service", 128000, {"input": 0.0025, "output": 0.01}),
+            LLMModel("gpt-4o-mini", "GPT-4o Mini (Azure)", "Lightweight, cheaper GPT-4o via Azure", 128000, {"input": 0.00015, "output": 0.0006}),
+            LLMModel("gpt-4-turbo", "GPT-4 Turbo (Azure)", "Turbo-optimized GPT-4 via Azure", 128000, {"input": 0.01, "output": 0.03}),
+            LLMModel("gpt-4", "GPT-4 (Azure)", "Original GPT-4 model via Azure", 8192, {"input": 0.03, "output": 0.06}),
+            LLMModel("gpt-35-turbo", "GPT-3.5 Turbo (Azure)", "Fast and efficient via Azure", 16385, {"input": 0.001, "output": 0.002}),
+        ]
+        azure_openai = Provider(
+            id="azure_openai",
+            name="azure_openai",
+            display_name="Azure OpenAI",
+            description="OpenAI models via Microsoft Azure with enterprise features and compliance",
+            port=8894,
+            requires_api_key=True,
+            models=azure_openai_models,
+            selected_model="gpt-4o-mini",
+            azure_endpoint="https://ai-admin8236ai262666201853.openai.azure.com/",
+            azure_api_version="2024-10-21",
+            azure_deployment_name="gpt-4o-mini"
+        )
+        
         # Register providers
-        for provider in [openai, anthropic, gemini, ollama]:
+        for provider in [openai, anthropic, gemini, azure_openai, ollama]:
             self.register_provider(provider)
     
     def register_provider(self, provider: Provider):
@@ -186,6 +217,8 @@ class ProviderService:
                 success, error = await self._test_gemini_connection(provider)
             elif provider.id == "ollama":
                 success, error = await self._test_ollama_connection(provider)
+            elif provider.id == "azure_openai":
+                success, error = await self._test_azure_openai_connection(provider)
             else:
                 return False, "Unknown provider type"
             
@@ -279,6 +312,32 @@ class ProviderService:
                     return False, f"HTTP {response.status_code}: Ollama not running on port 11434"
         except Exception as e:
             return False, f"Ollama not accessible: {str(e)}"
+    
+    async def _test_azure_openai_connection(self, provider: Provider) -> Tuple[bool, Optional[str]]:
+        """Test Azure OpenAI API connection"""
+        if not provider.api_key:
+            return False, "API key required"
+        
+        if not provider.azure_endpoint:
+            return False, "Azure endpoint required"
+            
+        try:
+            # Clean endpoint URL - remove trailing slash if present
+            endpoint = provider.azure_endpoint.rstrip('/')
+            
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                # Test deployments endpoint
+                url = f"{endpoint}/openai/deployments?api-version={provider.azure_api_version}"
+                response = await client.get(
+                    url,
+                    headers={"api-key": provider.api_key}
+                )
+                if response.status_code == 200:
+                    return True, None
+                else:
+                    return False, f"HTTP {response.status_code}: {response.text}"
+        except Exception as e:
+            return False, str(e)
     
     def update_provider_config(self, provider_id: str, **kwargs) -> bool:
         """Update provider configuration"""
@@ -469,7 +528,7 @@ class ProviderService:
         provider.status = ProviderStatus.DISCONNECTED
         provider.error_message = None
         
-        logger.info(f"Updated API key for {provider.display_name}")
+        logger.info(f"Updated API key for {provider.display_name} (key: ***REDACTED***)")
         return True
     
     def select_model(self, provider_id: str, model_id: str) -> bool:
@@ -484,6 +543,26 @@ class ProviderService:
         
         provider.selected_model = model_id
         logger.info(f"Selected model {model_id} for {provider.display_name}")
+        return True
+    
+    def update_azure_config(self, provider_id: str, endpoint: str = None, api_version: str = None, deployment_name: str = None) -> bool:
+        """Update Azure OpenAI specific configuration"""
+        provider = self.get_provider(provider_id)
+        if not provider or provider.id != "azure_openai":
+            return False
+        
+        if endpoint is not None:
+            provider.azure_endpoint = endpoint
+        if api_version is not None:
+            provider.azure_api_version = api_version
+        if deployment_name is not None:
+            provider.azure_deployment_name = deployment_name
+            
+        # Reset status when config changes
+        provider.status = ProviderStatus.DISCONNECTED
+        provider.error_message = None
+        
+        logger.info(f"Updated Azure configuration for {provider.display_name} (endpoint: {provider.azure_endpoint[:50]}...)")
         return True
     
     def get_provider_stats(self) -> Dict[str, Any]:
@@ -517,103 +596,119 @@ class ProviderService:
         """Start proxy server for a provider - optimized for quick startup"""
         from app.services.traffic_router import traffic_router
         
-        provider = self.get_provider(provider_id)
-        if not provider:
-            raise ValueError(f"Provider {provider_id} not found")
+        # Get or create provider-specific lock
+        if provider_id not in self._provider_locks:
+            async with self._global_lock:
+                if provider_id not in self._provider_locks:
+                    self._provider_locks[provider_id] = asyncio.Lock()
         
-        # Check if server is already running
-        if self.running_services.get(provider_id, False):
-            logger.info(f"Proxy server for {provider.display_name} already running on port {provider.port}")
-            return
-        
-        try:
-            # Create server task directly in the current event loop
-            app = await traffic_router.create_provider_app(provider)
+        # Use provider-specific lock to prevent race conditions
+        async with self._provider_locks[provider_id]:
+            provider = self.get_provider(provider_id)
+            if not provider:
+                raise ValueError(f"Provider {provider_id} not found")
             
-            # Use uvicorn programmatically with the current event loop
-            import uvicorn
-            config = uvicorn.Config(
-                app,
-                host="0.0.0.0",
-                port=provider.port,
-                log_level="error",  # Reduce logging for faster startup
-                access_log=False    # Disable access log for better performance
-            )
+            # Check if server is already running
+            if self.running_services.get(provider_id, False):
+                logger.info(f"Proxy server for {provider.display_name} already running on port {provider.port}")
+                return
             
-            server = uvicorn.Server(config)
-            
-            # Create server task and store it
-            server_task = asyncio.create_task(server.serve())
-            self.server_tasks[provider_id] = server_task
-            
-            # Mark as running immediately
-            self.running_services[provider_id] = True
-            provider.status = ProviderStatus.CONNECTED
-            provider.error_message = None
-            
-            logger.info(f"✅ {provider.display_name} proxy server started on port {provider.port}")
-            
-            # Quick health check to ensure server is responding
-            await asyncio.sleep(0.1)  # Minimal delay
-            
-            # Verify server is actually running by checking if task is still running
-            if server_task.done():
-                # Server task completed immediately, likely due to error
-                try:
-                    await server_task  # This will raise any exception
-                except Exception as e:
-                    raise e
-            
-        except Exception as e:
-            logger.error(f"❌ Error starting server for {provider.display_name}: {e}")
-            self.running_services[provider_id] = False
-            provider.status = ProviderStatus.ERROR
-            provider.error_message = f"Server start failed: {str(e)}"
-            
-            # Clean up server task if it was created
-            if provider_id in self.server_tasks:
-                task = self.server_tasks[provider_id]
-                if not task.done():
-                    task.cancel()
-                del self.server_tasks[provider_id]
-            
-            raise e
+            try:
+                # Create server task directly in the current event loop
+                app = await traffic_router.create_provider_app(provider)
+                
+                # Use uvicorn programmatically with the current event loop
+                import uvicorn
+                config = uvicorn.Config(
+                    app,
+                    host="0.0.0.0",
+                    port=provider.port,
+                    log_level="error",  # Reduce logging for faster startup
+                    access_log=False    # Disable access log for better performance
+                )
+                
+                server = uvicorn.Server(config)
+                
+                # Create server task and store it
+                server_task = asyncio.create_task(server.serve())
+                self.server_tasks[provider_id] = server_task
+                
+                # Mark as running immediately
+                self.running_services[provider_id] = True
+                provider.status = ProviderStatus.CONNECTED
+                provider.error_message = None
+                
+                logger.info(f"✅ {provider.display_name} proxy server started on port {provider.port}")
+                
+                # Quick health check to ensure server is responding
+                await asyncio.sleep(0.1)  # Minimal delay
+                
+                # Verify server is actually running by checking if task is still running
+                if server_task.done():
+                    # Server task completed immediately, likely due to error
+                    try:
+                        await server_task  # This will raise any exception
+                    except Exception as e:
+                        raise e
+                
+            except Exception as e:
+                logger.error(f"❌ Error starting server for {provider.display_name}: {e}")
+                self.running_services[provider_id] = False
+                provider.status = ProviderStatus.ERROR
+                provider.error_message = f"Server start failed: {str(e)}"
+                
+                # Clean up server task if it was created
+                if provider_id in self.server_tasks:
+                    task = self.server_tasks[provider_id]
+                    if not task.done():
+                        task.cancel()
+                    del self.server_tasks[provider_id]
+                
+                raise e
     
     async def _stop_provider_server(self, provider_id: str):
         """Stop proxy server for a provider - optimized for quick shutdown"""
-        try:
-            provider = self.get_provider(provider_id)
-            
-            if not self.running_services.get(provider_id, False):
-                if provider:
-                    logger.info(f"Proxy server for {provider.display_name} already stopped")
-                return
-            
-            # Mark as stopped immediately
-            self.running_services[provider_id] = False
-            
-            # If we have a server task, cancel it gracefully
-            if provider_id in self.server_tasks:
-                task = self.server_tasks[provider_id]
-                if not task.done():
-                    task.cancel()
-                    try:
-                        await asyncio.wait_for(task, timeout=1.0)  # Wait up to 1 second
-                    except (asyncio.CancelledError, asyncio.TimeoutError):
-                        pass  # Expected when cancelling
-                del self.server_tasks[provider_id]
-            
-            if provider:
-                provider.status = ProviderStatus.DISCONNECTED
-                provider.error_message = None
-                logger.info(f"🔴 {provider.display_name} proxy server stopped on port {provider.port}")
+        # Get or create provider-specific lock
+        if provider_id not in self._provider_locks:
+            async with self._global_lock:
+                if provider_id not in self._provider_locks:
+                    self._provider_locks[provider_id] = asyncio.Lock()
+        
+        # Use provider-specific lock to prevent race conditions
+        async with self._provider_locks[provider_id]:
+            try:
+                provider = self.get_provider(provider_id)
                 
-        except Exception as e:
-            logger.error(f"Error stopping server for provider {provider_id}: {e}")
-            # Ensure we mark as stopped even if there was an error
-            self.running_services[provider_id] = False
-            if provider_id in self.server_tasks:
-                del self.server_tasks[provider_id]
+                if not self.running_services.get(provider_id, False):
+                    if provider:
+                        logger.info(f"Proxy server for {provider.display_name} already stopped")
+                    return
+                
+                # Mark as stopped immediately
+                self.running_services[provider_id] = False
+                
+                # If we have a server task, cancel it gracefully
+                if provider_id in self.server_tasks:
+                    task = self.server_tasks[provider_id]
+                    if not task.done():
+                        task.cancel()
+                        try:
+                            await asyncio.wait_for(task, timeout=1.0)  # Wait up to 1 second
+                        except (asyncio.CancelledError, asyncio.TimeoutError):
+                            pass  # Expected when cancelling
+                    del self.server_tasks[provider_id]
+                
+                if provider:
+                    provider.status = ProviderStatus.DISCONNECTED
+                    provider.error_message = None
+                    logger.info(f"🔴 {provider.display_name} proxy server stopped on port {provider.port}")
+                    
+            except Exception as e:
+                logger.error(f"Error stopping server for provider {provider_id}: {e}")
+                # Ensure we mark as stopped even if there was an error
+                self.running_services[provider_id] = False
+                if provider_id in self.server_tasks:
+                    del self.server_tasks[provider_id]
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert all providers to dictionary format"""

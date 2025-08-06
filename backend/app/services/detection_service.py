@@ -23,6 +23,7 @@ class DetectionService:
                     "summary": "Empty input"
                 }
             
+            
             # Use active detectors if none specified, but respect empty list
             if detector_names is None:
                 detector_names = self.model_manager.get_active_detectors()

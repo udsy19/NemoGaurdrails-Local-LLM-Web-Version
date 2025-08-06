@@ -123,10 +123,16 @@ class ApiService {
   }
 
   async updateAllDetectorConfigs(configs: Record<string, any>): Promise<void> {
-    // Update each detector individually
-    const updatePromises = Object.entries(configs).map(([detectorName, config]) => 
-      this.updateDetectorConfig(detectorName, config)
-    );
+    // Update each detector individually with better error handling
+    const updatePromises = Object.entries(configs).map(async ([detectorName, config]) => {
+      try {
+        await this.updateDetectorConfig(detectorName, config);
+        console.log(`✅ Successfully updated detector config for: ${detectorName}`);
+      } catch (error) {
+        console.error(`❌ Failed to update detector config for ${detectorName}:`, error);
+        throw new Error(`Failed to update ${detectorName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    });
     await Promise.all(updatePromises);
   }
 
