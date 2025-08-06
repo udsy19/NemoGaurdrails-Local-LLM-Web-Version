@@ -39,26 +39,47 @@ class OllamaModelsService {
     }
 
     try {
-      // Call our backend endpoint that will proxy the Ollama search
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/models/search`);
+      // Get system specs first (with caching)
+      const systemSpecs = await this.getSystemSpecs();
+      
+      // Call our backend endpoint with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/models/search`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'max-age=600' // Prefer cached response if available
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
         throw new Error(`Failed to fetch models: ${response.statusText}`);
       }
 
-      const models = await response.json();
+      const data = await response.json();
+      const models = data.models || data; // Handle both wrapper and direct array
       
-      // Get system specs for compatibility scoring
-      const systemSpecs = await this.getSystemSpecs();
+      if (!Array.isArray(models)) {
+        throw new Error('Invalid response format');
+      }
       
       // Process and score models
       this.modelsCache = models.map((model: any) => this.processModel(model, systemSpecs));
       this.cacheTimestamp = Date.now();
       
+      console.log(`✓ Fetched ${this.modelsCache.length} models from Ollama`);
       return this.modelsCache;
+      
     } catch (error) {
       console.error('Failed to fetch Ollama models:', error);
       // Return fallback popular models if fetch fails
-      return this.getFallbackModels();
+      const fallback = this.getFallbackModels();
+      console.log(`⚠️ Using ${fallback.length} fallback models`);
+      return fallback;
     }
   }
 
@@ -66,27 +87,49 @@ class OllamaModelsService {
    * Get system specifications for compatibility scoring
    */
   private async getSystemSpecs(): Promise<SystemSpecs> {
+    // Use cached system specs if available
+    const cached = localStorage.getItem('systemSpecs');
+    const cacheTime = localStorage.getItem('systemSpecsTime');
+    
+    if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 5 * 60 * 1000) {
+      return JSON.parse(cached);
+    }
+
     try {
-      // Try to get system info from our backend
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/system/info`);
+      // Try to get system info from our backend with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+      
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/system/info`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
         const systemInfo = await response.json();
-        return {
-          totalMemoryGB: systemInfo.memory?.total ? systemInfo.memory.total / 1024 : 8,
-          availableMemoryGB: systemInfo.memory?.available ? systemInfo.memory.available / 1024 : 4,
-          cpuCores: systemInfo.cpu?.cores || 4,
-          platform: systemInfo.platform || 'unknown',
-          architecture: systemInfo.arch || 'x64',
+        const specs = {
+          totalMemoryGB: systemInfo.memory?.total ? systemInfo.memory.total / 1024 : 16,
+          availableMemoryGB: systemInfo.memory?.available ? systemInfo.memory.available / 1024 : 8,
+          cpuCores: systemInfo.cpu?.cores || 8,
+          platform: systemInfo.platform || 'darwin',
+          architecture: systemInfo.arch || 'arm64',
           hasGPU: systemInfo.gpu?.available || false,
           gpuMemoryGB: systemInfo.gpu?.memory ? systemInfo.gpu.memory / 1024 : undefined,
         };
+        
+        // Cache the result
+        localStorage.setItem('systemSpecs', JSON.stringify(specs));
+        localStorage.setItem('systemSpecsTime', Date.now().toString());
+        
+        return specs;
       }
     } catch (error) {
-      console.error('Failed to get system specs:', error);
+      // Silently fail - use defaults
     }
 
-    // Fallback to reasonable defaults
-    return {
+    // Fallback to reasonable defaults (optimized for modern systems)
+    const defaultSpecs = {
       totalMemoryGB: 16,
       availableMemoryGB: 8,
       cpuCores: 8,
@@ -94,6 +137,12 @@ class OllamaModelsService {
       architecture: 'arm64',
       hasGPU: false,
     };
+    
+    // Cache defaults to avoid repeated failed requests
+    localStorage.setItem('systemSpecs', JSON.stringify(defaultSpecs));
+    localStorage.setItem('systemSpecsTime', Date.now().toString());
+    
+    return defaultSpecs;
   }
 
   /**

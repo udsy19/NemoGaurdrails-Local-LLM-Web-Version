@@ -4,11 +4,13 @@ Ollama Models API endpoints
 import re
 import asyncio
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from pydantic import BaseModel
 import httpx
 from bs4 import BeautifulSoup
 from app.utils.logger import app_logger
+import asyncio
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/models", tags=["models"])
 
@@ -32,15 +34,25 @@ class OllamaModelsParser:
     
     def __init__(self):
         self.base_url = "https://ollama.com"
+        self._cache: Dict[str, Any] = {}
+        self._cache_expiry: Dict[str, datetime] = {}
+        self._cache_duration = timedelta(minutes=10)
     
     async def fetch_models_page(self, page: int = 1, sort: str = "popular") -> str:
-        """Fetch the Ollama models search page"""
+        """Fetch the Ollama models search page with caching"""
+        cache_key = f"page_{page}_{sort}"
+        
+        # Check cache first
+        if cache_key in self._cache and datetime.now() < self._cache_expiry.get(cache_key, datetime.min):
+            app_logger.info(f"Using cached models data for {cache_key}")
+            return self._cache[cache_key]
+        
         try:
             params = {
                 "o": sort,  # popular, newest
             }
             
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
                 response = await client.get(
                     f"{self.base_url}/search",
                     params=params,
@@ -54,6 +66,11 @@ class OllamaModelsParser:
                     }
                 )
                 response.raise_for_status()
+                
+                # Cache the result
+                self._cache[cache_key] = response.text
+                self._cache_expiry[cache_key] = datetime.now() + self._cache_duration
+                
                 return response.text
                 
         except httpx.RequestError as e:
@@ -66,19 +83,26 @@ class OllamaModelsParser:
     def parse_models_html(self, html_content: str) -> List[Dict[str, Any]]:
         """Parse the HTML content and extract model information"""
         try:
-            soup = BeautifulSoup(html_content, 'html.parser')
+            # Use lxml parser for better performance if available, fallback to html.parser
+            try:
+                soup = BeautifulSoup(html_content, 'lxml')
+            except:
+                soup = BeautifulSoup(html_content, 'html.parser')
+            
             models = []
             
             # Find all model list items
             model_items = soup.find_all('li', {'x-test-model': True})
+            app_logger.info(f"Found {len(model_items)} model items to parse")
             
+            # Process models in batches for better performance
             for item in model_items:
                 try:
                     model_data = self._parse_model_item(item)
                     if model_data:
                         models.append(model_data)
                 except Exception as e:
-                    app_logger.warning(f"Failed to parse model item: {e}")
+                    app_logger.debug(f"Failed to parse model item: {e}")
                     continue
             
             app_logger.info(f"Successfully parsed {len(models)} models from Ollama")
@@ -165,6 +189,7 @@ models_parser = OllamaModelsParser()
 
 @router.get("/search", response_model=ModelsResponse)
 async def search_models(
+    response: Response,
     sort: str = "popular",
     page: int = 1,
 ) -> ModelsResponse:
@@ -198,14 +223,18 @@ async def search_models(
                 continue
         
         from datetime import datetime
-        response = ModelsResponse(
+        models_response = ModelsResponse(
             models=models,
             total_count=len(models),
             fetched_at=datetime.now().isoformat()
         )
         
+        # Add caching headers
+        response.headers["Cache-Control"] = "public, max-age=600"  # 10 minutes
+        response.headers["ETag"] = f'"{len(models)}-{sort}-{page}"'
+        
         app_logger.info(f"Successfully fetched {len(models)} models from Ollama")
-        return response
+        return models_response
         
     except HTTPException:
         raise

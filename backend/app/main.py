@@ -10,6 +10,11 @@ import asyncio
 import time
 import httpx
 from contextlib import asynccontextmanager
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 from app.utils.logger import app_logger
 from app.utils.exceptions import AILLMSafetyException
@@ -38,6 +43,7 @@ from app.api.distributed import router as distributed_router
 from app.api.advanced_analytics import router as advanced_analytics_router
 from app.api.multi_tenant import router as multi_tenant_router
 from app.api.ab_testing import router as ab_testing_router
+from app.api.models_api import router as models_router
 from app.services.traffic_router import traffic_router
 from app.utils.distributed_processor import initialize_distributed_processing, DistributedConfig
 from app.services.distributed_detection_service import initialize_distributed_detection_service
@@ -46,6 +52,9 @@ from app.utils.ab_testing import get_ab_testing_manager
 from app.core.dependencies import initialize_dependencies
 from app.middleware.analytics_middleware import AnalyticsMiddleware, ChatAnalyticsMiddleware
 from app.services.export_scheduler import export_scheduler
+from app.services.auth_service import initialize_auth_manager
+from app.api.auth_endpoints import auth_router
+from app.middleware.auth_middleware import create_auth_middleware
 
 # Try to import NeMo Guardrails, fall back to simple implementation
 try:
@@ -179,6 +188,16 @@ async def lifespan(app: FastAPI):
         chat_service = ChatService(model_manager, detection_service)
         await chat_service.initialize()
         add_system_log("success", "services", "Chat and detection services initialized")
+        
+        # Initialize authentication service
+        try:
+            auth_config = config_service.get_system_config().get('auth', {})
+            if auth_config.get('enabled', True):
+                initialize_auth_manager(auth_config)
+                add_system_log("success", "auth", "Authentication service initialized")
+        except Exception as e:
+            add_system_log("warn", "auth", f"Authentication service failed to initialize, continuing without auth: {e}")
+            app_logger.warning(f"Authentication service initialization failed: {e}")
         
         # Initialize distributed processing
         try:
@@ -558,6 +577,9 @@ async def log_requests(request: Request, call_next):
     if "/api/chat" in path:
         request_type = "chat"
         target_service = "AI Chat Service"
+    elif "/api/auth" in path:
+        request_type = "auth"
+        target_service = "Authentication Service"
     elif "/api/providers" in path:
         request_type = "provider"
         target_service = "Provider Management"
@@ -645,6 +667,7 @@ async def general_exception_handler(request, exc: Exception):
     )
 
 # Include routers
+app.include_router(auth_router, prefix="/api", tags=["authentication"])
 app.include_router(chat_router, prefix="/api/chat", tags=["chat"])
 app.include_router(detector_router, prefix="/api/detectors", tags=["detectors"])
 app.include_router(config_router, prefix="/api/config", tags=["config"])
@@ -658,6 +681,7 @@ app.include_router(distributed_router, tags=["distributed"])
 app.include_router(advanced_analytics_router, tags=["advanced-analytics"])
 app.include_router(multi_tenant_router, tags=["multi-tenant"])
 app.include_router(ab_testing_router, tags=["ab-testing"])
+app.include_router(models_router, tags=["models"])
 
 @app.get("/")
 async def root():
@@ -1119,6 +1143,66 @@ async def get_system_logs(limit: int = 50):
     except Exception as e:
         app_logger.error(f"Failed to get system logs: {e}")
         return []
+
+# System information API endpoint
+@app.get("/api/system/info")
+async def get_system_info():
+    """Get system information for compatibility scoring"""
+    try:
+        import psutil
+        import platform
+        
+        # Get memory info
+        memory = psutil.virtual_memory()
+        
+        # Get CPU info
+        cpu_count = psutil.cpu_count(logical=False)  # Physical cores
+        
+        # Get basic GPU info (simplified)
+        gpu_available = False
+        gpu_memory = None
+        try:
+            # Check for NVIDIA GPU
+            import subprocess
+            result = subprocess.run(['nvidia-smi', '--query-gpu=memory.total', '--format=csv,noheader,nounits'], 
+                                  capture_output=True, text=True, timeout=3)
+            if result.returncode == 0:
+                gpu_memory = int(result.stdout.strip()) * 1024 * 1024  # Convert MB to bytes
+                gpu_available = True
+        except:
+            pass
+        
+        system_info = {
+            "platform": platform.system().lower(),
+            "arch": platform.machine().lower(),
+            "memory": {
+                "total": memory.total,  # bytes
+                "available": memory.available,  # bytes
+                "percent": memory.percent
+            },
+            "cpu": {
+                "cores": cpu_count,
+                "logical_cores": psutil.cpu_count(logical=True),
+                "frequency": psutil.cpu_freq().current if psutil.cpu_freq() else None
+            },
+            "gpu": {
+                "available": gpu_available,
+                "memory": gpu_memory
+            }
+        }
+        
+        return system_info
+        
+    except Exception as e:
+        app_logger.error(f"Failed to get system info: {e}")
+        # Return fallback info
+        return {
+            "platform": "unknown",
+            "arch": "unknown", 
+            "memory": {"total": 16 * 1024**3, "available": 8 * 1024**3, "percent": 50},
+            "cpu": {"cores": 8, "logical_cores": 8, "frequency": None},
+            "gpu": {"available": False, "memory": None}
+        }
 
 # WebSocket endpoint for real-time chat
 @app.websocket("/ws/chat")

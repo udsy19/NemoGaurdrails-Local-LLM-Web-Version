@@ -22,34 +22,47 @@ export const useRealTimeLogs = (maxLogs: number = 1000) => {
     // Fetch real logs from backend
     const fetchLogs = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/logs`);
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/logs?limit=50`);
         if (response.ok) {
           const backendLogs = await response.json();
-          setLogs(backendLogs);
+          // Convert backend log format to LogEntry format
+          const convertedLogs = backendLogs.map((log: any) => ({
+            id: log.id || `log_${Date.now()}_${Math.random()}`,
+            timestamp: log.timestamp || new Date().toISOString(),
+            level: log.level || 'info',
+            source: log.source || 'system',
+            message: log.message || 'Unknown log entry'
+          }));
+          setLogs(convertedLogs);
+          setIsConnected(true);
+        } else {
+          throw new Error('API request failed');
         }
       } catch (error) {
         console.error('Failed to fetch logs:', error);
-        // Fallback to some basic logs
-        addLog({
-          id: `error_${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          level: 'error',
-          source: 'system',
-          message: 'Failed to connect to backend logs'
-        });
+        setIsConnected(false);
+        // Fallback to some basic logs if first time connecting
+        if (logs.length === 0) {
+          addLog({
+            id: `error_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            level: 'error',
+            source: 'system',
+            message: 'Failed to connect to backend logs - check if backend is running'
+          });
+        }
       }
     };
 
     fetchLogs();
-    setIsConnected(true);
     
-    // Poll for new logs every 2 seconds
-    const interval = setInterval(fetchLogs, 2000);
+    // Poll for new logs every 3 seconds
+    const interval = setInterval(fetchLogs, 3000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [addLog]);
+  }, [addLog, logs.length]);
 
   return {
     logs,
@@ -103,26 +116,73 @@ export const useTerminal = (maxLines: number = 500) => {
   }, []);
 
   useEffect(() => {
-    // Disable WebSocket for testing - use mock terminal
-    setIsConnected(true);
+    // Initialize terminal with welcome message
     addSystemMessage('🛡️ AI Safety System Terminal v1.0', 'system');
     addSystemMessage('Type "help" for available commands', 'system');
-    addSystemMessage('🟢 Connected to AI Safety System', 'system');
+    
+    // Fetch real logs from backend API
+    const fetchLogs = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/logs?limit=20`);
+        if (response.ok) {
+          const logs = await response.json();
+          logs.forEach((log: any) => {
+            const terminalOutput: TerminalOutput = {
+              type: log.level === 'error' ? 'error' : log.level === 'warn' ? 'error' : 'output',
+              content: `[${log.source?.toUpperCase() || 'SYSTEM'}] ${log.message}`,
+              timestamp: log.timestamp || new Date().toISOString(),
+              source: log.source || 'system',
+            };
+            addOutput(terminalOutput);
+          });
+          setIsConnected(true);
+          addSystemMessage('🟢 Connected to AI Safety System', 'system');
+        } else {
+          throw new Error('Failed to fetch logs');
+        }
+      } catch (error) {
+        console.error('Failed to connect to backend:', error);
+        setIsConnected(false);
+        addSystemMessage('🔴 Failed to connect to backend - using mock mode', 'error');
+      }
+    };
 
-    // Disable real WebSocket connection
-    // wsService.onTerminalOutput(addOutput);
-    // wsService.onConnectionChange((connected) => {
-    //   setIsConnected(connected);
-    //   if (connected) {
-    //     addSystemMessage('🟢 Connected to AI Safety System', 'system');
-    //   } else {
-    //     addSystemMessage('🔴 Disconnected from AI Safety System', 'error');
-    //   }
-    // });
+    fetchLogs();
+
+    // Poll for new logs every 3 seconds
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/logs?limit=10`);
+        if (response.ok) {
+          const logs = await response.json();
+          // Only add new logs that aren't already in output
+          logs.slice(-3).forEach((log: any) => { // Only take last 3 to avoid spam
+            const terminalOutput: TerminalOutput = {
+              type: log.level === 'error' ? 'error' : log.level === 'warn' ? 'error' : 'output',
+              content: `[${log.source?.toUpperCase() || 'SYSTEM'}] ${log.message}`,
+              timestamp: log.timestamp || new Date().toISOString(),
+              source: log.source || 'system',
+            };
+            addOutput(terminalOutput);
+          });
+          if (!isConnected) {
+            setIsConnected(true);
+            addSystemMessage('🟢 Reconnected to AI Safety System', 'system');
+          }
+        }
+      } catch (error) {
+        if (isConnected) {
+          setIsConnected(false);
+          addSystemMessage('🔴 Connection to backend lost', 'error');
+        }
+      }
+    }, 3000);
 
     // Auto-scroll to bottom when new output is added
     scrollToBottom();
-  }, [addOutput, addSystemMessage, scrollToBottom]);
+
+    return () => clearInterval(interval);
+  }, [addOutput, addSystemMessage, scrollToBottom, isConnected]);
 
   // Auto-scroll effect
   useEffect(() => {
