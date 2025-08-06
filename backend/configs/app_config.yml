@@ -31,7 +31,7 @@ chat:
   session_timeout: 3600
 detectors:
   fact_check:
-    enabled: true
+    enabled: false
     threshold: 0.6
   pii:
     actionType: block
