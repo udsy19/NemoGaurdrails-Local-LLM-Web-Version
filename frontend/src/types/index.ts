@@ -4,6 +4,11 @@ export interface DetectorConfig {
     enabled: boolean;
     threshold?: number;
     config?: any;
+    customKeywords?: string[];
+    blockedWords?: string[];
+    customResponse?: string;
+    actionType?: 'block' | 'warn' | 'log';
+    severity?: 'low' | 'medium' | 'high';
   };
 }
 

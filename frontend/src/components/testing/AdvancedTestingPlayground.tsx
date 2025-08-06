@@ -652,6 +652,7 @@ const AdvancedTestingPlayground: React.FC = () => {
           <Tab label="Batch Testing" />
           <Tab label="Test Suites" />
           <Tab label="Model Comparison" />
+          <Tab label="Analytics" />
           <Tab label="Results Analysis" />
         </Tabs>
         
@@ -899,6 +900,305 @@ const AdvancedTestingPlayground: React.FC = () => {
           {activeTab === 4 && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, color: '#ffffff' }}>
+                Test Analytics & Insights
+              </Typography>
+              
+              {testResults.length > 0 ? (
+                <Box sx={{ display: 'grid', gap: 3 }}>
+                  {/* Performance Metrics */}
+                  <Card sx={{ 
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                  }}>
+                    <CardContent>
+                      <Typography variant="h6" sx={{ mb: 2, color: '#ffffff', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <SpeedIcon /> Performance Analytics
+                      </Typography>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h4" sx={{ color: '#00D4AA', fontWeight: 'bold' }}>
+                            {Math.round(testResults.reduce((sum, r) => sum + r.responseTime, 0) / testResults.length)}ms
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#6b7280' }}>Avg Response Time</Typography>
+                        </Box>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h4" sx={{ color: '#00D4AA', fontWeight: 'bold' }}>
+                            {Math.round(testResults.reduce((sum, r) => sum + r.tokenCount, 0) / testResults.length)}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#6b7280' }}>Avg Token Count</Typography>
+                        </Box>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h4" sx={{ color: '#ef4444', fontWeight: 'bold' }}>
+                            {Math.round((testResults.filter(r => r.blocked).length / testResults.length) * 100)}%
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#6b7280' }}>Block Rate</Typography>
+                        </Box>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h4" sx={{ color: '#f59e0b', fontWeight: 'bold' }}>
+                            {testResults.length}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#6b7280' }}>Total Tests</Typography>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+
+                  {/* Provider Performance Comparison */}
+                  <Card sx={{ 
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                  }}>
+                    <CardContent>
+                      <Typography variant="h6" sx={{ mb: 2, color: '#ffffff', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CompareIcon /> Provider Performance
+                      </Typography>
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell sx={{ color: '#6b7280' }}>Provider</TableCell>
+                              <TableCell sx={{ color: '#6b7280' }}>Tests</TableCell>
+                              <TableCell sx={{ color: '#6b7280' }}>Avg Response Time</TableCell>
+                              <TableCell sx={{ color: '#6b7280' }}>Block Rate</TableCell>
+                              <TableCell sx={{ color: '#6b7280' }}>Avg Tokens</TableCell>
+                              <TableCell sx={{ color: '#6b7280' }}>Performance Score</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {Array.from(new Set(testResults.map(r => r.provider))).map(provider => {
+                              const providerResults = testResults.filter(r => r.provider === provider);
+                              const avgTime = Math.round(providerResults.reduce((sum, r) => sum + r.responseTime, 0) / providerResults.length);
+                              const blockRate = Math.round((providerResults.filter(r => r.blocked).length / providerResults.length) * 100);
+                              const avgTokens = Math.round(providerResults.reduce((sum, r) => sum + r.tokenCount, 0) / providerResults.length);
+                              const performanceScore = Math.round(((3000 - avgTime) / 30 + (100 - blockRate) / 2 + avgTokens / 10) / 3);
+                              
+                              return (
+                                <TableRow key={provider}>
+                                  <TableCell sx={{ color: '#ffffff' }}>
+                                    {providers.find(p => p.id === provider)?.display_name || provider}
+                                  </TableCell>
+                                  <TableCell sx={{ color: '#6b7280' }}>{providerResults.length}</TableCell>
+                                  <TableCell sx={{ color: avgTime < 1000 ? '#00D4AA' : avgTime < 2000 ? '#f59e0b' : '#ef4444' }}>
+                                    {avgTime}ms
+                                  </TableCell>
+                                  <TableCell sx={{ color: blockRate < 20 ? '#00D4AA' : blockRate < 50 ? '#f59e0b' : '#ef4444' }}>
+                                    {blockRate}%
+                                  </TableCell>
+                                  <TableCell sx={{ color: '#6b7280' }}>{avgTokens}</TableCell>
+                                  <TableCell sx={{ color: performanceScore > 70 ? '#00D4AA' : performanceScore > 40 ? '#f59e0b' : '#ef4444' }}>
+                                    {performanceScore}/100
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </CardContent>
+                  </Card>
+
+                  {/* Guardrail Effectiveness */}
+                  <Card sx={{ 
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                  }}>
+                    <CardContent>
+                      <Typography variant="h6" sx={{ mb: 2, color: '#ffffff', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <SecurityIcon /> Guardrail Effectiveness
+                      </Typography>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 2 }}>
+                        {['toxicity', 'pii', 'prompt_injection', 'hate_speech', 'bias', 'privacy'].map(detector => {
+                          const detectorResults = testResults.filter(r => 
+                            r.guardrailResults && r.guardrailResults[detector]
+                          );
+                          const triggerCount = detectorResults.filter(r => 
+                            r.guardrailResults[detector]?.triggered || r.guardrailResults[detector]?.score > 0.5
+                          ).length;
+                          const effectiveness = detectorResults.length > 0 ? Math.round((triggerCount / detectorResults.length) * 100) : 0;
+                          
+                          return (
+                            <Box key={detector} sx={{ 
+                              p: 2, 
+                              background: 'rgba(255, 255, 255, 0.02)',
+                              borderRadius: 2,
+                              border: '1px solid rgba(255, 255, 255, 0.06)',
+                            }}>
+                              <Typography variant="subtitle2" sx={{ color: '#ffffff', mb: 1, textTransform: 'capitalize' }}>
+                                {detector.replace('_', ' ')}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <LinearProgress
+                                  variant="determinate"
+                                  value={effectiveness}
+                                  sx={{
+                                    flex: 1,
+                                    height: 8,
+                                    borderRadius: 4,
+                                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                    '& .MuiLinearProgress-bar': {
+                                      backgroundColor: effectiveness > 70 ? '#00D4AA' : effectiveness > 40 ? '#f59e0b' : '#ef4444',
+                                    },
+                                  }}
+                                />
+                                <Typography variant="body2" sx={{ color: '#6b7280', minWidth: '40px' }}>
+                                  {effectiveness}%
+                                </Typography>
+                              </Box>
+                              <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                                {triggerCount}/{detectorResults.length} triggers
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    </CardContent>
+                  </Card>
+
+                  {/* Test History Timeline */}
+                  <Card sx={{ 
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                  }}>
+                    <CardContent>
+                      <Typography variant="h6" sx={{ mb: 2, color: '#ffffff', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AssessmentIcon /> Recent Test Results
+                      </Typography>
+                      <Box sx={{ maxHeight: 500, overflow: 'auto' }}>
+                        {testResults.slice(-10).reverse().map((result, index) => (
+                          <Box key={result.id} sx={{ 
+                            mb: 2,
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            borderRadius: 2,
+                            border: `1px solid ${result.blocked ? 'rgba(239, 68, 68, 0.2)' : 'rgba(0, 212, 170, 0.2)'}`,
+                            overflow: 'hidden',
+                          }}>
+                            {/* Header */}
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 2, 
+                              p: 2,
+                              background: result.blocked ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0, 212, 170, 0.1)',
+                            }}>
+                              <Avatar sx={{ 
+                                bgcolor: result.blocked ? '#ef4444' : '#00D4AA',
+                                width: 32,
+                                height: 32,
+                              }}>
+                                {result.blocked ? <SecurityIcon /> : <PlayIcon />}
+                              </Avatar>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="subtitle2" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                                  Test #{testResults.length - index}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                                  {providers.find(p => p.id === result.provider)?.display_name} • {result.responseTime}ms • {new Date(result.timestamp).toLocaleTimeString()}
+                                </Typography>
+                              </Box>
+                              <Chip
+                                label={result.blocked ? 'Blocked' : 'Allowed'}
+                                size="small"
+                                sx={{
+                                  backgroundColor: result.blocked ? '#ef444420' : '#00D4AA20',
+                                  color: result.blocked ? '#ef4444' : '#00D4AA',
+                                }}
+                              />
+                            </Box>
+
+                            {/* Content */}
+                            <Box sx={{ p: 2 }}>
+                              {/* User Input */}
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" sx={{ color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>
+                                  User Input
+                                </Typography>
+                                <Box sx={{ 
+                                  p: 2, 
+                                  mt: 1,
+                                  background: 'rgba(59, 130, 246, 0.1)',
+                                  borderRadius: 2,
+                                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                                }}>
+                                  <Typography variant="body2" sx={{ color: '#ffffff', fontFamily: 'monospace' }}>
+                                    {result.prompt}
+                                  </Typography>
+                                </Box>
+                              </Box>
+
+                              {/* AI Response */}
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" sx={{ color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>
+                                  AI Response
+                                </Typography>
+                                <Box sx={{ 
+                                  p: 2, 
+                                  mt: 1,
+                                  background: result.blocked ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0, 212, 170, 0.1)',
+                                  borderRadius: 2,
+                                  border: `1px solid ${result.blocked ? 'rgba(239, 68, 68, 0.2)' : 'rgba(0, 212, 170, 0.2)'}`,
+                                }}>
+                                  <Typography variant="body2" sx={{ color: '#ffffff', fontFamily: 'monospace' }}>
+                                    {result.response || 'No response generated'}
+                                  </Typography>
+                                </Box>
+                              </Box>
+
+                              {/* Guardrail Analysis */}
+                              {result.guardrailResults && Object.keys(result.guardrailResults).length > 0 && (
+                                <Box>
+                                  <Typography variant="caption" sx={{ color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>
+                                    Guardrail Analysis
+                                  </Typography>
+                                  <Box sx={{ 
+                                    p: 2, 
+                                    mt: 1,
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    borderRadius: 2,
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                  }}>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                      {Object.entries(result.guardrailResults).map(([detector, analysis]) => {
+                                        const triggered = (analysis as any)?.triggered || (analysis as any)?.score > 0.5;
+                                        return (
+                                          <Chip
+                                            key={detector}
+                                            label={`${detector}: ${triggered ? 'TRIGGERED' : 'SAFE'}`}
+                                            size="small"
+                                            sx={{
+                                              backgroundColor: triggered ? 'rgba(239, 68, 68, 0.2)' : 'rgba(0, 212, 170, 0.2)',
+                                              color: triggered ? '#ef4444' : '#00D4AA',
+                                              fontFamily: 'monospace',
+                                              fontSize: '0.7rem',
+                                            }}
+                                          />
+                                        );
+                                      })}
+                                    </Box>
+                                  </Box>
+                                </Box>
+                              )}
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Box>
+              ) : (
+                <Alert severity="info" sx={{ 
+                  background: 'rgba(59, 130, 246, 0.1)',
+                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                  '& .MuiAlert-message': { color: '#ffffff' },
+                }}>
+                  No test data available. Run some tests to see analytics and insights.
+                </Alert>
+              )}
+            </Box>
+          )}
+          
+          {activeTab === 5 && (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, color: '#ffffff' }}>
                 Results Analysis
               </Typography>
               {testResults.length > 0 ? (
@@ -957,7 +1257,7 @@ const AdvancedTestingPlayground: React.FC = () => {
                         <Typography variant="h6" sx={{ mb: 2, color: '#ffffff' }}>
                           Test Results ({testResults.length})
                         </Typography>
-                        <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                        <Box sx={{ maxHeight: 280, overflow: 'auto' }}>
                           {testResults.slice(-10).map((result, index) => (
                             <Box key={result.id} sx={{ mb: 2, p: 1, border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: 1 }}>
                               <Typography variant="body2" sx={{ color: '#ffffff' }}>

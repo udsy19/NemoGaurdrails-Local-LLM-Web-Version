@@ -202,7 +202,8 @@ const ModernChatInterface: React.FC<ModernChatInterfaceProps> = ({
 
   return (
     <Box sx={{ 
-      height: '100vh', 
+      minHeight: '400px',
+      maxHeight: '85vh', 
       display: 'flex', 
       flexDirection: 'column',
       background: 'transparent',

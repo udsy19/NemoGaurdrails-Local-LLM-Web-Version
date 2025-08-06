@@ -22,7 +22,7 @@ export const useRealTimeLogs = (maxLogs: number = 1000) => {
     // Fetch real logs from backend
     const fetchLogs = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/logs');
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/logs`);
         if (response.ok) {
           const backendLogs = await response.json();
           setLogs(backendLogs);

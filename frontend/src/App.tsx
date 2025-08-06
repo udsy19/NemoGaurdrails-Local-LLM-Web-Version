@@ -16,6 +16,7 @@ import {
   Collapse,
   Alert,
   MenuItem,
+  Button,
 } from '@mui/material';
 import {
   Send,
@@ -51,6 +52,7 @@ import AdvancedTestingPlayground from './components/testing/AdvancedTestingPlayg
 import ModernChatInterface from './components/chat/ModernChatInterface';
 import GPUAcceleration from './components/gpu/GPUAcceleration';
 import DistributedProcessing from './components/distributed/DistributedProcessing';
+import DocsPage from './components/docs/DocsPage';
 
 // Linear-inspired minimal theme
 const minimalTheme = {
@@ -99,11 +101,26 @@ const App: React.FC = () => {
   const [message, setMessage] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'models' | 'terminal' | 'guardrails' | 'providers' | 'analytics' | 'testing' | 'hardware'>('chat');
+  // Load active tab from localStorage
+  const loadActiveTab = () => {
+    try {
+      const saved = localStorage.getItem('app_active_tab');
+      if (saved && ['chat', 'models', 'terminal', 'guardrails', 'providers', 'analytics', 'testing', 'hardware', 'docs'].includes(saved)) {
+        return saved as 'chat' | 'models' | 'terminal' | 'guardrails' | 'providers' | 'analytics' | 'testing' | 'hardware' | 'docs';
+      }
+    } catch (error) {
+      console.error('Failed to load active tab from localStorage:', error);
+    }
+    return 'chat';
+  };
+  
+  const [activeTab, setActiveTab] = useState<'chat' | 'models' | 'terminal' | 'guardrails' | 'providers' | 'analytics' | 'testing' | 'hardware' | 'docs'>(loadActiveTab);
   const [terminalExpanded, setTerminalExpanded] = useState(false);
   const [modelSearch, setModelSearch] = useState('');
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [recommendations, setRecommendations] = useState<ModelRecommendation[]>([]);
+  const [installedModels, setInstalledModels] = useState<OllamaModel[]>([]);
+  const [showInstalledOnly, setShowInstalledOnly] = useState(false);
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
   const [downloadProgress, setDownloadProgress] = useState<Map<string, DownloadProgress>>(new Map());
   const [sessionId] = useState(() => `session_${Date.now()}`);
@@ -116,13 +133,50 @@ const App: React.FC = () => {
   const { providers, enabledProviders, connectedProviders } = useProviders();
   
   
-  // Provider selection state
-  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  // Load selected provider from localStorage
+  const loadSelectedProvider = () => {
+    try {
+      const saved = localStorage.getItem('selected_provider');
+      if (saved) {
+        return saved;
+      }
+    } catch (error) {
+      console.error('Failed to load selected provider from localStorage:', error);
+    }
+    return '';
+  };
   
-  // Set default provider when providers load
+  // Provider selection state
+  const [selectedProvider, setSelectedProvider] = useState<string>(loadSelectedProvider);
+  
+  // Set default provider when providers load and validate current selection
   useEffect(() => {
-    if (connectedProviders.length > 0 && !selectedProvider) {
-      setSelectedProvider(connectedProviders[0].id);
+    if (connectedProviders.length > 0) {
+      // Check if current selection is still valid
+      const isCurrentProviderValid = selectedProvider && 
+        connectedProviders.some(p => p.id === selectedProvider);
+      
+      if (!isCurrentProviderValid) {
+        const newProviderId = connectedProviders[0].id;
+        setSelectedProvider(newProviderId);
+        // Save to localStorage
+        try {
+          localStorage.setItem('selected_provider', newProviderId);
+        } catch (error) {
+          console.error('Failed to save selected provider to localStorage:', error);
+        }
+        console.log('[DEBUG] Provider selection updated to:', newProviderId);
+      }
+    } else if (selectedProvider) {
+      // Clear selection if no providers available
+      setSelectedProvider('');
+      // Clear from localStorage
+      try {
+        localStorage.removeItem('selected_provider');
+      } catch (error) {
+        console.error('Failed to clear selected provider from localStorage:', error);
+      }
+      console.log('[DEBUG] No providers available, cleared selection');
     }
   }, [connectedProviders, selectedProvider]);
 
@@ -212,6 +266,9 @@ const App: React.FC = () => {
         
         const recs = await ollamaService.getRecommendations(sysInfo);
         setRecommendations(recs);
+        
+        // Also fetch installed models
+        await fetchInstalledModels();
       } catch (error) {
         console.error('Failed to initialize system:', error);
       }
@@ -219,6 +276,29 @@ const App: React.FC = () => {
 
     initializeSystem();
   }, []);
+
+  // Function to fetch installed models
+  const fetchInstalledModels = async () => {
+    try {
+      const installed = await ollamaService.getLocalModels();
+      setInstalledModels(installed);
+    } catch (error) {
+      console.error('Failed to fetch installed models:', error);
+    }
+  };
+
+  // Handle model deletion
+  const handleDeleteModel = async (modelName: string) => {
+    try {
+      await ollamaService.deleteModel(modelName);
+      toast.success(`Model ${modelName} removed successfully`);
+      // Refresh the installed models list
+      await fetchInstalledModels();
+    } catch (error) {
+      console.error('Failed to delete model:', error);
+      toast.error(`Failed to remove model ${modelName}`);
+    }
+  };
 
   // Handle message send
   const handleSendMessage = async () => {
@@ -257,6 +337,8 @@ const App: React.FC = () => {
         // Show toast notifications for key progress events
         if (progress.status === 'completed') {
           toast.success(`${modelName} downloaded successfully`);
+          // Refresh installed models list when download completes
+          fetchInstalledModels();
         } else if (progress.status === 'error') {
           toast.error(progress.error || `Failed to download ${modelName}`);
         } else if (progress.status === 'cancelled') {
@@ -300,6 +382,11 @@ const App: React.FC = () => {
   // Filter recommendations based on search
   const filteredRecommendations = recommendations.filter(rec =>
     rec.model.name.toLowerCase().includes(modelSearch.toLowerCase())
+  );
+
+  // Filter installed models based on search  
+  const filteredInstalledModels = installedModels.filter(model =>
+    model.name.toLowerCase().includes(modelSearch.toLowerCase())
   );
 
   // Get status color
@@ -394,10 +481,18 @@ const App: React.FC = () => {
 
           {/* Tab Navigation */}
           <Box sx={{ display: 'flex', gap: 1, mt: 3 }}>
-            {(['chat', 'testing', 'analytics', 'guardrails', 'providers', 'hardware', 'models', 'terminal'] as const).map((tab) => (
+            {(['chat', 'testing', 'analytics', 'guardrails', 'providers', 'hardware', 'models', 'docs', 'terminal'] as const).map((tab) => (
               <Box
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  setActiveTab(tab);
+                  // Save to localStorage
+                  try {
+                    localStorage.setItem('app_active_tab', tab);
+                  } catch (error) {
+                    console.error('Failed to save active tab to localStorage:', error);
+                  }
+                }}
                 sx={{
                   px: 3,
                   py: 1.5,
@@ -428,7 +523,7 @@ const App: React.FC = () => {
               background: 'rgba(0, 0, 0, 0.8)',
               backdropFilter: 'blur(20px)',
               borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-              maxHeight: '300px',
+              maxHeight: '250px',
               overflow: 'auto',
             }}
           >
@@ -508,17 +603,15 @@ const App: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                style={{ height: '100vh', position: 'relative' }}
+                style={{ minHeight: '500px', maxHeight: '85vh', position: 'relative' }}
               >
                 <ModernChatInterface
                   messages={messages}
                   onSendMessage={(msg, provider, detectorConfig) => {
                     setMessage('');
-                    // Use the detector config or create one from selectedDetectors
-                    const config = detectorConfig || selectedDetectors.reduce((acc, detector) => {
-                      acc[detector] = { enabled: true };
-                      return acc;
-                    }, {} as any);
+                    // Only use detectors that are explicitly enabled in detectorConfig
+                    // Don't auto-enable all selectedDetectors - this was causing blocking of simple messages
+                    const config = detectorConfig || {};
                     
                     sendChatMessage(msg, config, provider);
                   }}
@@ -541,7 +634,15 @@ const App: React.FC = () => {
                   }}
                   availableProviders={connectedProviders}
                   selectedProvider={selectedProvider}
-                  onProviderChange={setSelectedProvider}
+                  onProviderChange={(providerId) => {
+                    setSelectedProvider(providerId);
+                    // Save to localStorage
+                    try {
+                      localStorage.setItem('selected_provider', providerId);
+                    } catch (error) {
+                      console.error('Failed to save selected provider to localStorage:', error);
+                    }
+                  }}
                   onNavigateToProviders={() => setActiveTab('providers')}
                   onNavigateToGuardrails={() => setActiveTab('guardrails')}
                 />
@@ -613,97 +714,74 @@ const App: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                {/* Model Recommendations */}
+                {/* Toggle between Available and Installed Models */}
+                <Card sx={{ mb: 3 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {showInstalledOnly ? '🖥️ Installed Models' : '🌐 Available Models'}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Typography variant="body2" sx={{ color: showInstalledOnly ? '#6b7280' : '#00D4AA' }}>
+                          Available
+                        </Typography>
+                        <Switch
+                          checked={showInstalledOnly}
+                          onChange={(e) => setShowInstalledOnly(e.target.checked)}
+                          sx={{
+                            '& .MuiSwitch-thumb': {
+                              backgroundColor: '#00D4AA',
+                            },
+                            '& .MuiSwitch-track': {
+                              backgroundColor: showInstalledOnly ? '#00D4AA' : '#6b7280',
+                            },
+                          }}
+                        />
+                        <Typography variant="body2" sx={{ color: showInstalledOnly ? '#00D4AA' : '#6b7280' }}>
+                          Installed
+                        </Typography>
+                        <Chip 
+                          label={showInstalledOnly ? `${filteredInstalledModels.length} models` : `${filteredRecommendations.length} available`}
+                          size="small"
+                          sx={{ backgroundColor: 'rgba(0, 212, 170, 0.1)', color: '#00D4AA' }}
+                        />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+
+                {/* Models Display */}
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 2 }}>
-                  {filteredRecommendations.map((rec) => (
-                    <Card key={rec.model.name}>
-                      <CardContent>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            {rec.model.name}
-                          </Typography>
-                          
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Chip
-                              size="small"
-                              label={rec.compatibility}
-                              sx={{
-                                backgroundColor:
-                                  rec.compatibility === 'perfect' ? '#00D4AA20' :
-                                  rec.compatibility === 'good' ? '#f59e0b20' :
-                                  rec.compatibility === 'partial' ? '#f59e0b20' : '#ef444420',
-                                color:
-                                  rec.compatibility === 'perfect' ? '#00D4AA' :
-                                  rec.compatibility === 'good' ? '#f59e0b' :
-                                  rec.compatibility === 'partial' ? '#f59e0b' : '#ef4444',
-                                fontSize: '0.7rem',
-                              }}
-                            />
+                  {showInstalledOnly ? (
+                    // Display installed models
+                    filteredInstalledModels.map((model) => (
+                      <Card key={model.name}>
+                        <CardContent>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                              {model.name}
+                            </Typography>
                             
-                            {downloadingModels.has(rec.model.name) ? (
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Box sx={{ width: 60 }}>
-                                  <LinearProgress 
-                                    variant="determinate" 
-                                    value={downloadProgress.get(rec.model.name)?.percentage || 0}
-                                    sx={{ 
-                                      '& .MuiLinearProgress-bar': { 
-                                        backgroundColor: '#00D4AA' 
-                                      } 
-                                    }}
-                                  />
-                                </Box>
-                                <IconButton
-                                  onClick={() => handleCancelDownload(rec.model.name)}
-                                  size="small"
-                                  sx={{
-                                    color: '#ef4444',
-                                    '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
-                                  }}
-                                >
-                                  <X size={14} />
-                                </IconButton>
-                              </Box>
-                            ) : (
-                              <IconButton
-                                onClick={() => handleDownloadModel(rec.model.name)}
-                                disabled={rec.compatibility === 'incompatible'}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Chip
+                                size="small"
+                                label="Installed"
                                 sx={{
-                                  color: rec.compatibility === 'incompatible' ? '#6b7280' : '#00D4AA',
-                                  '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
+                                  backgroundColor: '#00D4AA20',
+                                  color: '#00D4AA',
+                                  fontSize: '0.7rem',
                                 }}
-                              >
-                                <Download size={16} />
-                              </IconButton>
-                            )}
+                              />
+                            </Box>
                           </Box>
-                        </Box>
 
-                        <Typography variant="body2" sx={{ color: '#a1a1aa', mb: 2 }}>
-                          {rec.model.description || 'No description available'}
-                        </Typography>
+                          <Typography variant="body2" sx={{ color: '#a1a1aa', mb: 2 }}>
+                            {model.details?.family || 'Local model'} • Modified: {new Date(model.modified_at).toLocaleDateString()}
+                          </Typography>
 
-                        <Typography variant="body2" sx={{ color: '#6b7280', mb: 2 }}>
-                          {rec.reason}
-                        </Typography>
-
-                        {/* Download Progress Details */}
-                        {downloadingModels.has(rec.model.name) && (
-                          <Box sx={{ mb: 2 }}>
-                            <Typography variant="body2" sx={{ color: '#00D4AA', mb: 1 }}>
-                              {downloadProgress.get(rec.model.name)?.message || 'Downloading...'}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                              {downloadProgress.get(rec.model.name)?.percentage || 0}% complete
-                            </Typography>
-                          </Box>
-                        )}
-
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                          {(rec.model.tags || []).slice(0, 3).map((tag) => (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                             <Chip
-                              key={tag}
-                              label={tag}
+                              label={`${(model.size / (1024 * 1024 * 1024)).toFixed(1)} GB`}
                               size="small"
                               sx={{
                                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -711,20 +789,152 @@ const App: React.FC = () => {
                                 fontSize: '0.7rem',
                               }}
                             />
-                          ))}
-                        </Box>
+                            {model.details?.parameter_size && (
+                              <Chip
+                                label={model.details.parameter_size}
+                                size="small"
+                                sx={{
+                                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                  color: '#a1a1aa',
+                                  fontSize: '0.7rem',
+                                }}
+                              />
+                            )}
+                          </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                            {((rec.model.size || 0) / (1024 * 1024 * 1024)).toFixed(1)} GB
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                              {model.digest.slice(0, 12)}...
+                            </Typography>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              sx={{
+                                borderColor: '#ef4444',
+                                color: '#ef4444',
+                                '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
+                              }}
+                              onClick={() => handleDeleteModel(model.name)}
+                            >
+                              Remove
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    // Display available models (recommendations)
+                    filteredRecommendations.map((rec) => (
+                      <Card key={rec.model.name}>
+                        <CardContent>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                              {rec.model.name}
+                            </Typography>
+                            
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Chip
+                                size="small"
+                                label={rec.compatibility}
+                                sx={{
+                                  backgroundColor:
+                                    rec.compatibility === 'perfect' ? '#00D4AA20' :
+                                    rec.compatibility === 'good' ? '#f59e0b20' :
+                                    rec.compatibility === 'partial' ? '#f59e0b20' : '#ef444420',
+                                  color:
+                                    rec.compatibility === 'perfect' ? '#00D4AA' :
+                                    rec.compatibility === 'good' ? '#f59e0b' :
+                                    rec.compatibility === 'partial' ? '#f59e0b' : '#ef4444',
+                                  fontSize: '0.7rem',
+                                }}
+                              />
+                              
+                              {downloadingModels.has(rec.model.name) ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Box sx={{ width: 60 }}>
+                                    <LinearProgress 
+                                      variant="determinate" 
+                                      value={downloadProgress.get(rec.model.name)?.percentage || 0}
+                                      sx={{ 
+                                        '& .MuiLinearProgress-bar': { 
+                                          backgroundColor: '#00D4AA' 
+                                        } 
+                                      }}
+                                    />
+                                  </Box>
+                                  <IconButton
+                                    onClick={() => handleCancelDownload(rec.model.name)}
+                                    size="small"
+                                    sx={{
+                                      color: '#ef4444',
+                                      '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
+                                    }}
+                                  >
+                                    <X size={14} />
+                                  </IconButton>
+                                </Box>
+                              ) : (
+                                <IconButton
+                                  onClick={() => handleDownloadModel(rec.model.name)}
+                                  disabled={rec.compatibility === 'incompatible'}
+                                  sx={{
+                                    color: rec.compatibility === 'incompatible' ? '#6b7280' : '#00D4AA',
+                                    '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
+                                  }}
+                                >
+                                  <Download size={16} />
+                                </IconButton>
+                              )}
+                            </Box>
+                          </Box>
+
+                          <Typography variant="body2" sx={{ color: '#a1a1aa', mb: 2 }}>
+                            {rec.model.description || 'No description available'}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                            {(rec.model.pulls || 0).toLocaleString()} pulls
+
+                          <Typography variant="body2" sx={{ color: '#6b7280', mb: 2 }}>
+                            {rec.reason}
                           </Typography>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  ))}
+
+                          {/* Download Progress Details */}
+                          {downloadingModels.has(rec.model.name) && (
+                            <Box sx={{ mb: 2 }}>
+                              <Typography variant="body2" sx={{ color: '#00D4AA', mb: 1 }}>
+                                {downloadProgress.get(rec.model.name)?.message || 'Downloading...'}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                                {downloadProgress.get(rec.model.name)?.percentage || 0}% complete
+                              </Typography>
+                            </Box>
+                          )}
+
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                            {(rec.model.tags || []).slice(0, 3).map((tag) => (
+                              <Chip
+                                key={tag}
+                                label={tag}
+                                size="small"
+                                sx={{
+                                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                  color: '#a1a1aa',
+                                  fontSize: '0.7rem',
+                                }}
+                              />
+                            ))}
+                          </Box>
+
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                              {((rec.model.size || 0) / (1024 * 1024 * 1024)).toFixed(1)} GB
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                              {(rec.model.pulls || 0).toLocaleString()} pulls
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </Box>
               </motion.div>
             )}
@@ -827,6 +1037,18 @@ const App: React.FC = () => {
               </motion.div>
             )}
 
+            {activeTab === 'docs' && (
+              <motion.div
+                key="docs"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <DocsPage />
+              </motion.div>
+            )}
+
             {activeTab === 'terminal' && (
               <motion.div
                 key="terminal"
@@ -896,7 +1118,7 @@ const App: React.FC = () => {
                     <CardContent sx={{ p: 0 }}>
                       <Box
                         sx={{
-                          height: '600px',
+                          height: '350px',
                           overflow: 'auto',
                           fontFamily: 'JetBrains Mono, Monaco, "Fira Code", monospace',
                           fontSize: '0.9rem',

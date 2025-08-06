@@ -599,35 +599,145 @@ const GPUAcceleration: React.FC = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Benchmark Results</DialogTitle>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip icon={<Speed />} label="Hardware Benchmark Results" size="small" />
+          </Box>
+        </DialogTitle>
         <DialogContent>
           {benchmarkResults && (
             <Box>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Device: {benchmarkResults.device}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Timestamp: {new Date(benchmarkResults.timestamp * 1000).toLocaleString()}
-              </Typography>
-              
-              <TableContainer component={Paper} variant="outlined" sx={{ mt: 2 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Test</TableCell>
-                      <TableCell align="right">Time (ms)</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {Object.entries(benchmarkResults.benchmark_results).map(([test, time]) => (
-                      <TableRow key={test}>
-                        <TableCell>{test}</TableCell>
-                        <TableCell align="right">{(time as number).toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              {/* Device Information */}
+              <Card sx={{ mb: 3, bgcolor: 'rgba(0, 212, 170, 0.1)', border: '1px solid rgba(0, 212, 170, 0.2)' }}>
+                <CardContent sx={{ pb: 2 }}>
+                  <Typography variant="h6" sx={{ mb: 1, color: '#00D4AA' }}>
+                    🖥️ Device Information
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">Device</Typography>
+                      <Typography variant="body1" fontWeight="medium">{benchmarkResults.device}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">Timestamp</Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {new Date(benchmarkResults.timestamp * 1000).toLocaleString()}
+                      </Typography>
+                    </Box>
+                    {benchmarkResults.benchmark_results['Device Info'] && (
+                      <>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">Type</Typography>
+                          <Typography variant="body1" fontWeight="medium">
+                            {(benchmarkResults.benchmark_results['Device Info'] as any)?.type?.toUpperCase() || 'CPU'}
+                          </Typography>
+                        </Box>
+                        {(benchmarkResults.benchmark_results['Device Info'] as any)?.memory_gb && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Memory</Typography>
+                            <Typography variant="body1" fontWeight="medium">
+                              {(benchmarkResults.benchmark_results['Device Info'] as any)?.memory_gb} GB
+                            </Typography>
+                          </Box>
+                        )}
+                      </>
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Matrix Multiplication Performance */}
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ mb: 2, color: '#ffffff' }}>
+                    ⚡ Matrix Multiplication Performance
+                  </Typography>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><strong>Matrix Size</strong></TableCell>
+                          <TableCell align="right"><strong>Time (ms)</strong></TableCell>
+                          <TableCell align="right"><strong>TFLOPS</strong></TableCell>
+                          <TableCell align="right"><strong>Operations</strong></TableCell>
+                          <TableCell align="right"><strong>Memory (GB)</strong></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {Object.entries(benchmarkResults.benchmark_results)
+                          .filter(([key]) => key.startsWith('Matrix'))
+                          .map(([test, data]: [string, any]) => (
+                          <TableRow key={test}>
+                            <TableCell><strong>{test}</strong></TableCell>
+                            <TableCell align="right">
+                              <Chip 
+                                label={`${data.time_ms} ms`} 
+                                size="small" 
+                                color={data.time_ms < 10 ? 'success' : data.time_ms < 100 ? 'warning' : 'error'}
+                                variant="outlined"
+                              />
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="body2" fontWeight="medium" color="#00D4AA">
+                                {data.tflops} TFLOPS
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="body2" color="text.secondary">
+                                {data.operations}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="body2" color="text.secondary">
+                                {data.memory_gb} GB
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+
+              {/* Memory Bandwidth */}
+              {benchmarkResults.benchmark_results['Memory Bandwidth'] && (
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ mb: 2, color: '#ffffff' }}>
+                      💾 Memory Bandwidth Performance
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 2 }}>
+                      <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(0, 212, 170, 0.1)', borderRadius: 2 }}>
+                        <Typography variant="h4" sx={{ color: '#00D4AA', fontWeight: 'bold' }}>
+                          {(benchmarkResults.benchmark_results['Memory Bandwidth'] as any)?.bandwidth_gb_s || 'N/A'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">GB/s</Typography>
+                      </Box>
+                      <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
+                        <Typography variant="h4" sx={{ color: '#ffffff', fontWeight: 'bold' }}>
+                          {(benchmarkResults.benchmark_results['Memory Bandwidth'] as any)?.test_size_mb || 'N/A'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">MB Test Size</Typography>
+                      </Box>
+                      <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 2 }}>
+                        <Typography variant="h4" sx={{ color: '#ffffff', fontWeight: 'bold' }}>
+                          {(benchmarkResults.benchmark_results['Memory Bandwidth'] as any)?.time_ms || 'N/A'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">ms</Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Performance Summary */}
+              <Alert severity="info" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  <strong>Performance Tip:</strong> Higher TFLOPS indicates better computational performance. 
+                  Memory bandwidth affects how quickly data can be transferred to/from the GPU.
+                </Typography>
+              </Alert>
             </Box>
           )}
         </DialogContent>

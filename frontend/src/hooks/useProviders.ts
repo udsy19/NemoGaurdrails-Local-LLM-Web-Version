@@ -43,13 +43,44 @@ interface ProviderStats {
   }>;
 }
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 export const useProviders = () => {
   const [providers, setProviders] = useState<Record<string, Provider>>({});
   const [stats, setStats] = useState<ProviderStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Load provider configurations from localStorage
+  const loadProviderConfigs = useCallback(() => {
+    try {
+      const saved = localStorage.getItem('provider_configs');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Failed to load provider configs from localStorage:', error);
+    }
+    return {};
+  }, []);
+  
+  // Save provider configurations to localStorage
+  const saveProviderConfigs = useCallback((updatedProviders: Record<string, Provider>) => {
+    try {
+      const configsToSave = Object.values(updatedProviders).reduce((acc, provider) => {
+        acc[provider.id] = {
+          api_key: provider.api_key,
+          selected_model: provider.selected_model,
+          enabled: provider.enabled
+        };
+        return acc;
+      }, {} as Record<string, any>);
+      
+      localStorage.setItem('provider_configs', JSON.stringify(configsToSave));
+    } catch (error) {
+      console.error('Failed to save provider configs to localStorage:', error);
+    }
+  }, []);
 
   const fetchProviders = useCallback(async () => {
     try {
@@ -64,7 +95,27 @@ export const useProviders = () => {
       const data = await response.json();
       
       if (data.success) {
-        setProviders(data.providers);
+        // Force update providers to ensure state sync
+        console.log('🔄 Fetched providers:', Object.keys(data.providers).length, 'providers');
+        console.log('🔗 Connected providers:', Object.values(data.providers).filter((p: any) => p.status === 'connected').length);
+        
+        // Merge with saved configurations from localStorage
+        const savedConfigs = loadProviderConfigs();
+        const mergedProviders = { ...data.providers };
+        
+        Object.keys(mergedProviders).forEach(providerId => {
+          const savedConfig = savedConfigs[providerId];
+          if (savedConfig) {
+            mergedProviders[providerId] = {
+              ...mergedProviders[providerId],
+              api_key: savedConfig.api_key || mergedProviders[providerId].api_key,
+              selected_model: savedConfig.selected_model || mergedProviders[providerId].selected_model,
+              enabled: savedConfig.enabled !== undefined ? savedConfig.enabled : mergedProviders[providerId].enabled
+            };
+          }
+        });
+        
+        setProviders(mergedProviders);
         setStats(data.stats);
       } else {
         throw new Error('Failed to fetch providers');
@@ -103,10 +154,14 @@ export const useProviders = () => {
       
       if (data.success) {
         // Update local state
-        setProviders(prev => ({
-          ...prev,
+        const updatedProviders = {
+          ...providers,
           [providerId]: data.provider
-        }));
+        };
+        setProviders(updatedProviders as Record<string, Provider>);
+        
+        // Save to localStorage
+        saveProviderConfigs(updatedProviders);
         
         toast.success(data.message);
         return true;
@@ -118,9 +173,15 @@ export const useProviders = () => {
       toast.error(`Failed to update provider: ${errorMessage}`);
       return false;
     }
-  }, []);
+  }, [providers, saveProviderConfigs]);
 
   const testConnection = useCallback(async (providerId: string) => {
+    if (!providerId || providerId === 'undefined') {
+      console.error('Invalid providerId for testConnection:', providerId);
+      toast.error('Invalid provider ID');
+      return false;
+    }
+    
     try {
       // Update local state to show testing
       setProviders(prev => ({
@@ -181,6 +242,12 @@ export const useProviders = () => {
   }, []);
 
   const enableProvider = useCallback(async (providerId: string, forcePort: boolean = false) => {
+    if (!providerId || providerId === 'undefined') {
+      console.error('Invalid providerId for enableProvider:', providerId);
+      toast.error('Invalid provider ID');
+      return { success: false, error: 'Invalid provider ID' };
+    }
+    
     try {
       const response = await fetch(`${BACKEND_URL}/api/providers/${providerId}/enable${forcePort ? '?force_port=true' : ''}`, {
         method: 'POST',
@@ -193,14 +260,18 @@ export const useProviders = () => {
       
       if (data.success) {
         // Update local state
-        setProviders(prev => ({
-          ...prev,
+        const updatedProviders = {
+          ...providers,
           [providerId]: {
-            ...prev[providerId],
+            ...providers[providerId],
             enabled: true,
-            status: 'connected'
+            status: 'connected' as const
           }
-        }));
+        };
+        setProviders(updatedProviders as Record<string, Provider>);
+        
+        // Save to localStorage
+        saveProviderConfigs(updatedProviders);
         
         toast.success(data.message);
         return { success: true, data };
@@ -216,9 +287,15 @@ export const useProviders = () => {
       toast.error(`Failed to enable provider: ${errorMessage}`);
       return { success: false, error: errorMessage };
     }
-  }, []);
+  }, [providers, saveProviderConfigs]);
 
   const disableProvider = useCallback(async (providerId: string) => {
+    if (!providerId || providerId === 'undefined') {
+      console.error('Invalid providerId for disableProvider:', providerId);
+      toast.error('Invalid provider ID');
+      return { success: false, error: 'Invalid provider ID' };
+    }
+    
     try {
       const response = await fetch(`${BACKEND_URL}/api/providers/${providerId}/disable`, {
         method: 'POST',
@@ -231,14 +308,18 @@ export const useProviders = () => {
       
       if (data.success) {
         // Update local state
-        setProviders(prev => ({
-          ...prev,
+        const updatedProviders = {
+          ...providers,
           [providerId]: {
-            ...prev[providerId],
+            ...providers[providerId],
             enabled: false,
-            status: 'disconnected'
+            status: 'disconnected' as const
           }
-        }));
+        };
+        setProviders(updatedProviders as Record<string, Provider>);
+        
+        // Save to localStorage
+        saveProviderConfigs(updatedProviders);
         
         toast.success(data.message);
         return { success: true, data };
@@ -250,7 +331,7 @@ export const useProviders = () => {
       toast.error(`Failed to disable provider: ${errorMessage}`);
       return { success: false, error: errorMessage };
     }
-  }, []);
+  }, [providers, saveProviderConfigs]);
 
   const enableProviderWithPortSelection = useCallback(async (providerId: string, useNextAvailable: boolean = false) => {
     try {
@@ -402,7 +483,7 @@ export const useProviders = () => {
   // Load providers on mount
   useEffect(() => {
     fetchProviders();
-  }, [fetchProviders]);
+  }, [fetchProviders, loadProviderConfigs]);
 
   // Auto-refresh stats every 30 seconds
   useEffect(() => {
@@ -434,7 +515,7 @@ export const useProviders = () => {
     
     // Computed values
     enabledProviders: Object.values(providers).filter(p => p.enabled),
-    connectedProviders: Object.values(providers).filter(p => p.status === 'connected'),
+    connectedProviders: Object.values(providers).filter(p => p.enabled && p.status === 'connected'),
     availablePorts: Object.values(providers).map(p => p.port),
   };
 };

@@ -33,7 +33,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         };
       case 'large':
         return {
-          container: { minHeight: '400px', p: 4 },
+          container: { minHeight: '300px', p: 4 },
           progressWidth: '400px',
           fontSize: '1.125rem',
           circularSize: 50

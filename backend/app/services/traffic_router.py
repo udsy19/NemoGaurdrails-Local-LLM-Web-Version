@@ -421,6 +421,11 @@ class TrafficRouter:
                 detector_config=detector_configs
             )
             
+            # Handle case where detection_result is None
+            if detection_result is None:
+                logger.error("Detection service returned None - blocking for safety")
+                return False, {"error": "detection_service_returned_none"}, ["Detection service error"]
+            
             # Extract results
             results = detection_result.get("results", {})
             is_safe = True  # Start with safe, then check each detector
@@ -483,6 +488,8 @@ class TrafficRouter:
         try:
             if provider.id == "openai":
                 return await self._forward_openai_request(provider, body)
+            elif provider.id == "azure_openai":
+                return await self._forward_azure_openai_request(provider, body)
             elif provider.id == "anthropic":
                 return await self._forward_anthropic_request(provider, body)
             elif provider.id == "gemini":
@@ -503,6 +510,32 @@ class TrafficRouter:
                     "Authorization": f"Bearer {provider.api_key}",
                     "Content-Type": "application/json"
                 },
+                json={**body, "model": provider.selected_model}
+            )
+            response.raise_for_status()
+            return response.json()
+    
+    async def _forward_azure_openai_request(self, provider: Provider, body: Dict[str, Any]) -> Dict[str, Any]:
+        """Forward request to Azure OpenAI API"""
+        if not provider.azure_endpoint:
+            raise HTTPException(status_code=400, detail="Azure endpoint not configured")
+        if not provider.azure_deployment_name:
+            raise HTTPException(status_code=400, detail="Azure deployment name not configured")
+        
+        # Clean endpoint URL - remove trailing slash if present
+        endpoint = provider.azure_endpoint.rstrip('/')
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Azure OpenAI uses deployment-specific URLs
+            url = f"{endpoint}/openai/deployments/{provider.azure_deployment_name}/chat/completions"
+            
+            response = await client.post(
+                url,
+                headers={
+                    "api-key": provider.api_key,
+                    "Content-Type": "application/json"
+                },
+                params={"api-version": provider.azure_api_version or "2024-10-21"},
                 json={**body, "model": provider.selected_model}
             )
             response.raise_for_status()

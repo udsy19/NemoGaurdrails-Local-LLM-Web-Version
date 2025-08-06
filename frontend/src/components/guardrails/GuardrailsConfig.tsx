@@ -56,6 +56,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import TabPanel from '../common/TabPanel';
+import { apiService } from '../../services/api';
 
 interface DetectorConfig {
   name: string;
@@ -79,16 +80,34 @@ interface GuardrailsConfigProps {
 }
 
 const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) => {
-  const [detectors, setDetectors] = useState<DetectorConfig[]>([
+  // Load saved configuration from localStorage on component mount
+  const loadSavedConfig = (): DetectorConfig[] => {
+    try {
+      const saved = localStorage.getItem('guardrails_config');
+      if (saved) {
+        const savedConfig = JSON.parse(saved);
+        // Merge saved config with default config to ensure all properties exist
+        return defaultDetectors.map(defaultDetector => {
+          const savedDetector = savedConfig.find((s: any) => s.name === defaultDetector.name);
+          return savedDetector ? { ...defaultDetector, ...savedDetector } : defaultDetector;
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load saved guardrails config:', error);
+    }
+    return defaultDetectors;
+  };
+
+  const defaultDetectors: DetectorConfig[] = [
     {
       name: 'toxicity',
       displayName: 'Toxicity Detection',
       description: 'Detects harmful, toxic, or offensive content',
-      threshold: 0.7,
-      enabled: true,
+      threshold: 0.85,  // Updated to match backend
+      enabled: false,   // Default to disabled
       icon: <Shield size={20} />,
       color: '#ef4444',
-      defaultThreshold: 0.7,
+      defaultThreshold: 0.85,  // Updated to match backend
       customKeywords: ['hate', 'toxic', 'offensive'],
       blockedWords: ['hate', 'toxic', 'offensive'],
       customResponse: 'This message contains content that may be harmful or offensive.',
@@ -99,11 +118,11 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
       name: 'pii',
       displayName: 'PII Detection',
       description: 'Identifies and protects personal information',
-      threshold: 0.8,
-      enabled: true,
+      threshold: 0.6,   // Updated to match backend (less aggressive)
+      enabled: false,   // Default to disabled
       icon: <Lock size={20} />,
       color: '#f59e0b',
-      defaultThreshold: 0.8,
+      defaultThreshold: 0.6,   // Updated to match backend
       customKeywords: ['email', 'phone', 'ssn', 'credit card'],
       blockedWords: [],
       customResponse: 'Personal information detected. Please remove sensitive data.',
@@ -114,8 +133,8 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
       name: 'prompt_injection',
       displayName: 'Prompt Injection',
       description: 'Prevents prompt manipulation attacks',
-      threshold: 0.5,
-      enabled: true,
+      threshold: 0.7,   // Updated to match backend (less aggressive)
+      enabled: false,   // Default to disabled
       icon: <AlertTriangle size={20} />,
       color: '#dc2626',
       defaultThreshold: 0.5,
@@ -129,11 +148,11 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
       name: 'topic',
       displayName: 'Topic Classification',
       description: 'Monitors content topics and categories',
-      threshold: 0.7,
-      enabled: true,
+      threshold: 0.85,  // Updated to match backend (less sensitive)
+      enabled: false,   // Default to disabled
       icon: <MessageSquare size={20} />,
       color: '#3b82f6',
-      defaultThreshold: 0.7,
+      defaultThreshold: 0.85,  // Updated to match backend
       customKeywords: ['politics', 'religion', 'adult content'],
       blockedWords: [],
       customResponse: 'This topic is restricted in the current context.',
@@ -144,11 +163,11 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
       name: 'fact_check',
       displayName: 'Fact Checking',
       description: 'Verifies claims and factual accuracy',
-      threshold: 0.5,
-      enabled: false,
+      threshold: 0.6,   // Updated to match backend
+      enabled: false,   // Keep disabled by default
       icon: <CheckCircle size={20} />,
       color: '#10b981',
-      defaultThreshold: 0.5,
+      defaultThreshold: 0.6,   // Updated to match backend
       customKeywords: ['claim', 'fact', 'scientific'],
       blockedWords: [],
       customResponse: 'This claim requires fact-checking verification.',
@@ -159,25 +178,81 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
       name: 'spam',
       displayName: 'Spam Detection',
       description: 'Filters spam and low-quality content',
-      threshold: 0.6,
-      enabled: true,
+      threshold: 0.75,  // Updated to match backend
+      enabled: false,   // Default to disabled
       icon: <Filter size={20} />,
       color: '#8b5cf6',
-      defaultThreshold: 0.6,
+      defaultThreshold: 0.75,  // Updated to match backend
       customKeywords: ['spam', 'promotion', 'advertisement'],
       blockedWords: ['buy now', 'free money', 'click here'],
       customResponse: 'This content appears to be spam or promotional.',
       actionType: 'log',
       severity: 'low',
     },
-  ]);
+  ];
 
+  // Load tab selection from localStorage
+  const loadTabValue = () => {
+    try {
+      const saved = localStorage.getItem('guardrails_tab_selection');
+      if (saved) {
+        const tabIndex = parseInt(saved, 10);
+        if (tabIndex >= 0 && tabIndex <= 1) {
+          return tabIndex;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load guardrails tab selection from localStorage:', error);
+    }
+    return 0;
+  };
+  
+  const [detectors, setDetectors] = useState<DetectorConfig[]>(() => loadSavedConfig());
   const [loading, setLoading] = useState(false);
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState(loadTabValue);
   const [selectedDetector, setSelectedDetector] = useState<DetectorConfig | null>(null);
   const [advancedDialogOpen, setAdvancedDialogOpen] = useState(false);
   const [newKeyword, setNewKeyword] = useState('');
   const [newBlockedWord, setNewBlockedWord] = useState('');
+
+  // Save configuration to localStorage and sync with backend
+  const syncConfigToBackend = async (updatedDetectors: DetectorConfig[]) => {
+    try {
+      // Save to localStorage for immediate UI updates
+      localStorage.setItem('guardrails_config', JSON.stringify(updatedDetectors));
+      
+      // Also save a simple config format for useApi compatibility
+      const simpleConfig = updatedDetectors.reduce((acc, detector) => {
+        acc[detector.name] = {
+          enabled: detector.enabled,
+          threshold: detector.threshold,
+          customKeywords: detector.customKeywords || [],
+          blockedWords: detector.blockedWords || [],
+          customResponse: detector.customResponse || '',
+          actionType: detector.actionType || 'block',
+          severity: detector.severity || 'medium'
+        };
+        return acc;
+      }, {} as { [key: string]: any });
+      
+      localStorage.setItem('detector_simple_config', JSON.stringify(simpleConfig));
+      
+      // Sync with backend API for persistence
+      console.log('🔄 Syncing configuration with backend...', simpleConfig);
+      await apiService.updateAllDetectorConfigs(simpleConfig);
+      
+      console.log('✅ Configuration synced with backend successfully');
+      toast.success('Configuration saved to backend successfully');
+    } catch (error) {
+      console.error('❌ Failed to sync guardrails config with backend:', error);
+      toast.error('Failed to save configuration to backend. Changes are temporary.');
+    }
+  };
+
+  // Save configuration whenever detectors change
+  useEffect(() => {
+    syncConfigToBackend(detectors);
+  }, [detectors]);
 
   // Notify parent component of config changes
   useEffect(() => {
@@ -199,24 +274,74 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
     }
   }, [detectors, onConfigChange]);
 
-  const handleThresholdChange = (detectorName: string, newThreshold: number) => {
-    setDetectors(prev => 
-      prev.map(detector => 
-        detector.name === detectorName 
-          ? { ...detector, threshold: newThreshold }
-          : detector
-      )
+  const handleThresholdChange = async (detectorName: string, newThreshold: number) => {
+    const updatedDetectors = detectors.map(detector => 
+      detector.name === detectorName 
+        ? { ...detector, threshold: newThreshold }
+        : detector
     );
+    
+    setDetectors(updatedDetectors);
+    
+    // Immediate sync for critical changes
+    try {
+      await apiService.updateDetectorConfig(detectorName, {
+        enabled: updatedDetectors.find(d => d.name === detectorName)?.enabled,
+        threshold: newThreshold
+      });
+      
+      toast.success(`${detectorName} threshold updated successfully`);
+    } catch (error) {
+      console.error(`Failed to update ${detectorName} threshold:`, error);
+      toast.error(`Failed to update ${detectorName} threshold`);
+    }
   };
 
-  const handleToggleDetector = (detectorName: string, enabled: boolean) => {
-    setDetectors(prev => 
-      prev.map(detector => 
+  const handleToggleDetector = async (detectorName: string, enabled: boolean) => {
+    const updatedDetectors = detectors.map(detector => 
+      detector.name === detectorName 
+        ? { ...detector, enabled }
+        : detector
+    );
+    
+    setDetectors(updatedDetectors);
+    
+    // Immediate sync for critical changes
+    try {
+      await apiService.updateDetectorConfig(detectorName, {
+        enabled: enabled,
+        threshold: updatedDetectors.find(d => d.name === detectorName)?.threshold
+      });
+      
+      toast.success(`${detectorName} ${enabled ? 'enabled' : 'disabled'} successfully`);
+    } catch (error) {
+      console.error(`Failed to toggle ${detectorName}:`, error);
+      toast.error(`Failed to ${enabled ? 'enable' : 'disable'} ${detectorName}`);
+    }
+    
+    // Trigger parent callback for real-time sync
+    if (onConfigChange) {
+      const updatedDetectors = detectors.map(detector => 
         detector.name === detectorName 
           ? { ...detector, enabled }
           : detector
-      )
-    );
+      );
+      
+      const config = updatedDetectors.reduce((acc, detector) => {
+        acc[detector.name] = {
+          enabled: detector.enabled,
+          threshold: detector.threshold,
+          customKeywords: detector.customKeywords || [],
+          blockedWords: detector.blockedWords || [],
+          customResponse: detector.customResponse || '',
+          actionType: detector.actionType || 'block',
+          severity: detector.severity || 'medium',
+        };
+        return acc;
+      }, {} as { [key: string]: { enabled: boolean; threshold: number; [key: string]: any } });
+      
+      onConfigChange(config);
+    }
     
     toast.success(`${detectors.find(d => d.name === detectorName)?.displayName} ${enabled ? 'enabled' : 'disabled'}`);
   };
@@ -226,7 +351,7 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
       prev.map(detector => ({
         ...detector,
         threshold: detector.defaultThreshold,
-        enabled: detector.name !== 'fact_check', // fact_check disabled by default
+        enabled: false, // All detectors disabled by default for better usability
         customKeywords: detector.customKeywords || [],
         blockedWords: detector.blockedWords || [],
         customResponse: detector.customResponse || '',
@@ -387,7 +512,7 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
               '& .MuiAlert-icon': { color: '#3b82f6' }
             }}
           >
-            Real-time configuration changes affect new messages immediately. Settings are temporary and reset when the application restarts.
+            Real-time configuration changes affect new messages immediately. Settings are now synchronized with the backend and persist across application restarts.
           </Alert>
         </Box>
 
@@ -463,7 +588,15 @@ const GuardrailsConfig: React.FC<GuardrailsConfigProps> = ({ onConfigChange }) =
         <Box sx={{ mb: 3 }}>
           <Tabs
             value={tabValue}
-            onChange={(_, newValue) => setTabValue(newValue)}
+            onChange={(_, newValue) => {
+              setTabValue(newValue);
+              // Save to localStorage
+              try {
+                localStorage.setItem('guardrails_tab_selection', newValue.toString());
+              } catch (error) {
+                console.error('Failed to save guardrails tab selection to localStorage:', error);
+              }
+            }}
             sx={{
               '& .MuiTabs-indicator': {
                 backgroundColor: '#00D4AA',

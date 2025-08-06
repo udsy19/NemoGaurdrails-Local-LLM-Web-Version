@@ -13,7 +13,7 @@ class ApiService {
   private client: AxiosInstance;
   private baseURL: string;
 
-  constructor(baseURL: string = 'http://localhost:8000') {
+  constructor(baseURL: string = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001') {
     this.baseURL = baseURL;
     this.client = axios.create({
       baseURL,
@@ -105,7 +105,29 @@ class ApiService {
   }
 
   async updateDetectorConfig(detectorName: string, config: any): Promise<void> {
-    await this.client.post(`/api/detectors/${detectorName}/config`, config);
+    await this.client.put(`/api/config/detectors`, {
+      detector_name: detectorName,
+      config: config
+    });
+  }
+
+  // Configuration Management
+  async getDetectorConfigs(): Promise<any> {
+    const response = await this.client.get('/api/config/detectors');
+    return response.data;
+  }
+
+  async getDetectorConfig(detectorName: string): Promise<any> {
+    const response = await this.client.get(`/api/config/detectors/${detectorName}`);
+    return response.data;
+  }
+
+  async updateAllDetectorConfigs(configs: Record<string, any>): Promise<void> {
+    // Update each detector individually
+    const updatePromises = Object.entries(configs).map(([detectorName, config]) => 
+      this.updateDetectorConfig(detectorName, config)
+    );
+    await Promise.all(updatePromises);
   }
 
   // Chat Operations
@@ -122,7 +144,10 @@ class ApiService {
       provider_id: providerId,
     };
 
-    const response = await this.client.post('/api/chat/message', payload);
+    // Use longer timeout for chat messages since they may involve AI processing
+    const response = await this.client.post('/api/chat/message', payload, {
+      timeout: 60000 // 60 seconds instead of 30
+    });
     return response.data;
   }
 

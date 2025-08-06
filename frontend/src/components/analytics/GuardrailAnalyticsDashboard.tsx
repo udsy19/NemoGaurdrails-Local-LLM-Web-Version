@@ -51,7 +51,8 @@ import {
   Block,
   Person,
   Language,
-  Category
+  Category,
+  Send
 } from '@mui/icons-material';
 import {
   LineChart,
@@ -72,9 +73,8 @@ import {
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import LoadingSpinner from '../common/LoadingSpinner';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 interface GuardrailMetrics {
   total_requests: number;
@@ -114,6 +114,7 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState(24);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [selectedDetector, setSelectedDetector] = useState('all');
+  const [wsConnecting, setWsConnecting] = useState(false);
 
   const fetchGuardrailData = useCallback(async () => {
     try {
@@ -228,6 +229,90 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
     toast.success('Summary JSON downloaded successfully');
   };
 
+  const pushToWebSocket = async () => {
+    if (!guardrailData) {
+      toast.error('No analytics data available to push');
+      return;
+    }
+
+    setWsConnecting(true);
+    
+    try {
+      // Prepare comprehensive analytics payload
+      const analyticsPayload = {
+        timestamp: new Date().toISOString(),
+        source: 'NeMo Guardrails Dashboard',
+        timeRange: `${timeRange} hours`,
+        metrics: {
+          summary: {
+            total_requests: guardrailData.total_requests,
+            blocked_requests: guardrailData.blocked_requests,
+            allowed_requests: guardrailData.allowed_requests,
+            block_rate: guardrailData.block_rate,
+            unique_users: guardrailData.user_analytics?.unique_users || 0
+          },
+          guardrail_data: guardrailData,
+          hardware_data: hardwareData,
+          detector_performance: guardrailData.detector_performance || {},
+          top_blocked_categories: guardrailData.top_blocked_categories || {},
+          content_analysis: guardrailData.content_analysis || {},
+          user_analytics: guardrailData.user_analytics || {}
+        },
+        metadata: {
+          dashboard_version: '1.0.0',
+          export_type: 'websocket_push',
+          system: 'ai_safety_platform'
+        }
+      };
+
+      // Create WebSocket connection
+      const ws = new WebSocket('ws://scanllmai.com/ws/guardrails/');
+      
+      ws.onopen = () => {
+        console.log('WebSocket connected to scanllmai.com');
+        
+        // Send analytics data
+        ws.send(JSON.stringify(analyticsPayload));
+        
+        toast.success('Analytics data pushed to WebSocket successfully!');
+        
+        // Close connection after sending
+        setTimeout(() => {
+          ws.close();
+          setWsConnecting(false);
+        }, 1000);
+      };
+      
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        toast.error('Failed to connect to WebSocket endpoint');
+        setWsConnecting(false);
+      };
+      
+      ws.onclose = (event) => {
+        console.log('WebSocket connection closed:', event.code);
+        if (event.code !== 1000) { // 1000 = normal closure
+          toast.error('WebSocket connection closed unexpectedly');
+        }
+        setWsConnecting(false);
+      };
+      
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        if (ws.readyState === WebSocket.CONNECTING) {
+          ws.close();
+          toast.error('WebSocket connection timeout');
+          setWsConnecting(false);
+        }
+      }, 10000);
+      
+    } catch (error) {
+      console.error('Error pushing to WebSocket:', error);
+      toast.error('Failed to push analytics data to WebSocket');
+      setWsConnecting(false);
+    }
+  };
+
   const downloadDetailedJson = () => {
     if (!guardrailData) return;
     
@@ -322,11 +407,22 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
 
   if (loading && !guardrailData) {
     return (
-      <LoadingSpinner 
-        message="Loading Analytics..." 
-        size="large" 
-        variant="circular" 
-      />
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <LinearProgress 
+            sx={{ 
+              flexGrow: 1,
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              '& .MuiLinearProgress-bar': {
+                backgroundColor: '#00D4AA',
+              }
+            }} 
+          />
+          <Typography sx={{ color: '#ffffff', fontSize: '0.875rem' }}>
+            Loading Analytics...
+          </Typography>
+        </Box>
+      </Box>
     );
   }
 
@@ -524,7 +620,7 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>Top Blocked Categories</Typography>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={250}>
                     <RechartsPieChart>
                       <Pie
                         data={Object.entries(guardrailData.top_blocked_categories || {}).map(([name, value]) => ({ name, value }))}
@@ -549,7 +645,7 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>Detection Timeline (24h)</Typography>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={250}>
                     <AreaChart data={guardrailData.hourly_stats || []}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="hour" />
@@ -594,7 +690,7 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>Content Categories</Typography>
-                    <ResponsiveContainer width="100%" height={200}>
+                    <ResponsiveContainer width="100%" height={180}>
                       <RechartsPieChart>
                         <Pie
                           data={Object.entries(guardrailData.content_analysis.content_categories || {}).map(([name, value]) => ({ name, value }))}
@@ -867,7 +963,7 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
             <CardContent>
               <Typography variant="h6" gutterBottom>Download Analytics Data</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Export your analytics data in various formats for reporting and analysis.
+                Export your analytics data in various formats for reporting and analysis, or push real-time data to external systems.
               </Typography>
               
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -917,6 +1013,26 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
                   }}
                 >
                   Formatted Excel
+                </Button>
+                
+                <Button
+                  variant="contained"
+                  startIcon={wsConnecting ? <CircularProgress size={16} color="inherit" /> : <Send />}
+                  onClick={pushToWebSocket}
+                  disabled={wsConnecting || !guardrailData}
+                  sx={{
+                    backgroundColor: '#ff6b35',
+                    color: '#ffffff',
+                    '&:hover': {
+                      backgroundColor: '#e55a2b',
+                    },
+                    '&:disabled': {
+                      backgroundColor: 'rgba(255, 107, 53, 0.3)',
+                      color: 'rgba(255, 255, 255, 0.5)',
+                    },
+                  }}
+                >
+                  {wsConnecting ? 'Pushing...' : 'Push to WebSocket'}
                 </Button>
               </Box>
             </CardContent>

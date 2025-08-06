@@ -169,6 +169,7 @@ const ProvidersConfig: React.FC<ProvidersConfigProps> = ({ onProviderChange }) =
   const getProviderIcon = (providerId: string) => {
     switch (providerId) {
       case 'openai': return <Brain size={20} />;
+      case 'azure_openai': return <Cloud size={20} />;  // Azure-specific icon
       case 'anthropic': return <Cloud size={20} />;
       case 'gemini': return <Globe size={20} />;
       case 'ollama': return <Server size={20} />;
@@ -179,6 +180,7 @@ const ProvidersConfig: React.FC<ProvidersConfigProps> = ({ onProviderChange }) =
   const getProviderColor = (providerId: string) => {
     switch (providerId) {
       case 'openai': return '#00A67E';
+      case 'azure_openai': return '#0078D4';  // Azure blue color
       case 'anthropic': return '#D97706';
       case 'gemini': return '#4285F4';
       case 'ollama': return '#8B5CF6';
@@ -320,7 +322,7 @@ const ProvidersConfig: React.FC<ProvidersConfigProps> = ({ onProviderChange }) =
           gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, 1fr)' },
           gap: 3 
         }}>
-          {Object.values(providers).map((provider, index) => {
+          {providers && Object.values(providers).map((provider, index) => {
             const providerColor = getProviderColor(provider.id);
             const providerIcon = getProviderIcon(provider.id);
             
@@ -488,7 +490,7 @@ const ProvidersConfig: React.FC<ProvidersConfigProps> = ({ onProviderChange }) =
                                     },
                                   }}
                                 >
-                                  {provider.models.map((model) => (
+                                  {provider.models && provider.models.map((model) => (
                                     <MenuItem key={model.id} value={model.id}>
                                       <Box>
                                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -571,7 +573,7 @@ const ProvidersConfig: React.FC<ProvidersConfigProps> = ({ onProviderChange }) =
                 )}
               </Box>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {Object.values(providers)
+                {providers && Object.values(providers)
                   .filter(p => p.enabled && p.status === 'connected')
                   .map(provider => {
                     const providerColor = getProviderColor(provider.id);

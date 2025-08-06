@@ -93,18 +93,65 @@ export const useDetectors = () => {
       const detectorsData = await apiService.getDetectors();
       setDetectors(detectorsData);
       
-      // Initialize selected detectors with loaded ones
-      const loadedDetectors = detectorsData
-        .filter(d => d.loaded && d.active)
-        .map(d => d.name);
-      setSelectedDetectors(loadedDetectors);
-      
-      // Initialize detector config
-      const config: DetectorConfig = {};
-      loadedDetectors.forEach(name => {
-        config[name] = { enabled: true };
-      });
-      setDetectorConfig(config);
+      // Don't auto-enable detectors - let user choose
+      // Only set selectedDetectors if it's empty (first load)
+      if (selectedDetectors.length === 0) {
+        const loadedDetectors = detectorsData
+          .filter(d => d.loaded && d.active)
+          .map(d => d.name);
+        setSelectedDetectors(loadedDetectors);
+        
+        // Try to load saved config from localStorage
+        const saved = localStorage.getItem('guardrails_config');
+        let config: DetectorConfig = {};
+        
+        if (saved) {
+          try {
+            const savedData = JSON.parse(saved);
+            
+            // Check if it's the full detector objects from GuardrailsConfig or simple config
+            if (Array.isArray(savedData)) {
+              // Full detector objects from GuardrailsConfig - extract config
+              savedData.forEach((detector: any) => {
+                if (detector.name) {
+                  config[detector.name] = {
+                    enabled: detector.enabled || false,
+                    threshold: detector.threshold || 0.5,
+                    customKeywords: detector.customKeywords || [],
+                    blockedWords: detector.blockedWords || [],
+                    customResponse: detector.customResponse || '',
+                    actionType: detector.actionType || 'block',
+                    severity: detector.severity || 'medium'
+                  };
+                }
+              });
+            } else {
+              // Simple config object - use as is
+              config = savedData;
+            }
+            
+            // Ensure all loaded detectors have entries
+            loadedDetectors.forEach(name => {
+              if (!config[name]) {
+                config[name] = { enabled: false };
+              }
+            });
+          } catch (e) {
+            console.warn('Failed to parse saved guardrails config');
+            // Initialize detector config with all disabled by default
+            loadedDetectors.forEach(name => {
+              config[name] = { enabled: false };
+            });
+          }
+        } else {
+          // Initialize detector config with all disabled by default
+          loadedDetectors.forEach(name => {
+            config[name] = { enabled: false };
+          });
+        }
+        
+        setDetectorConfig(config);
+      }
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message);
@@ -120,18 +167,49 @@ export const useDetectors = () => {
         : prev.filter(d => d !== detectorName)
     );
     
-    setDetectorConfig(prev => ({
-      ...prev,
-      [detectorName]: { ...prev[detectorName], enabled }
-    }));
-  }, []);
+    const newConfig = {
+      ...detectorConfig,
+      [detectorName]: { ...detectorConfig[detectorName], enabled }
+    };
+    
+    setDetectorConfig(newConfig);
+    
+    // Check if GuardrailsConfig has stored full detector objects
+    try {
+      const existingSaved = localStorage.getItem('guardrails_config');
+      if (existingSaved) {
+        const existing = JSON.parse(existingSaved);
+        if (Array.isArray(existing)) {
+          // Update the full detector object instead of overwriting
+          const updatedDetectors = existing.map((detector: any) => {
+            if (detector.name === detectorName) {
+              return { ...detector, enabled };
+            }
+            return detector;
+          });
+          localStorage.setItem('guardrails_config', JSON.stringify(updatedDetectors));
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Error updating existing config, using simple format');
+    }
+    
+    // Fallback: save simple config format
+    localStorage.setItem('guardrails_config', JSON.stringify(newConfig));
+  }, [detectorConfig]);
 
   const updateDetectorConfig = useCallback((name: string, config: any) => {
-    setDetectorConfig(prev => ({
-      ...prev,
-      [name]: { ...prev[name], ...config }
-    }));
-  }, []);
+    const newConfig = {
+      ...detectorConfig,
+      [name]: { ...detectorConfig[name], ...config }
+    };
+    
+    setDetectorConfig(newConfig);
+    
+    // Persist to localStorage
+    localStorage.setItem('guardrails_config', JSON.stringify(newConfig));
+  }, [detectorConfig]);
 
   useEffect(() => {
     fetchDetectors();
