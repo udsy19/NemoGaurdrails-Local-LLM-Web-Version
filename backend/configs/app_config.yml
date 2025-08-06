@@ -45,7 +45,7 @@ detectors:
     severity: high
     threshold: 0.6
   prompt_injection:
-    enabled: false
+    enabled: true
     threshold: 0.7
   spam:
     enabled: true
