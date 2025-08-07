@@ -104,7 +104,8 @@ class OllamaModelsService {
       this.modelsCache = models.map((model: any) => this.processModel(model, systemSpecs));
       this.cacheTimestamp = Date.now();
       
-      console.log(`✓ Fetched ${this.modelsCache.length} models from Ollama`);
+      console.log(`✅ SUCCESS: Fetched ${this.modelsCache.length} models from Ollama backend API`);
+      console.log('🎉 Real models loaded (not fallback):', this.modelsCache.slice(0, 3).map(m => m.name));
       return this.modelsCache;
       
     } catch (error) {
@@ -116,6 +117,10 @@ class OllamaModelsService {
       });
       
       // Return fallback popular models if fetch fails
+      console.log(`❌ FETCH FAILED - Backend API call failed with error:`, error);
+      console.log('🔍 This means the frontend cannot reach the backend at http://localhost:8000');
+      console.log('🔧 Check: 1) Backend server running, 2) CORS settings, 3) Network connectivity');
+      
       const fallback = this.getFallbackModels();
       console.log(`⚠️ Using ${fallback.length} fallback models due to error:`, error);
       console.log('🔍 Fallback models:', fallback.map(m => m.name));
