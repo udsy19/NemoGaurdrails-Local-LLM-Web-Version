@@ -413,6 +413,8 @@ const MainApp: React.FC = () => {
 
   // Filter Ollama models based on search, capabilities, and compatibility
   useEffect(() => {
+    console.log(`🔍 Filtering models: ${ollamaModels.length} total, search: "${modelSearch}", capabilities: [${selectedCapabilities.join(',')}], compatibility: ${compatibilityFilter}`);
+    
     let filtered = ollamaModels;
 
     // Apply search filter
@@ -422,6 +424,7 @@ const MainApp: React.FC = () => {
         model.description.toLowerCase().includes(modelSearch.toLowerCase()) ||
         model.capabilities.some(cap => cap.toLowerCase().includes(modelSearch.toLowerCase()))
       );
+      console.log(`🔍 After search filter: ${filtered.length} models`);
     }
 
     // Apply capability filter
@@ -429,11 +432,13 @@ const MainApp: React.FC = () => {
       filtered = filtered.filter(model =>
         selectedCapabilities.every(cap => model.capabilities.includes(cap))
       );
+      console.log(`🔍 After capability filter: ${filtered.length} models`);
     }
 
     // Apply compatibility filter
     if (compatibilityFilter !== 'all') {
       filtered = filtered.filter(model => model.compatibility_label === compatibilityFilter);
+      console.log(`🔍 After compatibility filter: ${filtered.length} models`);
     }
 
     // Sort by compatibility score and popularity
@@ -448,6 +453,7 @@ const MainApp: React.FC = () => {
       return bPulls - aPulls;
     });
 
+    console.log(`✓ Final filtered models: ${filtered.length}`);
     setFilteredOllamaModels(filtered);
   }, [ollamaModels, modelSearch, selectedCapabilities, compatibilityFilter]);
 

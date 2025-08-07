@@ -46,7 +46,10 @@ class OllamaModelsService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/models/search`, {
+      const apiUrl = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/models/search`;
+      console.log('📡 Fetching models from:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         signal: controller.signal,
         headers: {
           'Accept': 'application/json',
@@ -61,10 +64,19 @@ class OllamaModelsService {
       }
 
       const data = await response.json();
+      console.log('📡 Raw API response:', { 
+        type: typeof data, 
+        isArray: Array.isArray(data),
+        hasModels: !!data.models,
+        dataKeys: Object.keys(data),
+        modelsLength: Array.isArray(data.models) ? data.models.length : 'not array'
+      });
+      
       const models = data.models || data; // Handle both wrapper and direct array
       
       if (!Array.isArray(models)) {
-        throw new Error('Invalid response format');
+        console.error('❌ Invalid response format:', data);
+        throw new Error(`Invalid response format: expected array, got ${typeof models}`);
       }
       
       // Process and score models
@@ -75,10 +87,21 @@ class OllamaModelsService {
       return this.modelsCache;
       
     } catch (error) {
-      console.error('Failed to fetch Ollama models:', error);
+      console.error('❌ Failed to fetch Ollama models:', error);
+      console.error('Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack'
+      });
+      
       // Return fallback popular models if fetch fails
       const fallback = this.getFallbackModels();
-      console.log(`⚠️ Using ${fallback.length} fallback models`);
+      console.log(`⚠️ Using ${fallback.length} fallback models due to error:`, error);
+      
+      // Cache fallback models to avoid repeated failures
+      this.modelsCache = fallback;
+      this.cacheTimestamp = Date.now();
+      
       return fallback;
     }
   }
@@ -312,37 +335,89 @@ class OllamaModelsService {
    * Get fallback models if API fetch fails
    */
   private getFallbackModels(): OllamaModel[] {
+    console.log('🛡️ Generating fallback models...');
+    
     const fallbackModels = [
       {
         name: 'llama3.2',
         library_path: '/library/llama3.2',
-        description: 'Meta\'s Llama 3.2 model - efficient and capable',
+        description: 'Meta\'s Llama 3.2 model - efficient and capable for most tasks',
         capabilities: ['tools'],
         sizes: ['1b', '3b'],
-        pull_count: '2.1M',
-        tag_count: 6,
-        updated: 'a month ago',
+        pull_count: '28.5M',
+        tag_count: 63,
+        updated: '10 months ago',
       },
       {
         name: 'qwen2.5',
         library_path: '/library/qwen2.5',
-        description: 'Alibaba\'s latest Qwen model with strong reasoning',
-        capabilities: ['tools', 'thinking'],
-        sizes: ['0.5b', '1.5b', '7b', '14b'],
-        pull_count: '1.8M',
-        tag_count: 8,
-        updated: '2 months ago',
+        description: 'Alibaba\'s latest Qwen model with strong reasoning capabilities',
+        capabilities: ['tools'],
+        sizes: ['0.5b', '1.5b', '7b', '14b', '32b', '72b'],
+        pull_count: '12M',
+        tag_count: 133,
+        updated: '10 months ago',
       },
       {
         name: 'gemma2',
         library_path: '/library/gemma2',
-        description: 'Google\'s Gemma 2 - fast and efficient',
-        capabilities: ['tools'],
+        description: 'Google Gemma 2 is a high-performing and efficient model',
+        capabilities: [],
         sizes: ['2b', '9b', '27b'],
-        pull_count: '1.5M',
-        tag_count: 5,
+        pull_count: '6.2M',
+        tag_count: 72,
+        updated: '5 months ago',
+      },
+      {
+        name: 'llama3.1',
+        library_path: '/library/llama3.1',
+        description: 'Llama 3.1 is a new state-of-the-art model from Meta',
+        capabilities: ['tools'],
+        sizes: ['8b', '70b', '405b'],
+        pull_count: '99.5M',
+        tag_count: 93,
+        updated: '8 months ago',
+      },
+      {
+        name: 'mistral',
+        library_path: '/library/mistral',
+        description: 'The 7B model released by Mistral AI, updated to version 0.3',
+        capabilities: ['tools'],
+        sizes: ['7b'],
+        pull_count: '17.5M',
+        tag_count: 84,
+        updated: '3 weeks ago',
+      },
+      {
+        name: 'gemma3',
+        library_path: '/library/gemma3',
+        description: 'The current, most capable model that runs on a single GPU',
+        capabilities: ['vision'],
+        sizes: ['1b', '4b', '12b', '27b'],
+        pull_count: '10.9M',
+        tag_count: 21,
         updated: '3 months ago',
       },
+      {
+        name: 'deepseek-r1',
+        library_path: '/library/deepseek-r1',
+        description: 'DeepSeek-R1 is a family of open reasoning models with performance approaching that of leading models',
+        capabilities: ['tools', 'thinking'],
+        sizes: ['1.5b', '7b', '8b', '14b', '32b', '70b', '671b'],
+        pull_count: '56.2M',
+        tag_count: 35,
+        updated: '1 month ago',
+      },
+      {
+        name: 'llava',
+        library_path: '/library/llava',
+        description: 'LLaVA is a novel end-to-end trained large multimodal model that combines vision and language understanding',
+        capabilities: ['vision'],
+        sizes: ['7b', '13b', '34b'],
+        pull_count: '8.4M',
+        tag_count: 98,
+        updated: '1 year ago',
+      }
     ];
 
     return fallbackModels.map(model => this.processModel(model, {

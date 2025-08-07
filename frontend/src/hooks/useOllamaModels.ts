@@ -35,6 +35,8 @@ export const useOllamaModels = (options: UseOllamaModelsOptions = {}): UseOllama
         ollamaModelsService.getTopRecommendations(topRecommendedCount),
       ]);
       
+      console.log(`✓ useOllamaModels: Fetched ${allModels.length} models, ${recommendedModels.length} recommended`);
+      
       setModels(allModels);
       setTopRecommended(recommendedModels);
     } catch (err) {
