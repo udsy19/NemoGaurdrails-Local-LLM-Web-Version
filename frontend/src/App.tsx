@@ -130,6 +130,9 @@ const MainApp: React.FC = () => {
   const [selectedCapabilities, setSelectedCapabilities] = useState<string[]>([]);
   const [compatibilityFilter, setCompatibilityFilter] = useState<string>('all');
   const [filteredOllamaModels, setFilteredOllamaModels] = useState<import('./services/ollamaModels').OllamaModel[]>([]);
+  const [displayedModels, setDisplayedModels] = useState<import('./services/ollamaModels').OllamaModel[]>([]);
+  const [modelsPerPage] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
   const [downloadProgress, setDownloadProgress] = useState<Map<string, DownloadProgress>>(new Map());
   const [sessionId] = useState(() => `session_${Date.now()}`);
@@ -455,7 +458,23 @@ const MainApp: React.FC = () => {
 
     console.log(`✓ Final filtered models: ${filtered.length}`);
     setFilteredOllamaModels(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [ollamaModels, modelSearch, selectedCapabilities, compatibilityFilter]);
+
+  // Update displayed models based on pagination
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * modelsPerPage;
+    const endIndex = startIndex + modelsPerPage;
+    const paginatedModels = filteredOllamaModels.slice(startIndex, endIndex);
+    
+    console.log(`📄 Page ${currentPage}: showing models ${startIndex + 1}-${Math.min(endIndex, filteredOllamaModels.length)} of ${filteredOllamaModels.length}`);
+    setDisplayedModels(paginatedModels);
+  }, [filteredOllamaModels, currentPage, modelsPerPage]);
+
+  // Calculate pagination info
+  const totalPages = Math.ceil(filteredOllamaModels.length / modelsPerPage);
+  const hasNextPage = currentPage < totalPages;
+  const hasPrevPage = currentPage > 1;
 
   // Filter recommendations based on search (legacy support)
   const filteredRecommendations = recommendations.filter(rec =>
@@ -746,16 +765,26 @@ const MainApp: React.FC = () => {
                   </Alert>
                 )}
 
-                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
                   <Chip 
-                    label={`${ollamaModels.length} Available Models`} 
+                    label={`${ollamaModels.length} Total Models`} 
                     variant="outlined"
                     sx={{ color: '#ffffff', borderColor: 'rgba(255, 255, 255, 0.2)' }} 
+                  />
+                  <Chip 
+                    label={`${filteredOllamaModels.length} Filtered`} 
+                    variant="outlined"
+                    sx={{ color: '#f59e0b', borderColor: '#f59e0b' }} 
                   />
                   <Chip 
                     label={`${topRecommended.length} Recommended`} 
                     variant="outlined"
                     sx={{ color: '#00D4AA', borderColor: '#00D4AA' }} 
+                  />
+                  <Chip 
+                    label={`Page ${currentPage} of ${totalPages}`} 
+                    variant="outlined"
+                    sx={{ color: '#6366f1', borderColor: '#6366f1' }} 
                   />
                 </Box>
               </Box>
@@ -873,7 +902,7 @@ const MainApp: React.FC = () => {
                       These models offer the best compatibility with your hardware configuration
                     </Typography>
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 2 }}>
-                      {topRecommended.slice(0, 3).map((model) => (
+                      {topRecommended.slice(0, 6).map((model) => (
                         <Card key={model.name} sx={{ border: '1px solid rgba(0, 212, 170, 0.3)', backgroundColor: 'rgba(0, 212, 170, 0.02)' }}>
                           <CardContent sx={{ p: 2 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -929,7 +958,7 @@ const MainApp: React.FC = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  filteredOllamaModels.map((model) => (
+                  displayedModels.map((model) => (
                     <Card key={model.name}>
                       <CardContent>
                         {/* Model Header */}
@@ -1070,6 +1099,78 @@ const MainApp: React.FC = () => {
                   ))
                 )}
               </Box>
+
+              {/* Pagination Controls */}
+              {filteredOllamaModels.length > modelsPerPage && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4, gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={!hasPrevPage}
+                    sx={{ color: '#ffffff', borderColor: 'rgba(255, 255, 255, 0.2)' }}
+                  >
+                    Previous
+                  </Button>
+                  
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                      const pageNum = Math.max(1, currentPage - 2) + i;
+                      if (pageNum > totalPages) return null;
+                      
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={pageNum === currentPage ? "contained" : "outlined"}
+                          onClick={() => setCurrentPage(pageNum)}
+                          sx={{
+                            minWidth: '40px',
+                            color: pageNum === currentPage ? '#000000' : '#ffffff',
+                            backgroundColor: pageNum === currentPage ? '#00D4AA' : 'transparent',
+                            borderColor: pageNum === currentPage ? '#00D4AA' : 'rgba(255, 255, 255, 0.2)',
+                            '&:hover': {
+                              backgroundColor: pageNum === currentPage ? '#00B894' : 'rgba(0, 212, 170, 0.1)',
+                            },
+                          }}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </Box>
+                  
+                  <Button
+                    variant="outlined"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={!hasNextPage}
+                    sx={{ color: '#ffffff', borderColor: 'rgba(255, 255, 255, 0.2)' }}
+                  >
+                    Next
+                  </Button>
+                </Box>
+              )}
+
+              {/* Load All Button */}
+              {filteredOllamaModels.length > modelsPerPage && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setDisplayedModels(filteredOllamaModels);
+                      setCurrentPage(1);
+                    }}
+                    sx={{ 
+                      color: '#00D4AA', 
+                      borderColor: '#00D4AA',
+                      '&:hover': { 
+                        backgroundColor: 'rgba(0, 212, 170, 0.1)',
+                        borderColor: '#00B894' 
+                      }
+                    }}
+                  >
+                    Show All {filteredOllamaModels.length} Models
+                  </Button>
+                </Box>
+              )}
             </motion.div>
           )}
 
