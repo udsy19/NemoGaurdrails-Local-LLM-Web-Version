@@ -33,10 +33,10 @@ class OllamaModelsService {
    * Fetch models from Ollama search page (via backend proxy to avoid CORS)
    */
   async fetchAvailableModels(): Promise<OllamaModel[]> {
-    // Check cache first
-    if (this.modelsCache.length > 0 && Date.now() - this.cacheTimestamp < this.CACHE_DURATION) {
-      return this.modelsCache;
-    }
+    // Check cache first - temporarily disabled for debugging
+    // if (this.modelsCache.length > 0 && Date.now() - this.cacheTimestamp < this.CACHE_DURATION) {
+    //   return this.modelsCache;
+    // }
 
     try {
       // Get system specs first (with caching)
