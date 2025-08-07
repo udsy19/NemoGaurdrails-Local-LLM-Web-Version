@@ -29,14 +29,28 @@ class OllamaModelsService {
   private cacheTimestamp: number = 0;
   private readonly CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
+  // Force cache clear method
+  clearCache() {
+    this.modelsCache = [];
+    this.cacheTimestamp = 0;
+    localStorage.removeItem('ollamaModelsCache');
+    localStorage.removeItem('ollamaCacheTime');
+    console.log('🧹 Models cache cleared');
+  }
+
   /**
    * Fetch models from Ollama search page (via backend proxy to avoid CORS)
    */
-  async fetchAvailableModels(): Promise<OllamaModel[]> {
-    // Check cache first - temporarily disabled for debugging
-    // if (this.modelsCache.length > 0 && Date.now() - this.cacheTimestamp < this.CACHE_DURATION) {
-    //   return this.modelsCache;
-    // }
+  async fetchAvailableModels(forceRefresh: boolean = false): Promise<OllamaModel[]> {
+    // Clear cache if force refresh requested
+    if (forceRefresh) {
+      this.clearCache();
+    }
+
+    // Check cache first - completely disabled for debugging
+    if (!forceRefresh) {
+      console.log('⚡ Cache disabled - forcing fresh fetch');  
+    }
 
     try {
       // Get system specs first (with caching)
@@ -48,6 +62,7 @@ class OllamaModelsService {
       
       const apiUrl = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000'}/api/models/search`;
       console.log('📡 Fetching models from:', apiUrl);
+      console.log('🔄 Force refresh:', forceRefresh);
       
       const response = await fetch(apiUrl, {
         signal: controller.signal,
