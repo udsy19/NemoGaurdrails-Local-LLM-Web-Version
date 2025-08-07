@@ -55,6 +55,7 @@ import ModernChatInterface from './components/chat/ModernChatInterface';
 import GPUAcceleration from './components/gpu/GPUAcceleration';
 import DistributedProcessing from './components/distributed/DistributedProcessing';
 import DocsPage from './components/docs/DocsPage';
+import TerminalComponent from './components/terminal/Terminal';
 
 // Auth components
 import { AuthProvider } from './contexts/AuthContext';
@@ -809,12 +810,12 @@ const MainApp: React.FC = () => {
                     />
                     <Button
                       variant="outlined"
-                      onClick={refreshModels}
+                      onClick={() => refreshModels(true)}
                       disabled={modelsLoading}
                       size="small"
                       startIcon={<Download size={16} />}
                     >
-                      {modelsLoading ? 'Loading...' : 'Refresh'}
+                      {modelsLoading ? 'Loading...' : 'Force Refresh'}
                     </Button>
                   </Box>
 
@@ -1176,6 +1177,27 @@ const MainApp: React.FC = () => {
 
           {/* Other tabs content */}
           {activeTab === 'testing' && <AdvancedTestingPlayground />}
+
+          {activeTab === 'terminal' && (
+            <motion.div
+              key="terminal"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
+                  System Terminal
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#a1a1aa', mb: 2 }}>
+                  Real-time system logs and interactive terminal for monitoring AI safety operations
+                </Typography>
+              </Box>
+              
+              <TerminalComponent height="600px" showToolbar={true} autoScroll={true} />
+            </motion.div>
+          )}
 
           {activeTab === 'analytics' && <GuardrailAnalyticsDashboard />}
           {activeTab === 'guardrails' && <GuardrailsConfig />}
