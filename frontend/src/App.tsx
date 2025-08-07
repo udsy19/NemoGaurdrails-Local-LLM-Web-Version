@@ -56,6 +56,7 @@ import GPUAcceleration from './components/gpu/GPUAcceleration';
 import DistributedProcessing from './components/distributed/DistributedProcessing';
 import DocsPage from './components/docs/DocsPage';
 import TerminalComponent from './components/terminal/Terminal';
+import HardwareMonitoringDashboard from './components/hardware/HardwareMonitoringDashboard';
 
 // Auth components
 import { AuthProvider } from './contexts/AuthContext';
@@ -1202,7 +1203,7 @@ const MainApp: React.FC = () => {
           {activeTab === 'analytics' && <GuardrailAnalyticsDashboard />}
           {activeTab === 'guardrails' && <GuardrailsConfig />}
           {activeTab === 'providers' && <ProvidersConfig />}
-          {activeTab === 'hardware' && <GPUAcceleration />}
+          {activeTab === 'hardware' && <HardwareMonitoringDashboard />}
           {activeTab === 'docs' && <DocsPage />}
         </AnimatePresence>
       </Box>
