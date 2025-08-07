@@ -155,7 +155,7 @@ const GuardrailAnalyticsDashboard: React.FC = () => {
 
   const fetchHardwareData = useCallback(async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/system/hardware`);
+      const response = await fetch(`${BACKEND_URL}/api/hardware/metrics`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

@@ -57,6 +57,8 @@ import DistributedProcessing from './components/distributed/DistributedProcessin
 import DocsPage from './components/docs/DocsPage';
 import TerminalComponent from './components/terminal/Terminal';
 import HardwareMonitoringDashboard from './components/hardware/HardwareMonitoringDashboard';
+import SimpleHardwareTest from './components/hardware/SimpleHardwareTest';
+import SimpleModelsTest from './components/hardware/SimpleModelsTest';
 
 // Auth components
 import { AuthProvider } from './contexts/AuthContext';
@@ -517,9 +519,9 @@ const MainApp: React.FC = () => {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Shield size={24} color="#00D4AA" />
+            <img src="/LLMnate_Logo.png" alt="LLMinate Logo" style={{ width: '40px', height: '40px' }} />
             <Typography
-              variant="h6"
+              variant="h5"
               sx={{
                 fontWeight: 600,
                 background: 'linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%)',
@@ -527,7 +529,7 @@ const MainApp: React.FC = () => {
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              AI Safety System
+              LLMinate Guardrail System
             </Typography>
           </Box>
 

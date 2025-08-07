@@ -73,7 +73,7 @@ async def get_analytics_summary(hours: int = 24):
 async def get_realtime_stats():
     """Get real-time statistics"""
     try:
-        stats = analytics_service.get_real_time_stats()
+        stats = await analytics_service.get_real_time_stats()
         
         return {
             "success": True,
@@ -82,11 +82,11 @@ async def get_realtime_stats():
                 "blocked_requests": stats["blocked_requests"],
                 "allowed_requests": stats["allowed_requests"],
                 "error_requests": stats["error_requests"],
-                "recent_requests_5min": stats["recent_requests_5min"],
-                "unique_users_total": stats["unique_users_total"],
-                "avg_response_time": round(stats["avg_response_time"], 2),
+                "recent_requests_5min": stats.get("recent_requests_5min", 0),
+                "unique_users_total": stats.get("unique_users_total", 0),
+                "avg_response_time": round(stats.get("avg_response_time", 0), 2),
                 "block_rate": round(stats["block_rate"], 1),
-                "requests_per_minute": round(stats["requests_per_minute"], 1),
+                "requests_per_minute": round(stats.get("requests_per_minute", 0), 1),
                 "timestamp": datetime.now().isoformat()
             }
         }

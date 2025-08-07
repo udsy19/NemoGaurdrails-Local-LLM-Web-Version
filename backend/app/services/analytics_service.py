@@ -787,7 +787,7 @@ class AnalyticsService:
         except Exception as e:
             logger.error(f"Failed to cleanup old data: {e}")
     
-    def get_database_stats(self) -> Dict[str, Any]:
+    async def get_database_stats(self) -> Dict[str, Any]:
         """Get comprehensive database statistics for monitoring"""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -880,6 +880,405 @@ class AnalyticsService:
             logger.error(f"Failed to export user data for {user_ip}: {e}")
             return {"user_ip": user_ip, "error": str(e)}
     
+    def _parse_timeframe(self, timeframe: str) -> int:
+        """Convert timeframe string to hours"""
+        timeframe_mapping = {
+            '1h': 1,
+            '6h': 6,
+            '12h': 12,
+            '24h': 24,
+            '3d': 72,
+            '1w': 168
+        }
+        return timeframe_mapping.get(timeframe, 24)  # Default to 24h
+    
+    async def get_timeframe_stats(self, timeframe: str) -> dict:
+        """Get comprehensive statistics for a specific timeframe"""
+        try:
+            hours = self._parse_timeframe(timeframe)
+            df = self._get_timeframe_data(hours)
+            summary = self._generate_timeframe_summary(df)
+            
+            return {
+                "timeframe": timeframe,
+                "hours": hours,
+                **summary,
+                "data_points": len(df)
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get timeframe stats for {timeframe}: {e}")
+            return {
+                "timeframe": timeframe,
+                "hours": self._parse_timeframe(timeframe),
+                "total_requests": 0,
+                "blocked_requests": 0,
+                "block_rate": 0.0,
+                "unique_users": 0,
+                "avg_response_time_ms": 0,
+                "total_tokens_input": 0,
+                "total_tokens_output": 0,
+                "avg_tokens_per_request": 0.0,
+                "data_points": 0,
+                "error": str(e)
+            }
+    
+    async def get_guardrail_performance_summary(self, timeframe: str) -> dict:
+        """Get guardrail performance summary for a specific timeframe"""
+        try:
+            hours = self._parse_timeframe(timeframe)
+            df = self._get_timeframe_data(hours)
+            guardrail_analysis = self._generate_guardrail_analysis(df)
+            
+            return {
+                "timeframe": timeframe,
+                "hours": hours,
+                "guardrails": guardrail_analysis,
+                "total_guardrails": len(guardrail_analysis),
+                "data_points": len(df)
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get guardrail performance for {timeframe}: {e}")
+            return {
+                "timeframe": timeframe,
+                "hours": self._parse_timeframe(timeframe),
+                "guardrails": {},
+                "total_guardrails": 0,
+                "data_points": 0,
+                "error": str(e)
+            }
+    
+    async def get_user_activity_summary(self, timeframe: str) -> dict:
+        """Get user activity summary for a specific timeframe"""
+        try:
+            hours = self._parse_timeframe(timeframe)
+            df = self._get_timeframe_data(hours)
+            user_activity = self._generate_user_activity(df)
+            
+            # Calculate summary metrics
+            total_users = len(user_activity)
+            active_users = sum(1 for user_data in user_activity.values() if user_data['total_requests'] > 0)
+            high_risk_users = sum(1 for user_data in user_activity.values() if user_data['risk_score'] > 70)
+            repeat_violators = sum(1 for user_data in user_activity.values() if user_data['blocked_requests'] > 1)
+            
+            return {
+                "timeframe": timeframe,
+                "hours": hours,
+                "summary": {
+                    "total_users": total_users,
+                    "active_users": active_users,
+                    "high_risk_users": high_risk_users,
+                    "repeat_violators": repeat_violators
+                },
+                "users": user_activity,
+                "data_points": len(df)
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get user activity for {timeframe}: {e}")
+            return {
+                "timeframe": timeframe,
+                "hours": self._parse_timeframe(timeframe),
+                "summary": {
+                    "total_users": 0,
+                    "active_users": 0,
+                    "high_risk_users": 0,
+                    "repeat_violators": 0
+                },
+                "users": {},
+                "data_points": 0,
+                "error": str(e)
+            }
+    
+    async def get_provider_performance_summary(self, timeframe: str) -> dict:
+        """Get provider performance summary for a specific timeframe"""
+        try:
+            hours = self._parse_timeframe(timeframe)
+            df = self._get_timeframe_data(hours)
+            provider_performance = self._generate_provider_performance(df)
+            
+            # Calculate summary metrics
+            total_providers = len(provider_performance)
+            total_requests = sum(provider['requests'] for provider in provider_performance.values())
+            avg_response_time = sum(
+                provider['avg_response_time'] * provider['requests'] 
+                for provider in provider_performance.values()
+            ) / total_requests if total_requests > 0 else 0
+            
+            return {
+                "timeframe": timeframe,
+                "hours": hours,
+                "summary": {
+                    "total_providers": total_providers,
+                    "total_requests": total_requests,
+                    "avg_response_time": round(avg_response_time, 2)
+                },
+                "providers": provider_performance,
+                "data_points": len(df)
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get provider performance for {timeframe}: {e}")
+            return {
+                "timeframe": timeframe,
+                "hours": self._parse_timeframe(timeframe),
+                "summary": {
+                    "total_providers": 0,
+                    "total_requests": 0,
+                    "avg_response_time": 0
+                },
+                "providers": {},
+                "data_points": 0,
+                "error": str(e)
+            }
+    
+    async def get_active_alerts(self, timeframe: str) -> list:
+        """Get active alerts for a specific timeframe"""
+        try:
+            hours = self._parse_timeframe(timeframe)
+            df = self._get_timeframe_data(hours)
+            
+            # Generate summary and guardrail analysis for alert generation
+            summary = self._generate_timeframe_summary(df)
+            guardrail_analysis = self._generate_guardrail_analysis(df)
+            
+            # Generate alerts using existing logic
+            alerts = self._generate_alerts(summary, guardrail_analysis)
+            
+            # Add timeframe context to alerts
+            for alert in alerts:
+                alert['timeframe'] = timeframe
+                alert['hours'] = hours
+                alert['generated_at'] = datetime.utcnow().isoformat()
+            
+            return alerts
+            
+        except Exception as e:
+            logger.error(f"Failed to get active alerts for {timeframe}: {e}")
+            return []
+    
+    async def get_users_summary(self) -> dict:
+        """Get comprehensive users summary across all timeframes"""
+        try:
+            # Get recent data (last week) for user analysis
+            df = self._get_timeframe_data(168)  # 1 week
+            
+            if df.empty:
+                return {
+                    "users": [],
+                    "summary": {
+                        "total_users": 0,
+                        "active_users_24h": 0,
+                        "active_users_7d": 0,
+                        "high_risk_users": 0,
+                        "repeat_violators": 0
+                    }
+                }
+            
+            # Generate user activity for full week
+            user_activity = self._generate_user_activity(df)
+            
+            # Get 24h data for active user count
+            df_24h = self._get_timeframe_data(24)
+            active_users_24h = df_24h['user_ip'].nunique() if not df_24h.empty else 0
+            
+            # Convert user activity to list format with additional metrics
+            users_list = []
+            for user_ip, user_data in user_activity.items():
+                users_list.append({
+                    "user_ip": user_ip,
+                    "total_requests": user_data['total_requests'],
+                    "blocked_requests": user_data['blocked_requests'],
+                    "block_rate": user_data['block_rate'],
+                    "risk_score": user_data['risk_score'],
+                    "avg_response_time": user_data['avg_response_time'],
+                    "total_tokens": user_data['total_tokens'],
+                    "unique_sessions": user_data['unique_sessions'],
+                    "top_blocked_guardrail": user_data['top_blocked_guardrail'],
+                    "first_seen": user_data['first_seen'],
+                    "last_seen": user_data['last_seen'],
+                    "is_high_risk": user_data['risk_score'] > 70,
+                    "is_repeat_violator": user_data['blocked_requests'] > 1
+                })
+            
+            # Sort by risk score and total requests
+            users_list.sort(key=lambda x: (x['risk_score'], x['total_requests']), reverse=True)
+            
+            # Calculate summary metrics
+            high_risk_users = sum(1 for user in users_list if user['is_high_risk'])
+            repeat_violators = sum(1 for user in users_list if user['is_repeat_violator'])
+            
+            return {
+                "users": users_list,
+                "summary": {
+                    "total_users": len(users_list),
+                    "active_users_24h": active_users_24h,
+                    "active_users_7d": len(users_list),
+                    "high_risk_users": high_risk_users,
+                    "repeat_violators": repeat_violators
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get users summary: {e}")
+            return {
+                "users": [],
+                "summary": {
+                    "total_users": 0,
+                    "active_users_24h": 0,
+                    "active_users_7d": 0,
+                    "high_risk_users": 0,
+                    "repeat_violators": 0
+                },
+                "error": str(e)
+            }
+    
+    async def get_user_detailed_data(self, user_id: str, timeframe: str) -> dict:
+        """Get detailed data for a specific user within a timeframe"""
+        try:
+            hours = self._parse_timeframe(timeframe)
+            cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+            cutoff_str = cutoff_time.isoformat()
+            
+            query = """
+                SELECT * FROM user_analytics 
+                WHERE user_ip = ? AND timestamp >= ?
+                ORDER BY timestamp DESC
+            """
+            
+            with sqlite3.connect(self.db_path) as conn:
+                df = pd.read_sql_query(query, conn, params=[user_id, cutoff_str])
+            
+            if df.empty:
+                return {
+                    "user_id": user_id,
+                    "timeframe": timeframe,
+                    "hours": hours,
+                    "found": False,
+                    "message": "No data found for this user in the specified timeframe"
+                }
+            
+            # Generate detailed analytics for this specific user
+            user_summary = {
+                "total_requests": len(df),
+                "blocked_requests": len(df[df['status'] == 'blocked']),
+                "allowed_requests": len(df[df['status'] == 'allowed']),
+                "error_requests": len(df[df['status'] == 'error']),
+                "block_rate": len(df[df['status'] == 'blocked']) / len(df) * 100 if len(df) > 0 else 0,
+                "avg_response_time": df['response_time_ms'].mean() if 'response_time_ms' in df.columns else 0,
+                "total_tokens_input": df['tokens_input'].sum() if 'tokens_input' in df.columns else 0,
+                "total_tokens_output": df['tokens_output'].sum() if 'tokens_output' in df.columns else 0,
+                "unique_sessions": df['session_id'].nunique() if 'session_id' in df.columns else 1,
+                "first_request": df['timestamp'].min(),
+                "last_request": df['timestamp'].max()
+            }
+            
+            # Guardrail analysis for this user
+            guardrails = ['toxicity', 'pii', 'prompt_injection', 'hate_speech', 'bias', 'privacy']
+            user_guardrail_analysis = {}
+            
+            for guardrail in guardrails:
+                score_col = f"{guardrail}_score"
+                confidence_col = f"{guardrail}_confidence"
+                
+                if score_col in df.columns:
+                    triggered_count = len(df[df[score_col] > 0.5]) if guardrail != 'pii' else len(df[df.get('pii_detected', False) == True])
+                    avg_score = df[score_col].mean() if guardrail != 'pii' else (len(df[df.get('pii_detected', False) == True]) / len(df) if len(df) > 0 else 0)
+                    max_score = df[score_col].max() if guardrail != 'pii' else (1 if len(df[df.get('pii_detected', False) == True]) > 0 else 0)
+                    avg_confidence = df[confidence_col].mean() if confidence_col in df.columns else 0
+                    
+                    user_guardrail_analysis[guardrail] = {
+                        "triggered_count": triggered_count,
+                        "avg_score": round(float(avg_score), 3) if pd.notna(avg_score) else 0,
+                        "max_score": round(float(max_score), 3) if pd.notna(max_score) else 0,
+                        "avg_confidence": round(float(avg_confidence), 3) if pd.notna(avg_confidence) else 0,
+                        "trigger_rate": round(triggered_count / len(df) * 100, 1) if len(df) > 0 else 0
+                    }
+            
+            # Request timeline for this user
+            request_timeline = []
+            for _, row in df.iterrows():
+                request_timeline.append({
+                    "timestamp": row['timestamp'],
+                    "status": row['status'],
+                    "blocked_by": row.get('blocked_by'),
+                    "response_time_ms": row.get('response_time_ms', 0),
+                    "provider_used": row.get('provider_used'),
+                    "model_used": row.get('model_used'),
+                    "tokens_input": row.get('tokens_input', 0),
+                    "tokens_output": row.get('tokens_output', 0)
+                })
+            
+            # Top blocking reasons for this user
+            blocked_df = df[df['status'] == 'blocked']
+            top_blocked_reasons = []
+            if not blocked_df.empty and 'blocked_by' in blocked_df.columns:
+                blocked_reasons = blocked_df['blocked_by'].value_counts().head(5)
+                top_blocked_reasons = [
+                    {"reason": reason, "count": int(count)} 
+                    for reason, count in blocked_reasons.items()
+                ]
+            
+            # Calculate risk assessment
+            risk_factors = []
+            risk_score = 0
+            
+            block_rate = user_summary['block_rate']
+            if block_rate > 50:
+                risk_factors.append("High block rate")
+                risk_score += 30
+            elif block_rate > 20:
+                risk_factors.append("Elevated block rate")
+                risk_score += 15
+            
+            if user_summary['total_requests'] > 100:
+                risk_factors.append("High volume user")
+                risk_score += 10
+            
+            if user_summary['unique_sessions'] > 10:
+                risk_factors.append("Multiple sessions")
+                risk_score += 5
+            
+            # Check for multiple guardrail triggers
+            triggered_guardrails = sum(1 for g_data in user_guardrail_analysis.values() if g_data['triggered_count'] > 0)
+            if triggered_guardrails > 3:
+                risk_factors.append("Multiple guardrail types triggered")
+                risk_score += 20
+            elif triggered_guardrails > 1:
+                risk_factors.append("Multiple guardrail triggers")
+                risk_score += 10
+            
+            risk_score = min(100, risk_score)
+            risk_level = "low" if risk_score < 30 else "medium" if risk_score < 70 else "high"
+            
+            return {
+                "user_id": user_id,
+                "timeframe": timeframe,
+                "hours": hours,
+                "found": True,
+                "summary": user_summary,
+                "guardrail_analysis": user_guardrail_analysis,
+                "request_timeline": request_timeline,
+                "top_blocked_reasons": top_blocked_reasons,
+                "risk_assessment": {
+                    "risk_score": risk_score,
+                    "risk_level": risk_level,
+                    "risk_factors": risk_factors
+                },
+                "data_points": len(df)
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get detailed user data for {user_id}: {e}")
+            return {
+                "user_id": user_id,
+                "timeframe": timeframe,
+                "hours": self._parse_timeframe(timeframe),
+                "found": False,
+                "error": str(e)
+            }
+    
     # Backward compatibility methods for existing code
     def track_request(self, ip_address: str, user_agent: str, message: str, 
                      status: str, blocking_reasons: List[str] = None,
@@ -921,7 +1320,7 @@ class AnalyticsService:
         
         return request_id
     
-    def get_real_time_stats(self) -> Dict[str, Any]:
+    async def get_real_time_stats(self) -> Dict[str, Any]:
         """Get real-time statistics for dashboard"""
         return {
             "total_requests": self.total_requests,
@@ -929,7 +1328,7 @@ class AnalyticsService:
             "allowed_requests": self.allowed_requests,
             "error_requests": self.error_requests,
             "block_rate": (self.blocked_requests / self.total_requests * 100) if self.total_requests > 0 else 0,
-            "database_stats": self.get_database_stats()
+            "database_stats": await self.get_database_stats()
         }
 
     def get_analytics_summary(self, hours: int = 24) -> Dict[str, Any]:

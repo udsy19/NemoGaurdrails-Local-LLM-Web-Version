@@ -1,0 +1,96 @@
+[2025-08-07 16:49:40] [BACKEND] INFO:     Will watch for changes in these directories: ['/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/backend']
+[2025-08-07 16:49:40] [BACKEND] INFO:     Uvicorn running on http://0.0.0.0:8003 (Press CTRL+C to quit)
+[2025-08-07 16:49:40] [BACKEND] INFO:     Started reloader process [92671] using WatchFiles
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m102[0m - [1m[system] AI Safety System with enhanced ML capabilities[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[models] ✅ Loading ML-based safety detectors...[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m102[0m - [1m[api] All API endpoints ready[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m102[0m - [1m[frontend] React and Streamlit frontends supported[0m
+[2025-08-07 16:49:43] [BACKEND] INFO:     Started server process [92676]
+[2025-08-07 16:49:43] [BACKEND] INFO:     Waiting for application startup.
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m168[0m - [1mStarting AI Safety System with enhanced resilience...[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m102[0m - [1m[system] Starting AI Safety System with ML-based detection...[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36m_setup_health_monitoring[0m:[36m353[0m - [1mHealth monitoring setup completed[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36m_setup_graceful_degradation[0m:[36m406[0m - [1mGraceful degradation setup completed[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m102[0m - [1m[models] Loading ML-based safety detectors...[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m46[0m - [1mInitializing Model Manager...[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m54[0m - [1mOllama client initialized successfully[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m82[0m - [1mLoading detector for enterprise deployment: toxicity[0m
+[2025-08-07 16:49:43] [BACKEND] [32m2025-08-07 16:49:43[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m26[0m - [1mLoading toxicity model: martin-ha/toxic-comment-model[0m
+[2025-08-07 16:49:45] [BACKEND] Device set to use cpu
+[2025-08-07 16:49:45] [BACKEND] /Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/backend/venv/lib/python3.13/site-packages/transformers/pipelines/text_classification.py:111: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+[2025-08-07 16:49:45] [BACKEND]   warnings.warn(
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m40[0m - [1mToxicity model loaded successfully[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m101[0m - [1mEnterprise optimization applied for detector toxicity[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m111[0m - [1mDetector toxicity loaded and ready for enterprise use[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m82[0m - [1mLoading detector for enterprise deployment: pii[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m101[0m - [1mLoading PII detection model: en_core_web_sm[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m106[0m - [1mPII detection model loaded successfully[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m111[0m - [1mDetector pii loaded and ready for enterprise use[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m82[0m - [1mLoading detector for enterprise deployment: prompt_injection[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m197[0m - [1mLoading prompt injection detector[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m205[0m - [1mPrompt injection detector loaded successfully[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m111[0m - [1mDetector prompt_injection loaded and ready for enterprise use[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m82[0m - [1mLoading detector for enterprise deployment: topic[0m
+[2025-08-07 16:49:45] [BACKEND] [32m2025-08-07 16:49:45[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m275[0m - [1mLoading topic detection model: all-MiniLM-L6-v2[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m286[0m - [1mTopic detection model loaded successfully[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m101[0m - [1mEnterprise optimization applied for detector topic[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m111[0m - [1mDetector topic loaded and ready for enterprise use[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m82[0m - [1mLoading detector for enterprise deployment: fact_check[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m336[0m - [1mLoading fact-check detector[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m338[0m - [1mFact-check detector loaded successfully[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m111[0m - [1mDetector fact_check loaded and ready for enterprise use[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m82[0m - [1mLoading detector for enterprise deployment: spam[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m395[0m - [1mLoading spam detector[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.detector_models[0m:[36mload_model[0m:[36m397[0m - [1mSpam detector loaded successfully[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mload_detector[0m:[36m111[0m - [1mDetector spam loaded and ready for enterprise use[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36minitialize[0m:[36m64[0m - [1mModel Manager initialized successfully[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[models] ✅ All ML detectors loaded successfully[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.services.config_service[0m:[36mload_system_config[0m:[36m53[0m - [1mSystem configuration loaded from file with environment variable expansion[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.services.config_service[0m:[36minitialize[0m:[36m21[0m - [1mConfiguration service initialized successfully[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[config] ✅ Configuration service initialized[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m35[0m - [1mInitializing Guardrails System...[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m43[0m - [1mInitializing Phase 4 Multi-Stage Pipeline...[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.layers.pre_screening[0m:[36m__init__[0m:[36m76[0m - [1mPre-screening layer initialized with enhanced rule-based detection[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.layers.cross_validation[0m:[36m__init__[0m:[36m84[0m - [1mCross-validation layer initialized with advanced conflict resolution[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.layers.context_analysis[0m:[36m__init__[0m:[36m98[0m - [1mContext analysis layer initialized with LLM-based reasoning[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.pipeline.multi_stage_pipeline[0m:[36m__init__[0m:[36m53[0m - [1mMulti-stage pipeline initialized[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m45[0m - [1mPhase 4 pipeline initialized successfully[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m60[0m - [1mLoading configuration for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_base_config[0m:[36m28[0m - [1mBase configuration loaded successfully[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for toxicity[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for pii[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for prompt_injection[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for topic[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for fact_check[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mload_detector_config[0m:[36m48[0m - [1mDetector configuration loaded for spam[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.config_loader[0m:[36mgenerate_dynamic_config[0m:[36m73[0m - [1mDynamic configuration generated for detectors: ['toxicity', 'pii', 'prompt_injection', 'topic', 'fact_check', 'spam'][0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_input_flows[0m:[36m172[0m - [1mInput flows written successfully[0m
+[2025-08-07 16:49:50] [BACKEND] [32m2025-08-07 16:49:50[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mwrite_output_flows[0m:[36m229[0m - [1mOutput flows written successfully[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36mload_configuration[0m:[36m93[0m - [1mGuardrails configuration loaded successfully[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.guardrails.guardrails_manager[0m:[36minitialize[0m:[36m51[0m - [1mGuardrails system initialized successfully[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.services.chat_service[0m:[36minitialize[0m:[36m22[0m - [1mChat service initialized successfully[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[services] ✅ Chat and detection services initialized[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [33m[1mWARNING [0m | [36mapp.services.auth_service[0m:[36m_initialize_supabase[0m:[36m47[0m - [33m[1mSupabase URL is using http. Forcing https to prevent auth issues.[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.services.auth_service[0m:[36m_initialize_supabase[0m:[36m51[0m - [1mSupabase client initialized successfully[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.services.auth_service[0m:[36m__init__[0m:[36m386[0m - [1mSupabase authentication service initialized successfully[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[auth] ✅ Authentication service initialized[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[distributed] ✅ Distributed processing system initialized[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.services.distributed_detection_service[0m:[36m_register_detection_functions[0m:[36m210[0m - [1mRegistered 6 detection functions with distributed processor[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.services.distributed_detection_service[0m:[36m__init__[0m:[36m75[0m - [1mDistributed Detection Service initialized[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[distributed] ✅ Distributed detection service initialized[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[traffic_router] ✅ Traffic router initialized with detection and config services[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[multi_tenant] ✅ Multi-tenant manager initialized with usage tracking[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[ab_testing] ✅ A/B testing manager initialized[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[analytics] ✅ KPMG export scheduler started[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.core.dependencies[0m:[36minitialize_dependencies[0m:[36m302[0m - [1mDependency injection system initialized[0m
+[2025-08-07 16:49:53] [BACKEND] [32m2025-08-07 16:49:53[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[dependencies] ✅ Dependency injection system initialized[0m
+[2025-08-07 16:49:54] [BACKEND] [32m2025-08-07 16:49:54[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m269[0m - [1mInitial diagnostics completed: 3 checks[0m
+[2025-08-07 16:49:56] [BACKEND] [32m2025-08-07 16:49:56[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mupdate_detector_config[0m:[36m374[0m - [1mUpdated config for toxicity: {'enabled': True}[0m
+[2025-08-07 16:49:56] [BACKEND] [32m2025-08-07 16:49:56[0m | [1mINFO    [0m | [36mapp.models.model_manager[0m:[36mset_active_detectors[0m:[36m339[0m - [1mActive detectors updated: ['toxicity'][0m
+[2025-08-07 16:49:56] [BACKEND] KPMG transmission network error (attempt 1): Cannot connect to host kpmg-dashboard-api.com:443 ssl:default [nodename nor servname provided, or not known]
+[2025-08-07 16:49:56] [BACKEND] [32m2025-08-07 16:49:56[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m273[0m - [1mSystem health status: healthy[0m
+[2025-08-07 16:49:56] [BACKEND] [32m2025-08-07 16:49:56[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m100[0m - [1m[system] ✅ AI Safety System initialized successfully (NeMo: True)[0m
+[2025-08-07 16:49:56] [BACKEND] [32m2025-08-07 16:49:56[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m102[0m - [1m[api] All API endpoints ready[0m
+[2025-08-07 16:49:56] [BACKEND] [32m2025-08-07 16:49:56[0m | [1mINFO    [0m | [36mapp.main[0m:[36madd_system_log[0m:[36m102[0m - [1m[frontend] React and Streamlit frontends supported[0m
+[2025-08-07 16:49:56] [BACKEND] [32m2025-08-07 16:49:56[0m | [1mINFO    [0m | [36mapp.main[0m:[36mlifespan[0m:[36m285[0m - [1mAI Safety System initialized successfully (NeMo: True)[0m
+[2025-08-07 16:49:56] [BACKEND] INFO:     Application startup complete.

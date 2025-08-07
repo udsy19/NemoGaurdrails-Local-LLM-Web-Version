@@ -1,0 +1,52 @@
+
+> llminate-dashboards@1.0.0 dev
+> webpack serve --mode development
+
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:3003/
+<i> [webpack-dev-server] On Your Network (IPv4): http://172.20.10.2:3003/
+<i> [webpack-dev-server] On Your Network (IPv6): http://[fe80::1]:3003/
+<i> [webpack-dev-server] Content not from webpack is served from '/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/public' directory
+<i> [webpack-dev-server] 404s will fallback to '/index.html'
+asset bundle.js 3.98 MiB [emitted] (name: main)
+asset index.html 1.82 KiB [emitted]
+orphan modules 1.41 MiB [orphan] 1552 modules
+runtime modules 27.2 KiB 14 modules
+cacheable modules 2.96 MiB
+  modules by path ./node_modules/ 2.87 MiB 754 modules
+  modules by path ./src/ 86.6 KiB
+    modules by path ./src/components/ 50.1 KiB 3 modules
+    modules by path ./src/services/*.js 9.41 KiB 2 modules
+    modules by path ./src/styles/*.css 15.5 KiB
+      ./src/styles/globals.css 2.27 KiB [built] [code generated]
+      ./node_modules/css-loader/dist/cjs.js!./src/styles/globals.css 13.3 KiB [built] [code generated]
+    ./src/index.js 345 bytes [built] [code generated]
+    ./src/App.jsx 5.67 KiB [built] [code generated]
+    ./src/hooks/useWebSocket.js 5.52 KiB [built] [code generated]
+  data:image/svg+xml,%3csvg xmlns=%27.. 284 bytes [built] [code generated]
+webpack 5.101.0 compiled successfully in 1068 ms
+URIError: Failed to decode param '/%PUBLIC_URL%/favicon.ico'
+    at decodeURIComponent (<anonymous>)
+    at decode_param (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/layer.js:172:12)
+    at Layer.match (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/layer.js:123:27)
+    at matchLayer (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:585:18)
+    at next (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:226:15)
+    at expressInit (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/middleware/init.js:40:5)
+    at Layer.handle [as handle_request] (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:328:13)
+    at /Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:280:10)
+    at query (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/middleware/query.js:45:5)
+    at Layer.handle [as handle_request] (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:328:13)
+    at /Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:280:10)
+    at Function.handle (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/router/index.js:175:3)
+    at Function.handle (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/application.js:181:10)
+    at Server.app (/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/node_modules/express/lib/express.js:39:9)
+    at Server.emit (node:events:507:28)
+    at parserOnIncoming (node:_http_server:1153:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:117:17)
+<i> [webpack-dev-server] Gracefully shutting down. To force exit, press ^C again. Please wait...

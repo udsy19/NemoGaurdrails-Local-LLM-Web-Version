@@ -49,7 +49,7 @@ async def get_real_time_stats():
     Returns current counters and database status.
     """
     try:
-        stats = analytics_service.get_real_time_stats()
+        stats = await analytics_service.get_real_time_stats()
         return AnalyticsStatsResponse(**stats)
     except Exception as e:
         logger.error(f"Failed to get analytics stats: {e}")
@@ -61,7 +61,7 @@ async def get_database_stats():
     Get comprehensive database statistics and health information.
     """
     try:
-        stats = analytics_service.get_database_stats()
+        stats = await analytics_service.get_database_stats()
         return stats
     except Exception as e:
         logger.error(f"Failed to get database stats: {e}")
@@ -339,7 +339,7 @@ async def analytics_health_check():
     """
     try:
         # Check database connectivity
-        db_stats = analytics_service.get_database_stats()
+        db_stats = await analytics_service.get_database_stats()
         db_healthy = bool(db_stats and "total_records" in db_stats)
         
         # Check export scheduler status

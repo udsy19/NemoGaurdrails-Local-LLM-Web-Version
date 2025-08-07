@@ -214,7 +214,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
           sx={{
             maxWidth: 450,
             width: '100%',
-            background: 'rgba(255, 255, 255, 0.02)',
+            background: 'rgba(20, 20, 22, 0.7)',
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: 3,
@@ -224,26 +224,16 @@ const LoginPage: React.FC<LoginPageProps> = ({
           <CardContent sx={{ p: 4 }}>
             {/* Header */}
             <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <motion.div
-                animate={{
-                  scale: [1, 1.05, 1],
-                  rotate: [0, 2, -2, 0],
+              <img
+                src="/LLMnate_Logo.png"
+                alt="LLMnate Logo"
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  marginBottom: '16px',
+                  filter: 'drop-shadow(0 0 20px rgba(0, 212, 170, 0.3))',
                 }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              >
-                <Shield
-                  sx={{
-                    fontSize: 64,
-                    color: '#00D4AA',
-                    mb: 2,
-                    filter: 'drop-shadow(0 0 20px rgba(0, 212, 170, 0.3))',
-                  }}
-                />
-              </motion.div>
+              />
               
               <Typography
                 variant="h4"
@@ -257,7 +247,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                AI Safety System
+                LLMinate Guardrail System
               </Typography>
               
               <Typography

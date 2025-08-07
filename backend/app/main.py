@@ -44,7 +44,10 @@ from app.api.advanced_analytics import router as advanced_analytics_router
 from app.api.multi_tenant import router as multi_tenant_router
 from app.api.ab_testing import router as ab_testing_router
 from app.api.models_api import router as models_router
+from app.api.hardware_monitoring import router as hardware_router
+from app.api.hardware_monitoring import router as hardware_router
 from app.services.traffic_router import traffic_router
+from app.services.data_aggregation_service import DataAggregationService
 from app.utils.distributed_processor import initialize_distributed_processing, DistributedConfig
 from app.services.distributed_detection_service import initialize_distributed_detection_service
 from app.utils.multi_tenant import get_multi_tenant_manager
@@ -55,6 +58,7 @@ from app.services.export_scheduler import export_scheduler
 from app.services.auth_service import initialize_auth_manager
 from app.api.auth_endpoints import auth_router
 from app.middleware.auth_middleware import create_auth_middleware
+from app.services.dashboard_websocket import dashboard_websocket_manager
 
 # Try to import NeMo Guardrails, fall back to simple implementation
 try:
@@ -70,6 +74,7 @@ model_manager: ModelManager = None
 detection_service: DetectionService = None
 chat_service: ChatService = None
 config_service: ConfigService = None
+data_aggregation_service: DataAggregationService = None
 
 # System logs storage for real-time monitoring
 system_logs = []
@@ -153,7 +158,7 @@ async def _enterprise_monitoring_task(model_manager):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global model_manager, detection_service, chat_service, config_service
+    global model_manager, detection_service, chat_service, config_service, data_aggregation_service
     
     # Initialize correlation context for startup
     startup_context = CorrelationContextManager.create_context(
@@ -243,6 +248,11 @@ async def lifespan(app: FastAPI):
         await export_scheduler.start()
         add_system_log("success", "analytics", "KPMG export scheduler started")
         
+        # Start data aggregation service for dashboard optimization
+        data_aggregation_service = DataAggregationService()
+        asyncio.create_task(data_aggregation_service.start_periodic_aggregation(interval_minutes=15))
+        add_system_log("success", "analytics", "Data aggregation service started for dashboard optimization")
+        
         # Store in app state
         app.state.model_manager = model_manager
         app.state.detection_service = detection_service
@@ -256,6 +266,7 @@ async def lifespan(app: FastAPI):
         app.state.self_healing_system = self_healing_system
         app.state.multi_tenant_manager = multi_tenant_manager
         app.state.ab_testing_manager = ab_testing_manager
+        app.state.data_aggregation_service = data_aggregation_service
         
         # Initialize dependency injection system
         initialize_dependencies(app)
@@ -632,7 +643,9 @@ app.add_middleware(
         "http://localhost:8501", 
         "http://127.0.0.1:8501",
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
+        "http://localhost:3003",
+        "http://127.0.0.1:3003"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -682,6 +695,7 @@ app.include_router(advanced_analytics_router, tags=["advanced-analytics"])
 app.include_router(multi_tenant_router, tags=["multi-tenant"])
 app.include_router(ab_testing_router, tags=["ab-testing"])
 app.include_router(models_router, tags=["models"])
+app.include_router(hardware_router, tags=["hardware"])
 
 @app.get("/")
 async def root():
@@ -1236,6 +1250,37 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         app_logger.error(f"WebSocket error: {e}")
         await websocket.close()
+
+# WebSocket endpoint for LLMinate dashboards
+@app.websocket("/ws/dashboard")
+async def dashboard_websocket_endpoint(websocket: WebSocket):
+    import uuid
+    client_id = str(uuid.uuid4())
+    
+    try:
+        # Connect to dashboard websocket manager
+        await dashboard_websocket_manager.connect(websocket, client_id, 'main')
+        app_logger.info(f"Dashboard WebSocket connection established: {client_id}")
+        
+        while True:
+            try:
+                # Receive message from client
+                data = await websocket.receive_json()
+                
+                # Handle the message
+                await dashboard_websocket_manager.handle_client_message(client_id, data)
+                
+            except Exception as e:
+                app_logger.error(f"Error handling dashboard WebSocket message: {e}")
+                break
+                
+    except WebSocketDisconnect:
+        app_logger.info(f"Dashboard WebSocket connection closed: {client_id}")
+    except Exception as e:
+        app_logger.error(f"Dashboard WebSocket error: {e}")
+    finally:
+        # Ensure cleanup
+        await dashboard_websocket_manager.disconnect(client_id)
 
 # Initialize some startup logs
 add_system_log("info", "system", "AI Safety System with enhanced ML capabilities")

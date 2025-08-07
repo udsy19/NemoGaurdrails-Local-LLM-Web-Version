@@ -1,0 +1,27 @@
+[2025-08-07 16:49:53] [DASHBOARD] 
+[2025-08-07 16:49:53] [DASHBOARD] > llminate-dashboards@1.0.0 dev
+[2025-08-07 16:49:53] [DASHBOARD] > webpack serve --mode development
+[2025-08-07 16:49:53] [DASHBOARD] 
+[2025-08-07 16:49:53] [DASHBOARD] <i> [webpack-dev-server] Project is running at:
+[2025-08-07 16:49:53] [DASHBOARD] <i> [webpack-dev-server] Loopback: http://localhost:3003/
+[2025-08-07 16:49:53] [DASHBOARD] <i> [webpack-dev-server] On Your Network (IPv4): http://172.20.10.2:3003/
+[2025-08-07 16:49:53] [DASHBOARD] <i> [webpack-dev-server] On Your Network (IPv6): http://[fe80::1]:3003/
+[2025-08-07 16:49:53] [DASHBOARD] <i> [webpack-dev-server] Content not from webpack is served from '/Users/udsy/PycharmProjects/KPMG/NemoGaurdrails-Local-LLM-Web-Version/LLMinate/public' directory
+[2025-08-07 16:49:53] [DASHBOARD] <i> [webpack-dev-server] 404s will fallback to '/index.html'
+[2025-08-07 16:49:54] [DASHBOARD] asset bundle.js 3.81 MiB [emitted] (name: main)
+[2025-08-07 16:49:54] [DASHBOARD] asset index.html 1.8 KiB [emitted]
+[2025-08-07 16:49:54] [DASHBOARD] orphan modules 1.41 MiB [orphan] 1552 modules
+[2025-08-07 16:49:54] [DASHBOARD] runtime modules 27.2 KiB 14 modules
+[2025-08-07 16:49:54] [DASHBOARD] cacheable modules 2.83 MiB
+[2025-08-07 16:49:54] [DASHBOARD]   modules by path ./node_modules/ 2.75 MiB 725 modules
+[2025-08-07 16:49:54] [DASHBOARD]   modules by path ./src/ 87.1 KiB
+[2025-08-07 16:49:54] [DASHBOARD]     modules by path ./src/components/ 50.5 KiB 3 modules
+[2025-08-07 16:49:54] [DASHBOARD]     modules by path ./src/services/*.js 9.7 KiB 2 modules
+[2025-08-07 16:49:54] [DASHBOARD]     modules by path ./src/styles/*.css 15.5 KiB
+[2025-08-07 16:49:54] [DASHBOARD]       ./src/styles/globals.css 2.27 KiB [built] [code generated]
+[2025-08-07 16:49:54] [DASHBOARD]       ./node_modules/css-loader/dist/cjs.js!./src/styles/globals.css 13.3 KiB [built] [code generated]
+[2025-08-07 16:49:54] [DASHBOARD]     ./src/index.js 345 bytes [built] [code generated]
+[2025-08-07 16:49:54] [DASHBOARD]     ./src/App.jsx 5.26 KiB [built] [code generated]
+[2025-08-07 16:49:54] [DASHBOARD]     ./src/hooks/useWebSocket.js 5.83 KiB [built] [code generated]
+[2025-08-07 16:49:54] [DASHBOARD]   data:image/svg+xml,%3csvg xmlns=%27.. 284 bytes [built] [code generated]
+[2025-08-07 16:49:54] [DASHBOARD] webpack 5.101.0 compiled successfully in 1059 ms
