@@ -25,6 +25,25 @@ app:
   name: AI Safety System
   resilience_enabled: true
   version: 2.0.0
+auth:
+  enabled: true
+  supabase:
+    url: "${SUPABASE_URL}"
+    anon_key: "${REACT_APP_SUPABASEANONKEY}"
+    service_role_key: "${SUPABASE_SERVICE_ROLE_KEY}"
+  jwt:
+    secret_key: "${JWT_SECRET_KEY}"
+    algorithm: "HS256"
+    token_expire_minutes: 30
+    refresh_interval_minutes: 20
+  license:
+    verification_endpoint: "${LICENSE_VERIFICATION_ENDPOINT}"
+    certificate_file: "public_key.pem"
+    bypass_enabled: "${AUTH_BYPASS_ENABLED:false}"
+  development:
+    bypass_enabled: "${DEV_AUTH_BYPASS:false}"
+    test_user_email: "${DEV_TEST_EMAIL}"
+    test_user_password: "${DEV_TEST_PASSWORD}"
 chat:
   max_history: 100
   max_message_length: 10000
@@ -45,7 +64,7 @@ detectors:
     severity: high
     threshold: 0.6
   prompt_injection:
-    enabled: true
+    enabled: false
     threshold: 0.7
   spam:
     enabled: true
@@ -60,7 +79,7 @@ detectors:
     customKeywords:
     - test
     customResponse: Test response
-    enabled: true
+    enabled: false
     model: martin-ha/toxic-comment-model
     severity: high
     threshold: 0.85

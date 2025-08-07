@@ -1,0 +1,765 @@
+{
+  "export_metadata": {
+    "generated_at": "2025-08-06T17:53:24.648832",
+    "export_version": "1.0",
+    "time_ranges": [
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "3d",
+      "1w"
+    ],
+    "database_path": "user_data/ai_safety_analytics.db",
+    "system_info": {
+      "total_records": 5400,
+      "database_size_mb": 1.58
+    }
+  },
+  "time_ranges": {
+    "1h": {
+      "summary": {
+        "total_requests": 794,
+        "blocked_requests": 63,
+        "block_rate": 0.079,
+        "unique_users": 1,
+        "avg_response_time_ms": 628.57,
+        "total_tokens_input": 1632,
+        "total_tokens_output": 0,
+        "avg_tokens_per_request": 2.06
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 3,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 794,
+          "effectiveness_percentage": 0.4
+        },
+        "pii": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 794,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 794,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 794,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 794,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 794,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 794,
+          "blocked_requests": 63,
+          "block_rate": 7.9,
+          "avg_response_time": 628.57,
+          "total_tokens": 1632,
+          "unique_sessions": 13,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 22.9,
+          "first_seen": "2025-08-06T16:54:56.479595",
+          "last_seen": "2025-08-06T17:44:50.964329"
+        }
+      },
+      "provider_performance": {
+        "Ollama (Local)": {
+          "requests": 2,
+          "avg_response_time": 31.5,
+          "blocked_requests": 2,
+          "error_requests": 0,
+          "block_rate": 100.0,
+          "error_rate": 0.0,
+          "total_tokens": 12,
+          "avg_tokens_per_request": 6.0,
+          "models_used": {
+            "llama3.2": 2
+          }
+        },
+        "ollama": {
+          "requests": 10,
+          "avg_response_time": 6171.4,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 22,
+          "avg_tokens_per_request": 2.2,
+          "models_used": {}
+        },
+        "openai": {
+          "requests": 14,
+          "avg_response_time": 3979.79,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 34,
+          "avg_tokens_per_request": 2.4,
+          "models_used": {}
+        },
+        "OpenAI": {
+          "requests": 4,
+          "avg_response_time": 1411.75,
+          "blocked_requests": 1,
+          "error_requests": 0,
+          "block_rate": 25.0,
+          "error_rate": 0.0,
+          "total_tokens": 20,
+          "avg_tokens_per_request": 5.0,
+          "models_used": {
+            "gpt-4o": 4
+          }
+        }
+      },
+      "alerts": [],
+      "data_points": 794
+    },
+    "6h": {
+      "summary": {
+        "total_requests": 1490,
+        "blocked_requests": 130,
+        "block_rate": 0.087,
+        "unique_users": 1,
+        "avg_response_time_ms": 605.25,
+        "total_tokens_input": 2973,
+        "total_tokens_output": 0,
+        "avg_tokens_per_request": 2.0
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 3,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 1490,
+          "effectiveness_percentage": 0.2
+        },
+        "pii": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 1490,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 1490,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 1490,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 1490,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 1490,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 1490,
+          "blocked_requests": 130,
+          "block_rate": 8.7,
+          "avg_response_time": 605.25,
+          "total_tokens": 2973,
+          "unique_sessions": 18,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 23.7,
+          "first_seen": "2025-08-06T11:54:04.026724",
+          "last_seen": "2025-08-06T17:44:50.964329"
+        }
+      },
+      "provider_performance": {
+        "Ollama (Local)": {
+          "requests": 2,
+          "avg_response_time": 31.5,
+          "blocked_requests": 2,
+          "error_requests": 0,
+          "block_rate": 100.0,
+          "error_rate": 0.0,
+          "total_tokens": 12,
+          "avg_tokens_per_request": 6.0,
+          "models_used": {
+            "llama3.2": 2
+          }
+        },
+        "ollama": {
+          "requests": 10,
+          "avg_response_time": 6171.4,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 22,
+          "avg_tokens_per_request": 2.2,
+          "models_used": {}
+        },
+        "openai": {
+          "requests": 28,
+          "avg_response_time": 3532.79,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 48,
+          "avg_tokens_per_request": 1.7,
+          "models_used": {}
+        },
+        "OpenAI": {
+          "requests": 7,
+          "avg_response_time": 810.71,
+          "blocked_requests": 4,
+          "error_requests": 0,
+          "block_rate": 57.1,
+          "error_rate": 0.0,
+          "total_tokens": 32,
+          "avg_tokens_per_request": 4.6,
+          "models_used": {
+            "gpt-4o": 7
+          }
+        }
+      },
+      "alerts": [],
+      "data_points": 1490
+    },
+    "12h": {
+      "summary": {
+        "total_requests": 4056,
+        "blocked_requests": 238,
+        "block_rate": 0.059,
+        "unique_users": 1,
+        "avg_response_time_ms": 696.06,
+        "total_tokens_input": 8061,
+        "total_tokens_output": 0,
+        "avg_tokens_per_request": 1.99
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 4,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4056,
+          "effectiveness_percentage": 0.1
+        },
+        "pii": {
+          "triggers": 1,
+          "avg_confidence": 0.8,
+          "max_score": 0.95,
+          "total_analyzed": 4056,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4056,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4056,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4056,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4056,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 4056,
+          "blocked_requests": 238,
+          "block_rate": 5.9,
+          "avg_response_time": 696.06,
+          "total_tokens": 8061,
+          "unique_sessions": 43,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 20.9,
+          "first_seen": "2025-08-06T06:08:46.588503",
+          "last_seen": "2025-08-06T17:44:50.964329"
+        }
+      },
+      "provider_performance": {
+        "Ollama (Local)": {
+          "requests": 2,
+          "avg_response_time": 31.5,
+          "blocked_requests": 2,
+          "error_requests": 0,
+          "block_rate": 100.0,
+          "error_rate": 0.0,
+          "total_tokens": 12,
+          "avg_tokens_per_request": 6.0,
+          "models_used": {
+            "llama3.2": 2
+          }
+        },
+        "ollama": {
+          "requests": 20,
+          "avg_response_time": 3088.5,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 32,
+          "avg_tokens_per_request": 1.6,
+          "models_used": {}
+        },
+        "openai": {
+          "requests": 46,
+          "avg_response_time": 3178.33,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 82,
+          "avg_tokens_per_request": 1.8,
+          "models_used": {}
+        },
+        "OpenAI": {
+          "requests": 14,
+          "avg_response_time": 560.93,
+          "blocked_requests": 10,
+          "error_requests": 0,
+          "block_rate": 71.4,
+          "error_rate": 0.0,
+          "total_tokens": 56,
+          "avg_tokens_per_request": 4.0,
+          "models_used": {
+            "gpt-4o": 14
+          }
+        }
+      },
+      "alerts": [],
+      "data_points": 4056
+    },
+    "24h": {
+      "summary": {
+        "total_requests": 4059,
+        "blocked_requests": 239,
+        "block_rate": 0.059,
+        "unique_users": 1,
+        "avg_response_time_ms": 696.08,
+        "total_tokens_input": 8067,
+        "total_tokens_output": 0,
+        "avg_tokens_per_request": 1.99
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 4,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4059,
+          "effectiveness_percentage": 0.1
+        },
+        "pii": {
+          "triggers": 1,
+          "avg_confidence": 0.8,
+          "max_score": 0.95,
+          "total_analyzed": 4059,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4059,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4059,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4059,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 4059,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 4059,
+          "blocked_requests": 239,
+          "block_rate": 5.9,
+          "avg_response_time": 696.08,
+          "total_tokens": 8067,
+          "unique_sessions": 43,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 20.9,
+          "first_seen": "2025-08-05T18:00:30.544403",
+          "last_seen": "2025-08-06T17:44:50.964329"
+        }
+      },
+      "provider_performance": {
+        "Ollama (Local)": {
+          "requests": 2,
+          "avg_response_time": 31.5,
+          "blocked_requests": 2,
+          "error_requests": 0,
+          "block_rate": 100.0,
+          "error_rate": 0.0,
+          "total_tokens": 12,
+          "avg_tokens_per_request": 6.0,
+          "models_used": {
+            "llama3.2": 2
+          }
+        },
+        "ollama": {
+          "requests": 20,
+          "avg_response_time": 3088.5,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 32,
+          "avg_tokens_per_request": 1.6,
+          "models_used": {}
+        },
+        "openai": {
+          "requests": 46,
+          "avg_response_time": 3178.33,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 82,
+          "avg_tokens_per_request": 1.8,
+          "models_used": {}
+        },
+        "OpenAI": {
+          "requests": 14,
+          "avg_response_time": 560.93,
+          "blocked_requests": 10,
+          "error_requests": 0,
+          "block_rate": 71.4,
+          "error_rate": 0.0,
+          "total_tokens": 56,
+          "avg_tokens_per_request": 4.0,
+          "models_used": {
+            "gpt-4o": 14
+          }
+        }
+      },
+      "alerts": [],
+      "data_points": 4059
+    },
+    "3d": {
+      "summary": {
+        "total_requests": 5399,
+        "blocked_requests": 510,
+        "block_rate": 0.094,
+        "unique_users": 1,
+        "avg_response_time_ms": 809.67,
+        "total_tokens_input": 10757,
+        "total_tokens_output": 0,
+        "avg_tokens_per_request": 1.99
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 4,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 5399,
+          "effectiveness_percentage": 0.1
+        },
+        "pii": {
+          "triggers": 1,
+          "avg_confidence": 0.8,
+          "max_score": 0.95,
+          "total_analyzed": 5399,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 5399,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 5399,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 5399,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 5399,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 5399,
+          "blocked_requests": 510,
+          "block_rate": 9.4,
+          "avg_response_time": 809.67,
+          "total_tokens": 10757,
+          "unique_sessions": 47,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 24.4,
+          "first_seen": "2025-08-03T19:24:59.195214",
+          "last_seen": "2025-08-06T17:44:50.964329"
+        }
+      },
+      "provider_performance": {
+        "Ollama (Local)": {
+          "requests": 2,
+          "avg_response_time": 31.5,
+          "blocked_requests": 2,
+          "error_requests": 0,
+          "block_rate": 100.0,
+          "error_rate": 0.0,
+          "total_tokens": 12,
+          "avg_tokens_per_request": 6.0,
+          "models_used": {
+            "llama3.2": 2
+          }
+        },
+        "ollama": {
+          "requests": 20,
+          "avg_response_time": 3088.5,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 32,
+          "avg_tokens_per_request": 1.6,
+          "models_used": {}
+        },
+        "openai": {
+          "requests": 46,
+          "avg_response_time": 3178.33,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 82,
+          "avg_tokens_per_request": 1.8,
+          "models_used": {}
+        },
+        "OpenAI": {
+          "requests": 14,
+          "avg_response_time": 560.93,
+          "blocked_requests": 10,
+          "error_requests": 0,
+          "block_rate": 71.4,
+          "error_rate": 0.0,
+          "total_tokens": 56,
+          "avg_tokens_per_request": 4.0,
+          "models_used": {
+            "gpt-4o": 14
+          }
+        }
+      },
+      "alerts": [],
+      "data_points": 5399
+    },
+    "1w": {
+      "summary": {
+        "total_requests": 5400,
+        "blocked_requests": 510,
+        "block_rate": 0.094,
+        "unique_users": 2,
+        "avg_response_time_ms": 809.56,
+        "total_tokens_input": 10759,
+        "total_tokens_output": 2,
+        "avg_tokens_per_request": 1.99
+      },
+      "guardrail_analysis": {
+        "toxicity": {
+          "triggers": 4,
+          "avg_confidence": 0.0,
+          "max_score": 0.1,
+          "total_analyzed": 1,
+          "effectiveness_percentage": 400.0
+        },
+        "pii": {
+          "triggers": 1,
+          "avg_confidence": 0.8,
+          "max_score": 0.95,
+          "total_analyzed": 5400,
+          "effectiveness_percentage": 0.0
+        },
+        "prompt_injection": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 5400,
+          "effectiveness_percentage": 0.0
+        },
+        "hate_speech": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 5400,
+          "effectiveness_percentage": 0.0
+        },
+        "bias": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 5400,
+          "effectiveness_percentage": 0.0
+        },
+        "privacy": {
+          "triggers": 0,
+          "avg_confidence": 0.0,
+          "max_score": 0.0,
+          "total_analyzed": 5400,
+          "effectiveness_percentage": 0.0
+        }
+      },
+      "user_activity": {
+        "127.0.0.1": {
+          "total_requests": 5399,
+          "blocked_requests": 510,
+          "block_rate": 9.4,
+          "avg_response_time": 809.67,
+          "total_tokens": 10757,
+          "unique_sessions": 47,
+          "top_blocked_guardrail": "unknown",
+          "risk_score": 24.4,
+          "first_seen": "2025-08-03T19:24:59.195214",
+          "last_seen": "2025-08-06T17:44:50.964329"
+        },
+        "192.168.1.100": {
+          "total_requests": 1,
+          "blocked_requests": 0,
+          "block_rate": 0.0,
+          "avg_response_time": 250.0,
+          "total_tokens": 4,
+          "unique_sessions": 0,
+          "top_blocked_guardrail": null,
+          "risk_score": 0.0,
+          "first_seen": "2025-08-03T12:31:34.540750",
+          "last_seen": "2025-08-03T12:31:34.540750"
+        }
+      },
+      "provider_performance": {
+        "Ollama (Local)": {
+          "requests": 2,
+          "avg_response_time": 31.5,
+          "blocked_requests": 2,
+          "error_requests": 0,
+          "block_rate": 100.0,
+          "error_rate": 0.0,
+          "total_tokens": 12,
+          "avg_tokens_per_request": 6.0,
+          "models_used": {
+            "llama3.2": 2
+          }
+        },
+        "ollama": {
+          "requests": 20,
+          "avg_response_time": 3088.5,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 32,
+          "avg_tokens_per_request": 1.6,
+          "models_used": {}
+        },
+        "openai": {
+          "requests": 46,
+          "avg_response_time": 3178.33,
+          "blocked_requests": 0,
+          "error_requests": 0,
+          "block_rate": 0.0,
+          "error_rate": 0.0,
+          "total_tokens": 82,
+          "avg_tokens_per_request": 1.8,
+          "models_used": {}
+        },
+        "OpenAI": {
+          "requests": 14,
+          "avg_response_time": 560.93,
+          "blocked_requests": 10,
+          "error_requests": 0,
+          "block_rate": 71.4,
+          "error_rate": 0.0,
+          "total_tokens": 56,
+          "avg_tokens_per_request": 4.0,
+          "models_used": {
+            "gpt-4o": 14
+          }
+        }
+      },
+      "alerts": [],
+      "data_points": 5400
+    }
+  }
+}

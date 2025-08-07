@@ -43,7 +43,7 @@ class ToxicityDetector:
             app_logger.error(f"Failed to load toxicity model: {e}")
             raise ModelLoadingException(f"Failed to load toxicity model: {e}")
     
-    async def detect(self, text: str, threshold: float = 0.85) -> Dict[str, Any]:
+    async def detect(self, text: str, threshold: float = 0.05) -> Dict[str, Any]:
         try:
             if not self.is_loaded:
                 await self.load_model()

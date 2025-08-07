@@ -6,7 +6,7 @@ interface UseOllamaModelsResult {
   topRecommended: OllamaModel[];
   isLoading: boolean;
   error: string | null;
-  refreshModels: () => Promise<void>;
+  refreshModels: (forceRefresh?: boolean) => Promise<void>;
   searchModels: (query: string) => Promise<OllamaModel[]>;
   filterByCapabilities: (capabilities: string[]) => Promise<OllamaModel[]>;
   getModelsByCompatibility: (level: 'Excellent' | 'Good' | 'Fair' | 'Limited') => Promise<OllamaModel[]>;
@@ -25,13 +25,17 @@ export const useOllamaModels = (options: UseOllamaModelsOptions = {}): UseOllama
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshModels = useCallback(async () => {
+  const refreshModels = useCallback(async (forceRefresh: boolean = false) => {
     setIsLoading(true);
     setError(null);
     
+    if (forceRefresh) {
+      console.log('🔄 Force refreshing models...');
+    }
+    
     try {
       const [allModels, recommendedModels] = await Promise.all([
-        ollamaModelsService.fetchAvailableModels(),
+        ollamaModelsService.fetchAvailableModels(forceRefresh),
         ollamaModelsService.getTopRecommendations(topRecommendedCount),
       ]);
       
@@ -86,7 +90,7 @@ export const useOllamaModels = (options: UseOllamaModelsOptions = {}): UseOllama
     topRecommended,
     isLoading,
     error,
-    refreshModels,
+    refreshModels: (forceRefresh?: boolean) => refreshModels(forceRefresh || false),
     searchModels,
     filterByCapabilities,
     getModelsByCompatibility,

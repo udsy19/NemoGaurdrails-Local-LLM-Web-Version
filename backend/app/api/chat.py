@@ -18,6 +18,7 @@ class ChatMessage(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str
+
     blocked: bool
     blocking_reasons: List[str] = []
     warnings: List[str] = []

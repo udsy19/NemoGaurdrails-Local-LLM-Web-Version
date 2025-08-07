@@ -35,7 +35,9 @@ class OllamaModelsService {
     this.cacheTimestamp = 0;
     localStorage.removeItem('ollamaModelsCache');
     localStorage.removeItem('ollamaCacheTime');
-    console.log('🧹 Models cache cleared');
+    localStorage.removeItem('systemSpecs');
+    localStorage.removeItem('systemSpecsTime');
+    console.log('🧹 Models cache cleared completely');
   }
 
   /**
@@ -68,9 +70,13 @@ class OllamaModelsService {
         signal: controller.signal,
         headers: {
           'Accept': 'application/json',
-          'Cache-Control': 'max-age=600' // Prefer cached response if available
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       });
+      
+      console.log('📡 Response status:', response.status, response.statusText);
       
       clearTimeout(timeoutId);
       
@@ -112,6 +118,7 @@ class OllamaModelsService {
       // Return fallback popular models if fetch fails
       const fallback = this.getFallbackModels();
       console.log(`⚠️ Using ${fallback.length} fallback models due to error:`, error);
+      console.log('🔍 Fallback models:', fallback.map(m => m.name));
       
       // Cache fallback models to avoid repeated failures
       this.modelsCache = fallback;

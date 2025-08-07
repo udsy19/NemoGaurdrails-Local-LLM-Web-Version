@@ -29,7 +29,7 @@ class ModelManager:
         
         # Default detector configurations - adjusted for better usability
         self.detector_configs = {
-            'toxicity': {'threshold': 0.85},      # Increased from 0.7 to reduce false positives
+            'toxicity': {'threshold': 0.05},      # Lowered from 0.85 to catch profanity properly
             'pii': {'sensitivity': 0.6},          # Reduced from 0.8 to be less aggressive  
             'prompt_injection': {'threshold': 0.7}, # Increased from 0.5 for better accuracy
             'topic': {'threshold': 0.85},         # Increased from 0.7 to be less sensitive

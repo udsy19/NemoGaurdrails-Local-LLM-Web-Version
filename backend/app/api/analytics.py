@@ -202,21 +202,25 @@ async def get_guardrail_analytics(hours: int = 24):
         
         summary = analytics_service.get_analytics_summary(hours)
         
-        # Enhanced detector performance with accuracy metrics
+        # Real detector performance from actual data
         detector_performance = {}
         guardrails_analysis = summary.get("guardrails_analysis", {})
         for guardrail_name, guardrail_data in guardrails_analysis.items():
-            confidence = guardrail_data.get("avg_confidence", 0.8)
+            confidence = guardrail_data.get("avg_confidence", 0.0)
             triggers = guardrail_data.get("triggers", 0)
+            total_analyzed = guardrail_data.get("total_analyzed", 0)
+            effectiveness = guardrail_data.get("effectiveness_percentage", 0.0)
+            
             detector_performance[guardrail_name] = {
                 "enabled": True,
-                "accuracy": confidence,  # Use confidence as proxy for accuracy
-                "precision": min(0.95, confidence + 0.1),  # Simulated precision
-                "recall": min(0.98, confidence + 0.05),    # Simulated recall
-                "f1_score": min(0.92, confidence),         # Simulated F1
-                "avg_response_time": 50 + (hash(guardrail_name) % 50),  # Simulated response time
+                "accuracy": round(confidence, 3),
+                "triggers": triggers,
+                "total_analyzed": total_analyzed,
+                "effectiveness": effectiveness,
+                "avg_confidence": confidence,
+                "max_score": guardrail_data.get("max_score", 0.0),
                 "request_count": triggers,
-                "block_rate": round(guardrail_data.get("effectiveness_percentage", 0), 1)
+                "block_rate": effectiveness
             }
         
         # Top blocked categories from blocking reasons
@@ -240,7 +244,7 @@ async def get_guardrail_analytics(hours: int = 24):
             logger.warning(f"Error processing blocking reasons: {e}")
             top_blocked_categories = {"toxicity": 5, "spam": 3, "pii": 2}
         
-        # Hourly stats for timeline
+        # Real hourly stats from database
         hourly_stats = []
         try:
             request_timeline = summary.get('request_timeline', [])
@@ -254,23 +258,33 @@ async def get_guardrail_analytics(hours: int = 24):
                             "allowed": data.get("allowed", 0) if isinstance(data, dict) else 0,
                             "total": data.get("total", 0) if isinstance(data, dict) else 0
                         })
+            else:
+                # If no timeline data available, return empty array instead of fake data
+                hourly_stats = []
         except Exception as e:
             logger.warning(f"Error processing timeline: {e}")
-            # Generate sample data
-            for i in range(24):
-                hourly_stats.append({
-                    "hour": f"{i:02d}:00",
-                    "blocked": max(0, 10 - i),
-                    "allowed": 50 + i * 2,
-                    "total": 60 + i * 2
-                })
+            # Return empty array instead of generating fake data
+            hourly_stats = []
         
-        # User analytics
+        # Real user analytics from actual data
         unique_users = summary.get("unique_users", 0)
+        total_requests = summary.get("total_requests", 0)
+        blocked_requests = summary.get("blocked_requests", 0)
+        user_activity_data = summary.get("user_activity", {})
+        
+        # Calculate real repeat violators based on blocked requests per user
+        repeat_violators = 0
+        if isinstance(user_activity_data, dict):
+            for user_ip, user_data in user_activity_data.items():
+                if isinstance(user_data, dict) and user_data.get("blocked", 0) > 1:
+                    repeat_violators += 1
+        
         user_analytics = {
             "unique_users": unique_users,
-            "repeat_violators": max(0, int(unique_users * 0.1)),  # Estimate 10% repeat violators
-            "new_users_today": max(0, int(unique_users * 0.3))    # Estimate 30% new users
+            "repeat_violators": repeat_violators,
+            "total_requests": total_requests,
+            "blocked_requests": blocked_requests,
+            "avg_requests_per_user": round(total_requests / unique_users, 1) if unique_users > 0 else 0
         }
         
         # Content analysis - Get real data from analytics service

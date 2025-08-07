@@ -9,6 +9,47 @@ import {
   LogEntry,
 } from '../types';
 
+// Authentication token management
+class TokenManager {
+  private static TOKEN_KEY = 'auth_token';
+  private static REFRESH_TOKEN_KEY = 'refresh_token';
+  
+  static getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
+  
+  static setToken(token: string): void {
+    localStorage.setItem(this.TOKEN_KEY, token);
+  }
+  
+  static getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+  
+  static setRefreshToken(token: string): void {
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
+  }
+  
+  static clearTokens(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+  }
+  
+  static hasValidToken(): boolean {
+    const token = this.getToken();
+    if (!token) return false;
+    
+    try {
+      // Basic JWT validation - check if it's not expired
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Date.now() / 1000;
+      return payload.exp > now;
+    } catch {
+      return false;
+    }
+  }
+}
+
 class ApiService {
   private client: AxiosInstance;
   private baseURL: string;
@@ -23,9 +64,15 @@ class ApiService {
       },
     });
 
-    // Request interceptor for logging
+    // Request interceptor for authentication and logging
     this.client.interceptors.request.use(
       (config) => {
+        // Add authentication token if available
+        const token = TokenManager.getToken();
+        if (token && TokenManager.hasValidToken()) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        
         console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
@@ -43,6 +90,15 @@ class ApiService {
       },
       (error) => {
         console.error('❌ API Response Error:', error);
+        
+        // Handle authentication errors
+        if (error.response?.status === 401) {
+          // Clear invalid tokens
+          TokenManager.clearTokens();
+          // Redirect to login page or emit event
+          window.dispatchEvent(new CustomEvent('auth:logout'));
+        }
+        
         return Promise.reject(this.handleError(error));
       }
     );
@@ -302,6 +358,65 @@ class ApiService {
       },
     ];
     return mockLogs;
+  }
+
+  // Authentication methods
+  async login(email: string, password: string, useBypass: boolean = false) {
+    const response = await this.client.post('/api/auth/login', {
+      email,
+      password,
+      use_bypass: useBypass,
+    });
+
+    const data = response.data;
+    if (data.success && data.session?.access_token) {
+      TokenManager.setToken(data.session.access_token);
+      if (data.session.refresh_token) {
+        TokenManager.setRefreshToken(data.session.refresh_token);
+      }
+    }
+
+    return data;
+  }
+
+  async verifyLicense(licenseUuid: string, useBypass: boolean = false) {
+    return await this.client.post('/api/auth/verify-license', {
+      license_uuid: licenseUuid,
+      use_bypass: useBypass,
+    });
+  }
+
+  async logout() {
+    try {
+      await this.client.post('/api/auth/logout');
+    } finally {
+      TokenManager.clearTokens();
+    }
+  }
+
+  async getSession() {
+    return await this.client.get('/api/auth/session');
+  }
+
+  async getSystemInfo() {
+    return await this.client.get('/api/auth/system-info');
+  }
+
+  async checkAuthHealth() {
+    return await this.client.get('/api/auth/health');
+  }
+
+  // Token management utilities
+  static clearAuthTokens() {
+    TokenManager.clearTokens();
+  }
+
+  static hasValidAuthToken(): boolean {
+    return TokenManager.hasValidToken();
+  }
+
+  static getAuthToken(): string | null {
+    return TokenManager.getToken();
   }
 }
 

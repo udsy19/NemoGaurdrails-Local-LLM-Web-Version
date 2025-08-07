@@ -1,5 +1,7 @@
 import json
 import yaml
+import os
+import re
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 from app.utils.logger import app_logger
@@ -21,13 +23,34 @@ class ConfigService:
             app_logger.error(f"Failed to initialize configuration service: {e}")
             raise ConfigurationException(f"Configuration service initialization failed: {e}")
     
+    def _expand_environment_variables(self, config: Any) -> Any:
+        """Recursively expand environment variables in configuration"""
+        if isinstance(config, dict):
+            return {key: self._expand_environment_variables(value) for key, value in config.items()}
+        elif isinstance(config, list):
+            return [self._expand_environment_variables(item) for item in config]
+        elif isinstance(config, str):
+            # Handle ${VAR} and ${VAR:default} patterns
+            def replace_env_var(match):
+                var_expr = match.group(1)
+                if ':' in var_expr:
+                    var_name, default_value = var_expr.split(':', 1)
+                    return os.environ.get(var_name, default_value)
+                else:
+                    return os.environ.get(var_expr, match.group(0))  # Return original if not found
+            
+            return re.sub(r'\$\{([^}]+)\}', replace_env_var, config)
+        else:
+            return config
+
     async def load_system_config(self):
         """Load system configuration from file"""
         try:
             if self.config_file.exists():
                 with open(self.config_file, 'r') as f:
-                    self.system_config = yaml.safe_load(f)
-                app_logger.info("System configuration loaded from file")
+                    raw_config = yaml.safe_load(f)
+                    self.system_config = self._expand_environment_variables(raw_config)
+                app_logger.info("System configuration loaded from file with environment variable expansion")
             else:
                 self.system_config = self.get_default_system_config()
                 await self.save_system_config()
